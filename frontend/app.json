@@ -1,44 +1,78 @@
 {
   "expo": {
-    "name": "frontend",
+    "name": "FX CALL",
     "slug": "frontend",
     "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "frontend",
-    "userInterfaceStyle": "automatic",
+    "orientation": "default",
+    "icon": "./assets/images/logo.png",
+    "scheme": "fxcall",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0D0D0E",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.emergent.fxcallprivate.w658wi"
+      "bundleIdentifier": "com.emergent.fxcallprivate.w658wi",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Show your video to people in your calls",
+        "NSMicrophoneUsageDescription": "Let people in your calls hear you",
+        "UIBackgroundModes": ["audio"],
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#000000"
+        "foregroundImage": "./assets/images/logo.png",
+        "backgroundColor": "#0D0D0E"
       },
-      "package": "com.emergent.fxcallprivate.w658wi"
+      "package": "com.emergent.fxcallprivate.w658wi",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.BLUETOOTH_CONNECT",
+        "android.permission.DETECT_SCREEN_CAPTURE",
+        "android.permission.DETECT_SCREEN_RECORDING"
+      ],
+      "blockedPermissions": [
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
       "bundler": "metro",
       "output": "single",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/logo.png",
+      "name": "FX CALL",
+      "themeColor": "#0D0D0E",
+      "backgroundColor": "#0D0D0E"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-image.png",
+          "image": "./assets/images/logo.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#000000"
+          "backgroundColor": "#0D0D0E"
         }
       ],
       "expo-font",
       "expo-image",
       "expo-secure-store",
       "expo-web-browser",
-      "expo-status-bar"
+      "expo-status-bar",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Show your video to people in your calls",
+          "microphonePermission": "Let people in your calls hear you",
+          "recordAudioAndroid": true
+        }
+      ],
+      "expo-screen-capture",
+      "@livekit/react-native-expo-plugin",
+      "@config-plugins/react-native-webrtc",
+      "@react-native-vector-icons/lucide"
     ],
     "experiments": {
       "typedRoutes": true

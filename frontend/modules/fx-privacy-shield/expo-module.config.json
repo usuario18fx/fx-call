@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android"],
+  "apple": {
+    "modules": ["FxPrivacyShieldModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.fxprivacyshield.FxPrivacyShieldModule"]
+  }
+}

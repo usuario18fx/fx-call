@@ -1,35 +1,68 @@
-import { QueryClientProvider } from "@tanstack/react-query";
+import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
-import { LogBox, StyleSheet } from "react-native";
+import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { LogBox, Platform, StyleSheet } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import { AuthProvider } from "@/src/auth";
 import { ErrorBoundary } from "@/src/components/error-boundary";
+import { ToastProvider } from "@/src/components/ui";
 import { queryClient } from "@/src/query-client";
+import { colors } from "@/src/theme";
 
-// Disable logbox errors etc so that users can see the app
-// and agent works as expected.
-LogBox.ignoreAllLogs(true)
+LogBox.ignoreAllLogs(true);
+SplashScreen.preventAutoHideAsync().catch(() => {});
+
+// STRICT NO SCREEN SHARING: on the website, display capture can never be invoked by this app.
+if (Platform.OS === "web" && typeof navigator !== "undefined" && navigator.mediaDevices) {
+  try {
+    Object.defineProperty(navigator.mediaDevices, "getDisplayMedia", {
+      value: () => Promise.reject(new DOMException("Screen sharing is disabled in FX CALL", "NotAllowedError")),
+      configurable: false,
+      writable: false,
+    });
+  } catch {
+    // already locked
+  }
+}
 
 export default function RootLayout() {
-  // One app level ErrorBoundary; a render crash shows a reload screen
-  // instead of a blank app. GestureHandlerRootView must wrap the whole tree
-  // or any gesture/swipe/drawer screen crashes in Expo Go.
+  const [loaded, fontError] = useFonts({
+    Cormorant: require("../assets/fonts/CG.ttf"),
+    DMSans: require("../assets/fonts/DMSans.ttf"),
+  });
+
+  useEffect(() => {
+    if (loaded || fontError) SplashScreen.hideAsync().catch(() => {});
+  }, [loaded, fontError]);
+
+  if (!loaded && !fontError) return null;
+
   return (
     <GestureHandlerRootView style={styles.root}>
-      <ErrorBoundary>
-        <QueryClientProvider client={queryClient}>
-          <KeyboardProvider>
-            <Stack screenOptions={{ headerShown: false }} />
-          </KeyboardProvider>
-        </QueryClientProvider>
-      </ErrorBoundary>
+      <SafeAreaProvider>
+        <ErrorBoundary>
+          <QueryClientProvider client={queryClient}>
+            <KeyboardProvider>
+              <AuthProvider>
+                <ToastProvider>
+                  <StatusBar style="light" />
+                  <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.surface }, animation: "fade" }} />
+                </ToastProvider>
+              </AuthProvider>
+            </KeyboardProvider>
+          </QueryClientProvider>
+        </ErrorBoundary>
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
+  root: { flex: 1, backgroundColor: colors.surface },
 });

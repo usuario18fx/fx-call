@@ -1,0 +1,169 @@
+{
+  "app_name": "FX CALL",
+  "personality": "7 Dark-First Utility DARK structure with 3 Editorial Mobile typography (Matte Luxe, Security-focused)",
+  "personality_one_liner": "A premium, matte-dark cinematic communication suite that prioritizes absolute security without sacrificing editorial elegance.",
+  "color": {
+    "surface": "#0D0D0E",
+    "onSurface": "#C6C9D1",
+    "surfaceSecondary": "#343B43",
+    "onSurfaceSecondary": "#EAECEF",
+    "surfaceTertiary": "#262A30",
+    "onSurfaceTertiary": "#C6C9D1",
+    "surfaceInverse": "#EAECEF",
+    "onSurfaceInverse": "#0D0D0E",
+    "brand": "#145B89",
+    "brandPrimary": "#145B89",
+    "onBrandPrimary": "#FFFFFF",
+    "brandSecondary": "#104060",
+    "onBrandSecondary": "#EAECEF",
+    "brandTertiary": "#0B263B",
+    "onBrandTertiary": "#7DAAC7",
+    "success": "#2D6A4F",
+    "onSuccess": "#D8F3DC",
+    "warning": "#B5651D",
+    "onWarning": "#FDF0D5",
+    "error": "#9E2A2B",
+    "onError": "#FFCAD4",
+    "info": "#145B89",
+    "onInfo": "#FFFFFF",
+    "border": "#262A30",
+    "borderStrong": "#4A545F",
+    "divider": "#1A1D21",
+    "muted": "#7E8490",
+    "onBrand": "#FFFFFF"
+  },
+  "typography": {
+    "displayFontFamily": "Cormorant Garamond",
+    "textFontFamily": "DM Sans",
+    "scale": {
+      "sm": 12,
+      "base": 14,
+      "lg": 16,
+      "xl": 20,
+      "2xl": 24
+    }
+  },
+  "spacing": {
+    "rule": "Generous editorial spacing inside cards, with tight utility spacing for data tables and security logs. Safe areas must be explicitly respected.",
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 24,
+    "2xl": 32,
+    "3xl": 48
+  },
+  "radius_tokens": {
+    "sm": 6,
+    "md": 12,
+    "lg": 20,
+    "pill": 999
+  },
+  "shadow_tier": 0,
+  "navigation": "bottom_tabs",
+  "icon_set": "Phosphor",
+  "glassmorphism": {
+    "enabled": false,
+    "do's": [
+      "Use solid surface colors exclusively to adhere to the 'matte materials' and 'no glow' constraint."
+    ],
+    "dont's": [
+      "Do not use expo-blur, glass-effect, translucent sheets, or bloom.",
+      "Never use gradients for depth; rely on solid color elevation."
+    ]
+  },
+  "platform_libraries": {
+    "glass": {
+      "ios": "solid surfaceSecondary",
+      "android": "solid surfaceSecondary",
+      "low_end_android_fallback": "solid surfaceSecondary"
+    },
+    "image": "expo-image",
+    "blur": "solid surfaceSecondary",
+    "bottom_sheet": "@gorhom/bottom-sheet",
+    "animation": "react-native-reanimated",
+    "gesture": "react-native-gesture-handler"
+  },
+  "screens": [
+    {
+      "name": "Auth",
+      "purpose": "Elegant gateway to the platform featuring email login/registration and 2FA.",
+      "states": {
+        "loading": "Subtle matte spinner centering the screen.",
+        "empty": "N/A",
+        "error": "Inline text below inputs with #9E2A2B error color."
+      },
+      "layout": "Hero layout with the abstract matte texture as the background, overlaid with a strict gradient scrim. The matte-blue crown logo sits prominently at the top. The login container uses a solid surfaceSecondary card with lg radius, housing small-caps labels and minimalist inputs."
+    },
+    {
+      "name": "Meetings Home",
+      "purpose": "Primary hub to instantly join or create a secure meeting.",
+      "states": {
+        "loading": "Skeleton loading for upcoming meetings.",
+        "empty": "Display the security shield icon. Text: 'No upcoming private meetings. Start or schedule a secure room.'",
+        "error": "Text: 'Unable to sync schedule. Please verify your connection.' with a Retry button."
+      },
+      "layout": "Two-column grid on web, single-column scroll on mobile. Top section features a prominent primary action block for 'Start Call' and 'Join Call'. Below, a list of scheduled private invitations. Each invitation card shows the custom name, expiration status, and host."
+    },
+    {
+      "name": "Host Security Dashboard",
+      "purpose": "Command center for the host to monitor privacy, alerts, and manage participants.",
+      "states": {
+        "loading": "Matte spinner in the center.",
+        "empty": "Security shield icon with 'Room is currently empty. Waiting for guests.'",
+        "error": "Error banner: 'Connection to security server interrupted. Reconnecting...'"
+      },
+      "layout": "Dark-First Utility structure. Segmented controls at the top to toggle between 'Active Participants', 'Waiting Room', and 'Security Alerts'. High-density list rows showing participant device, OS, and capture detection availability. Alert timeline prominently surfaces 'SCREENSHOT DETECTED' in small-caps error styling."
+    },
+    {
+      "name": "Guest Join Flow & Waiting Room",
+      "purpose": "Staging area for identity verification, AV preview, and waiting for host approval.",
+      "states": {
+        "loading": "Authenticating guest credentials...",
+        "empty": "Show empty waiting room chair image. Text: 'Waiting for the host to let you in.'",
+        "error": "Text: 'Invite link expired or revoked. Contact the host.' with an exit CTA."
+      },
+      "layout": "Step 1: Invite page showing the crown logo and meeting details. Step 2: Email verification with small-caps typography. Step 3: Device setup (cam/mic preview). Step 4: Full-screen waiting state displaying the moody waiting room image with a prominent 'Request to Join' pending status."
+    },
+    {
+      "name": "In-Call Video Screen",
+      "purpose": "The core communication interface with 1:1/group video, controls, and real-time security alerts.",
+      "states": {
+        "loading": "Connecting to private room...",
+        "empty": "N/A",
+        "error": "Text: 'Connection lost. Attempting to reconnect securely.' overlaid on the last known video frame."
+      },
+      "layout": "Immersive full-screen video with no status bar (safe area applied to controls only). Controls housed in a floating matte pill at the bottom third (mic, cam, flip, end call, chat). Host sees an overlay button for 'Security Dashboard'. Alerts slide in from the top edge with high contrast."
+    }
+  ],
+  "images": {
+    "logo": {
+      "url": "https://customer-assets-agu9un31.emergentagent.net/job_fxcall-private--6d2134v3/artifacts/b0368cd2be3e776d_FxVideocall.png",
+      "alt": "FX CALL Matte-Blue Crown Logo"
+    },
+    "auth_hero": {
+      "url": "https://images.unsplash.com/photo-1710438399422-2fca27686bcd?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxNzV8MHwxfHNlYXJjaHwxfHxkYXJrJTIwYWJzdHJhY3QlMjBtYXR0ZSUyMHRleHR1cmUlMjBtaW5pbWFsaXN0fGVufDB8fHx8MTc5NTM4NDM5NHww&ixlib=rb-4.1.0&q=85",
+      "dark": "https://images.unsplash.com/photo-1710438399422-2fca27686bcd?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxNzV8MHwxfHNlYXJjaHwxfHxkYXJrJTIwYWJzdHJhY3QlMjBtYXR0ZSUyMHRleHR1cmUlMjBtaW5pbWFsaXN0fGVufDB8fHx8MTc5NTM4NDM5NHww&ixlib=rb-4.1.0&q=85",
+      "alt": "Dark abstract matte texture"
+    },
+    "security_shield_empty": {
+      "url": "https://images.unsplash.com/photo-1638947604157-d259d219eeee?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MTJ8MHwxfHNlYXJjaHwxfHxzZWN1cml0eSUyMHNoaWVsZCUyMG1pbmltYWwlMjAzZCUyMGljb24lMjBkYXJrfGVufDB8fHx8MTc5NTM4NDM5NHww&ixlib=rb-4.1.0&q=85",
+      "dark": "https://images.unsplash.com/photo-1638947604157-d259d219eeee?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MTJ8MHwxfHNlYXJjaHwxfHxzZWN1cml0eSUyMHNoaWVsZCUyMG1pbmltYWwlMjAzZCUyMGljb24lMjBkYXJrfGVufDB8fHx8MTc5NTM4NDM5NHww&ixlib=rb-4.1.0&q=85",
+      "alt": "Minimalist 3D security shield on matte gray surface"
+    },
+    "waiting_room_empty": {
+      "url": "https://images.unsplash.com/photo-1771707691434-12ea601b5c2b?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MTJ8MHwxfHNlYXJjaHwxfHxlbXB0eSUyMHdhaXRpbmclMjByb29tJTIwY2hhaXIlMjBkYXJrJTIwbW9vZHl8ZW58MHx8fHwxNzk1Mzg0Mzk0fDA&ixlib=rb-4.1.0&q=85",
+      "dark": "https://images.unsplash.com/photo-1771707691434-12ea601b5c2b?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA2MTJ8MHwxfHNlYXJjaHwxfHxlbXB0eSUyMHdhaXRpbmclMjByb29tJTIwY2hhaXIlMjBkYXJrJTIwbW9vZHl8ZW58MHx8fHwxNzk1Mzg0Mzk0fDA&ixlib=rb-4.1.0&q=85",
+      "alt": "Moody dark waiting room with empty chairs"
+    }
+  },
+  "instructions_to_main_agent": [
+    "Strictly adhere to the dark theme only. The color palette follows the required 50% Oxford Gray (#343B43), 20% Black (#0D0D0E), 10% Crown Blue (#145B89), and 20% Neutral (#C6C9D1).",
+    "Typography must enforce the 'elegant small-caps' requirement. Use 'Cormorant Garamond' with 'textTransform: uppercase' and increased letter-spacing for headers and status labels (e.g., 'SCREENSHOT DETECTED').",
+    "Absolute ban on glassmorphism, blur, neon, and colorful gradients. Use solid color blocks exclusively (matte styling).",
+    "Implement LiveKit for all video and audio handling. Use pure 'Pressable' components for controls to avoid default opacity flashes.",
+    "Platform specific layouts: Wrap core mobile structures in max-width containers when deployed to the web, creating a multi-column dashboard on larger screens.",
+    "In-call controls should reside in the lower third of the screen to respect thumb zones, matching native iOS/Android ergonomic patterns.",
+    "For the FX PRIVACY SHIELD feature, use 'expo-screen-capture' to listen for screenshots on mobile, and trigger the small-caps warning UI to the host immediately."
+  ]
+}
