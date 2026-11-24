@@ -7,6 +7,7 @@ import os
 import secrets
 import time
 import uuid
+from contextlib import suppress
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Optional
@@ -27,6 +28,12 @@ client = AsyncIOMotorClient(os.environ["MONGO_URL"])
 db = client[os.environ["DB_NAME"]]
 
 JWT_SECRET = os.environ["JWT_SECRET"]
+if len(JWT_SECRET) < 32:
+    raise RuntimeError("JWT_SECRET must be at least 32 characters")
+# Dedicated key for one-time-code hashes so the JWT signing key is never reused for another purpose.
+_CODE_KEY = hashlib.sha256(b"fxcall:code-hash:v1:" + JWT_SECRET.encode()).digest()
+# Trusted reverse-proxy hops in front of the app (0 = ignore X-Forwarded-For entirely).
+TRUSTED_PROXY_HOPS = max(0, int(os.environ.get("TRUSTED_PROXY_HOPS", "1")))
 JWT_ISSUER = "fxcall-api"
 ACCESS_MINUTES = 15
 REFRESH_DAYS = 30
@@ -46,7 +53,7 @@ def sha256(value: str) -> str:
 
 
 def code_hash(code: str, salt: str) -> str:
-    return hmac.new(JWT_SECRET.encode(), f"{salt}:{code}".encode(), hashlib.sha256).hexdigest()
+    return hmac.new(_CODE_KEY, f"{salt}:{code}".encode(), hashlib.sha256).hexdigest()
 
 
 def gen_code() -> str:
@@ -76,9 +83,15 @@ def aware(dt: Optional[datetime]) -> Optional[datetime]:
 
 
 def client_ip(request: Request) -> str:
-    fwd = request.headers.get("x-forwarded-for")
-    if fwd:
-        return fwd.split(",")[0].strip()
+    """Client address as seen by our outermost trusted proxy.
+
+    The left-most X-Forwarded-For entry is attacker-controlled (anyone can send the header), so rate limits keyed on
+    it are trivially bypassed. Proxies append to the right, so we count TRUSTED_PROXY_HOPS entries from the right.
+    """
+    if TRUSTED_PROXY_HOPS:
+        parts = [p.strip() for p in request.headers.get("x-forwarded-for", "").split(",") if p.strip()]
+        if len(parts) >= TRUSTED_PROXY_HOPS:
+            return parts[-TRUSTED_PROXY_HOPS][:64]
     return request.client.host if request.client else "unknown"
 
 
@@ -115,7 +128,8 @@ def make_guest_token(email: str, invite_id: str) -> str:
 
 def decode_token(token: str, typ: str) -> dict:
     try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"], issuer=JWT_ISSUER)
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"], issuer=JWT_ISSUER,
+                             options={"require": ["exp", "iat", "iss", "sub"]})
     except jwt.PyJWTError:
         raise HTTPException(401, "Not authenticated")
     if payload.get("typ") != typ:
@@ -180,7 +194,20 @@ class Hub:
         self.rooms.setdefault(room_id, {})[ws] = {"pid": participant["id"], "host": participant["role"] == "host"}
 
     def remove(self, room_id: str, ws: WebSocket) -> None:
-        self.rooms.get(room_id, {}).pop(ws, None)
+        room = self.rooms.get(room_id)
+        if room is None:
+            return
+        room.pop(ws, None)
+        if not room:  # don't leak an empty dict per room forever
+            self.rooms.pop(room_id, None)
+
+    async def kick(self, room_id: str, pid: str, code: int = 4403) -> None:
+        """Drop every live socket of a participant who was rejected, removed or blocked."""
+        for ws, meta in list(self.rooms.get(room_id, {}).items()):
+            if meta["pid"] == pid:
+                self.remove(room_id, ws)
+                with suppress(Exception):
+                    await ws.close(code=code)
 
     async def send(self, room_id: str, message: dict, *, host_only: bool = False, to_pid: Optional[str] = None) -> None:
         data = json.dumps(message)

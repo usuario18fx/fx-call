@@ -47,7 +47,10 @@ async def ensure_indexes() -> None:
                 logger.error("ensure_indexes(%s.%s): %s", collection, model.document["name"], exc)
 
 
-app = FastAPI(title="FX CALL API")
+IS_PROD = os.environ.get("APP_ENV", "").lower() == "production"
+# Interactive API docs only outside production (they enumerate every route and schema).
+app = FastAPI(title="FX CALL API", docs_url=None if IS_PROD else "/docs", redoc_url=None if IS_PROD else "/redoc",
+              openapi_url=None if IS_PROD else "/openapi.json")
 
 
 @app.get("/health", include_in_schema=False)
@@ -70,6 +73,8 @@ async def security_headers(request: Request, call_next):
     response.headers["Permissions-Policy"] = "display-capture=()"
     response.headers["Cache-Control"] = "no-store"
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    if IS_PROD:  # pure JSON API: nothing it returns should ever load or frame anything
+        response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
     return response
 
 

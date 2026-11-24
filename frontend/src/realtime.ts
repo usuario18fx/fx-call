@@ -36,9 +36,11 @@ export function useRoomSocket(roomId: string | undefined, enabled: boolean, onMe
           // ignore malformed frames
         }
       };
-      ws.onclose = () => {
+      ws.onclose = (e) => {
         setConnected(false);
         if (ping) clearInterval(ping);
+        // 4401/4403 = credentials no longer valid (rejected, removed, blocked): retrying would only hammer the server.
+        if (e?.code === 4401 || e?.code === 4403) closed = true;
         if (!closed) timer = setTimeout(connect, Math.min(15000, 1000 * 2 ** retry++));
       };
     };

@@ -25,7 +25,9 @@ RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
 RESEND_FROM_EMAIL = os.environ.get("RESEND_FROM_EMAIL", "")
 EMAIL_REPLY_TO = os.environ.get("EMAIL_REPLY_TO")
 # Preview-only test outbox: codes for reserved test domains are written to Mongo instead of being sent.
-DEV_OUTBOX = os.environ.get("EMAIL_DEV_OUTBOX", "false").lower() == "true"
+IS_PROD = os.environ.get("APP_ENV", "").lower() == "production"
+# Never store plaintext codes in the DB in production, even if the flag is left on by mistake.
+DEV_OUTBOX = os.environ.get("EMAIL_DEV_OUTBOX", "false").lower() == "true" and not IS_PROD
 TEST_DOMAINS = ("example.com", "test.fxcall")
 
 _SHORTENERS = ("bit.ly", "tinyurl.com", "t.co", "is.gd", "cutt.ly", "goo.gl", "rebrand.ly")
@@ -169,7 +171,8 @@ PURPOSES = {
 
 async def send_code_email(to: str, purpose: str, code: str) -> None:
     subject, line = PURPOSES[purpose]
-    if DEV_OUTBOX and to.lower().endswith(TEST_DOMAINS):
+    # Exact domain match: endswith("example.com") would also match "evilexample.com".
+    if DEV_OUTBOX and to.lower().rsplit("@", 1)[-1] in TEST_DOMAINS:
         await db.dev_outbox.insert_one({"id": new_id(), "to": to.lower(), "purpose": purpose, "code": code, "created_at": now()})
         return
     html = (

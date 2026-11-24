@@ -1,7 +1,10 @@
 """Accounts: registration, email verification, login (+TOTP), refresh rotation, reset, sessions."""
 import base64
+import hmac
 import io
+import logging
 import secrets
+import time
 from PIL import Image, ImageOps, UnidentifiedImageError
 from datetime import timedelta
 from typing import Literal, Optional
@@ -13,17 +16,21 @@ import qrcode
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pwdlib import PasswordHash
 from pydantic import BaseModel, EmailStr, Field
+from pymongo import ReturnDocument
 
 from core import (REFRESH_DAYS, aware, clean, client_ip, code_hash, current_user, db, gen_code,
                   make_access_token, new_id, now, ok, public_user, rate_limit, sha256)
 from emailer import send_code_email, send_email
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
+log = logging.getLogger("fxcall.auth")
 passwords = PasswordHash.recommended()
 DUMMY_HASH = passwords.hash("fxcall-constant-dummy-password")
 MAX_FAILED = 5
 LOCK_MINUTES = 15
 CODE_MINUTES = 15
+MAX_CODE_ATTEMPTS = 5
+REUSE_GRACE_SECONDS = 10  # two tabs refreshing at once is normal; a replay minutes later is theft
 
 
 class Device(BaseModel):
@@ -131,17 +138,45 @@ async def issue_challenge(kind: str, email: str) -> None:
         raise
 
 
-async def consume_challenge(kind: str, email: str, code: str) -> None:
-    ch = await db.challenges.find_one({"kind": kind, "email": email})
-    if not ch or aware(ch["expires_at"]) <= now():
+async def consume_challenge(kind: str, email: str, code: str, extra: Optional[dict] = None) -> None:
+    # The attempt is counted atomically *before* the code is compared, so parallel guesses cannot exceed the cap.
+    ch = await db.challenges.find_one_and_update(
+        {"kind": kind, "email": email, "attempts": {"$lt": MAX_CODE_ATTEMPTS}, **(extra or {})},
+        {"$inc": {"attempts": 1}}, return_document=ReturnDocument.AFTER)
+    if not ch:
+        await db.challenges.delete_many({"kind": kind, "email": email, "attempts": {"$gte": MAX_CODE_ATTEMPTS}})
         raise HTTPException(400, "Code invalid or expired. Request a new one.")
-    if ch["attempts"] >= 5:
-        await db.challenges.delete_one({"id": ch["id"]})
-        raise HTTPException(400, "Too many wrong codes. Request a new one.")
+    if aware(ch["expires_at"]) <= now():
+        raise HTTPException(400, "Code invalid or expired. Request a new one.")
     if not secrets.compare_digest(ch["code_hash"], code_hash(code, ch["salt"])):
-        await db.challenges.update_one({"id": ch["id"]}, {"$inc": {"attempts": 1}})
         raise HTTPException(400, "Incorrect code.")
     await db.challenges.delete_one({"id": ch["id"]})
+
+
+async def register_failure(user: dict) -> None:
+    """Atomic failed-login counter (password or TOTP); locks the account after MAX_FAILED."""
+    doc = await db.users.find_one_and_update({"id": user["id"]}, {"$inc": {"failed_logins": 1}}, return_document=ReturnDocument.AFTER)
+    if doc and doc.get("failed_logins", 0) >= MAX_FAILED:
+        await db.users.update_one({"id": user["id"]}, {"$set": {"failed_logins": 0, "locked_until": now() + timedelta(minutes=LOCK_MINUTES)}})
+
+
+def totp_match_step(secret: str, code: str) -> Optional[int]:
+    """30-second step whose code matches (±1 step of clock drift), or None."""
+    totp = pyotp.TOTP(secret)
+    current = int(time.time()) // 30
+    for step in (current - 1, current, current + 1):
+        if hmac.compare_digest(totp.at(step * 30), code):
+            return step
+    return None
+
+
+async def totp_consume(user: dict, code: str) -> bool:
+    """Validate a TOTP code and burn its step so the same code can never be replayed (atomic)."""
+    step = totp_match_step(user["totp_secret"], code)
+    if step is None:
+        return False
+    res = await db.users.update_one({"id": user["id"], "totp_last_step": {"$not": {"$gte": step}}}, {"$set": {"totp_last_step": step}})
+    return res.modified_count == 1
 
 
 async def issue_session(user: dict, device: Device, request: Request) -> dict:
@@ -161,8 +196,9 @@ async def revoke_all(user_id: str) -> None:
 # ---------------------------------------------------------------- routes
 @router.post("/register", status_code=202)
 async def register(body: RegisterIn, request: Request):
-    await rate_limit(f"register:{client_ip(request)}", 10, 3600)
     email = body.email.lower()
+    await rate_limit(f"register:{client_ip(request)}", 10, 3600)
+    await rate_limit(f"register-email:{email}", 5, 3600)  # stops mail-bombing a victim's inbox from many IPs
     existing = await db.users.find_one({"email": email})
     if existing and existing.get("verified"):
         raise HTTPException(409, "An account with this email already exists. Please sign in.")
@@ -210,11 +246,7 @@ async def login(body: LoginIn, request: Request):
     valid = passwords.verify(body.password, user["password_hash"]) if user else passwords.verify(body.password, DUMMY_HASH)
     if not user or not valid:
         if user:
-            failed = user.get("failed_logins", 0) + 1
-            upd = {"failed_logins": failed}
-            if failed >= MAX_FAILED:
-                upd = {"failed_logins": 0, "locked_until": now() + timedelta(minutes=LOCK_MINUTES)}
-            await db.users.update_one({"id": user["id"]}, {"$set": upd})
+            await register_failure(user)
         raise HTTPException(401, "Invalid email or password.")
     if not user.get("verified"):
         await issue_challenge("verify", email)
@@ -222,11 +254,9 @@ async def login(body: LoginIn, request: Request):
     if user.get("totp_secret"):
         if not body.totp_code:
             raise HTTPException(401, "totp_required")
-        totp = pyotp.TOTP(user["totp_secret"])
-        step = int(now().timestamp() // 30)
-        if not totp.verify(body.totp_code, valid_window=1) or user.get("totp_last_step") == f"{step}:{body.totp_code}":
+        if not await totp_consume(user, body.totp_code):
+            await register_failure(user)  # a wrong/replayed 2FA code counts toward lockout too
             raise HTTPException(401, "invalid_totp")
-        await db.users.update_one({"id": user["id"]}, {"$set": {"totp_last_step": f"{step}:{body.totp_code}"}})
     await db.users.update_one({"id": user["id"]}, {"$set": {"failed_logins": 0, "locked_until": None}})
     return await issue_session(user, body.device, request)
 
@@ -234,11 +264,19 @@ async def login(body: LoginIn, request: Request):
 @router.post("/refresh")
 async def refresh(body: RefreshIn, request: Request):
     await rate_limit(f"refresh-ip:{client_ip(request)}", 120, 600)
+    rhash = sha256(body.refresh_token)
     session = await db.sessions.find_one_and_update(
-        {"refresh_hash": sha256(body.refresh_token), "revoked_at": None},
-        {"$set": {"revoked_at": now()}},
+        {"refresh_hash": rhash, "revoked_at": None},
+        {"$set": {"revoked_at": now(), "rotated": True}},
     )
-    if not session or aware(session["expires_at"]) <= now():
+    if not session:
+        # An already-rotated token coming back later means it was copied: kill every session of that account.
+        stale = await db.sessions.find_one({"refresh_hash": rhash, "rotated": True})
+        if stale and aware(stale["revoked_at"]) < now() - timedelta(seconds=REUSE_GRACE_SECONDS):
+            await revoke_all(stale["user_id"])
+            log.warning("Refresh token reuse detected; all sessions revoked for user %s", stale["user_id"])
+        raise HTTPException(401, "Invalid refresh token")
+    if aware(session["expires_at"]) <= now():
         raise HTTPException(401, "Invalid refresh token")
     user = await db.users.find_one({"id": session["user_id"]})
     if not user:
@@ -295,7 +333,7 @@ async def change_email_request(body: ChangeEmailRequestIn, request: Request, use
         raise HTTPException(400, "This is already your account email.")
     if not passwords.verify(body.current_password, user["password_hash"]):
         raise HTTPException(400, "Current password is incorrect.")
-    if user.get("totp_secret") and (not body.totp_code or not pyotp.TOTP(user["totp_secret"]).verify(body.totp_code, valid_window=1)):
+    if user.get("totp_secret") and (not body.totp_code or not await totp_consume(user, body.totp_code)):
         raise HTTPException(400, "Authenticator code is required or incorrect.")
     if await db.users.find_one({"email": new_email}):
         raise HTTPException(409, "This email is already in use.")
@@ -321,15 +359,7 @@ async def change_email_request(body: ChangeEmailRequestIn, request: Request, use
 async def change_email_confirm(body: ChangeEmailConfirmIn, user=Depends(current_user)):
     await rate_limit(f"change-email-confirm:{user['id']}", 15, 900)
     new_email = body.new_email.strip().lower()
-    ch = await db.challenges.find_one({"kind": "change_email", "user_id": user["id"], "email": new_email})
-    if not ch or aware(ch["expires_at"]) <= now() or ch.get("old_email") != user["email"]:
-        raise HTTPException(400, "Code invalid or expired. Request a new one.")
-    if ch["attempts"] >= 5:
-        await db.challenges.delete_one({"id": ch["id"]})
-        raise HTTPException(400, "Too many wrong codes. Request a new one.")
-    if not secrets.compare_digest(ch["code_hash"], code_hash(body.code, ch["salt"])):
-        await db.challenges.update_one({"id": ch["id"]}, {"$inc": {"attempts": 1}})
-        raise HTTPException(400, "Incorrect code.")
+    await consume_challenge("change_email", new_email, body.code, {"user_id": user["id"], "old_email": user["email"]})
     if await db.users.find_one({"email": new_email}):
         raise HTTPException(409, "This email is already in use.")
     try:
@@ -364,9 +394,7 @@ async def request_password_change(body: PasswordCodeRequestIn, request: Request,
     await rate_limit(f"change-password-ip:{client_ip(request)}", 20, 3600)
     if not passwords.verify(body.current_password, user["password_hash"]):
         raise HTTPException(400, "Current password is incorrect.")
-    if user.get("totp_secret") and (
-        not body.totp_code or not pyotp.TOTP(user["totp_secret"]).verify(body.totp_code, valid_window=1)
-    ):
+    if user.get("totp_secret") and (not body.totp_code or not await totp_consume(user, body.totp_code)):
         raise HTTPException(400, "Authenticator code is required or incorrect.")
     code, salt, cid = gen_code(), new_id(), new_id()
     await db.challenges.delete_many({"kind": "change_password", "user_id": user["id"]})
@@ -388,25 +416,12 @@ async def confirm_password_change(body: PasswordCodeConfirmIn, request: Request,
     await rate_limit(f"confirm-password:{user['id']}", 12, 900)
     if not passwords.verify(body.current_password, user["password_hash"]):
         raise HTTPException(400, "Current password is incorrect.")
-    if user.get("totp_secret") and (
-        not body.totp_code or not pyotp.TOTP(user["totp_secret"]).verify(body.totp_code, valid_window=1)
-    ):
+    if user.get("totp_secret") and (not body.totp_code or not await totp_consume(user, body.totp_code)):
         raise HTTPException(400, "Authenticator code is required or incorrect.")
-    ch = await db.challenges.find_one({"kind": "change_password", "user_id": user["id"]})
-    if not ch or aware(ch["expires_at"]) <= now() or ch["email"] != user["email"]:
-        raise HTTPException(400, "Code invalid or expired. Request a new one.")
-    if ch["attempts"] >= 5:
-        await db.challenges.delete_one({"id": ch["id"]})
-        raise HTTPException(400, "Too many incorrect codes. Request a new one.")
-    if not secrets.compare_digest(ch["code_hash"], code_hash(body.code, ch["salt"])):
-        await db.challenges.update_one({"id": ch["id"]}, {"$inc": {"attempts": 1}})
-        raise HTTPException(400, "Incorrect code.")
     if passwords.verify(body.new_password, user["password_hash"]):
         raise HTTPException(400, "Your new password must differ from the current password.")
-    # Consume code before changing credentials; other sessions become invalid.
-    deleted = await db.challenges.delete_one({"id": ch["id"], "attempts": {"$lt": 5}})
-    if deleted.deleted_count != 1:
-        raise HTTPException(400, "Code no longer available.")
+    # One-time code: attempts are counted atomically and the code is burned on success.
+    await consume_challenge("change_password", user["email"], body.code, {"user_id": user["id"]})
     await db.users.update_one({"id": user["id"]}, {"$set": {"password_hash": passwords.hash(body.new_password)}})
     await db.challenges.delete_many({"kind": "change_email", "user_id": user["id"]})
     await db.sessions.update_many(
@@ -465,6 +480,7 @@ async def revoke_other_sessions(user=Depends(current_user)):
 
 @router.post("/change-password")
 async def change_password(body: ChangePasswordIn, user=Depends(current_user)):
+    await rate_limit(f"chpw:{user['id']}", 10, 600)
     if not passwords.verify(body.current_password, user["password_hash"]):
         raise HTTPException(400, "Current password is incorrect.")
     await db.users.update_one({"id": user["id"]}, {"$set": {"password_hash": passwords.hash(body.new_password)}})
@@ -490,9 +506,11 @@ async def totp_setup(user=Depends(current_user)):
 async def totp_confirm(body: TotpIn, user=Depends(current_user)):
     await rate_limit(f"totp:{user['id']}", 10, 600)
     secret = user.get("totp_pending")
-    if not secret or not pyotp.TOTP(secret).verify(body.code, valid_window=1):
+    step = totp_match_step(secret, body.code) if secret else None
+    if step is None:
         raise HTTPException(400, "Invalid code.")
-    await db.users.update_one({"id": user["id"]}, {"$set": {"totp_secret": secret}, "$unset": {"totp_pending": ""}})
+    # Burn the enrolment code's step too, so it can't be replayed at the next login.
+    await db.users.update_one({"id": user["id"]}, {"$set": {"totp_secret": secret, "totp_last_step": step}, "$unset": {"totp_pending": ""}})
     return ok(enabled=True)
 
 
@@ -500,7 +518,7 @@ async def totp_confirm(body: TotpIn, user=Depends(current_user)):
 async def totp_disable(body: TotpDisableIn, user=Depends(current_user)):
     await rate_limit(f"totp:{user['id']}", 10, 600)
     if not user.get("totp_secret") or not passwords.verify(body.password, user["password_hash"]) \
-            or not pyotp.TOTP(user["totp_secret"]).verify(body.code, valid_window=1):
+            or not await totp_consume(user, body.code):
         raise HTTPException(400, "Password or code is incorrect.")
     await db.users.update_one({"id": user["id"]}, {"$set": {"totp_secret": None}})
     return ok(enabled=False)
