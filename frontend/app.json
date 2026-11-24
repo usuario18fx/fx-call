@@ -14,7 +14,9 @@
       "infoPlist": {
         "NSCameraUsageDescription": "Show your video to people in your calls",
         "NSMicrophoneUsageDescription": "Let people in your calls hear you",
-        "UIBackgroundModes": ["audio"],
+        "UIBackgroundModes": [
+          "audio"
+        ],
         "ITSAppUsesNonExemptEncryption": false
       }
     },
@@ -69,7 +71,6 @@
           "recordAudioAndroid": true
         }
       ],
-      "expo-screen-capture",
       "@livekit/react-native-expo-plugin",
       "@config-plugins/react-native-webrtc",
       "@react-native-vector-icons/lucide"

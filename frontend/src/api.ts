@@ -61,7 +61,14 @@ async function request<T>(path: string, opts: Opts, token: string | null): Promi
     throw new ApiError(0, "You appear to be offline. Check your connection.");
   }
   const text = await res.text();
-  const data = text ? JSON.parse(text) : null;
+  let data: any = null;
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    // Proxies/CDNs answer 502/504 with HTML; surface a clean ApiError instead of a raw SyntaxError.
+    if (!res.ok) throw new ApiError(res.status, errorMessage(null, res.status));
+    throw new ApiError(res.status, "Unexpected server response.");
+  }
   if (!res.ok) throw new ApiError(res.status, errorMessage(data, res.status));
   return data as T;
 }

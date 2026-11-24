@@ -30,8 +30,8 @@ export function Label({ children, style, color = colors.muted }: { children: Rea
   return <Text style={[s.label, { color }, style]}>{children}</Text>;
 }
 
-export function Body({ children, style, testID, numberOfLines }: { children: React.ReactNode; style?: StyleProp<TextStyle>; testID?: string; numberOfLines?: number }) {
-  return <Text testID={testID} numberOfLines={numberOfLines} style={[s.body, style]}>{children}</Text>;
+export function Body({ children, style, testID, numberOfLines, selectable }: { children: React.ReactNode; style?: StyleProp<TextStyle>; testID?: string; numberOfLines?: number; selectable?: boolean }) {
+  return <Text testID={testID} numberOfLines={numberOfLines} selectable={selectable} style={[s.body, style]}>{children}</Text>;
 }
 
 type BtnProps = {
@@ -81,13 +81,13 @@ export function IconButton({ icon, onPress, testID, tone = "default", size = 52,
   const fg = tone === "danger" ? colors.onError : colors.onSurfaceSecondary;
   return (
     <Pressable testID={testID} accessibilityLabel={label} accessibilityRole="button" onPress={onPress}
-      style={({ pressed }) => [{ width: size, height: size, borderRadius: size / 2, backgroundColor: bg, alignItems: "center", justifyContent: "center", transform: [{ scale: pressed ? 0.94 : 1 }] }]}>
+      style={({ pressed }) => [{ width: size, height: size, borderRadius: radius.md, backgroundColor: bg, alignItems: "center", justifyContent: "center", transform: [{ scale: pressed ? 0.94 : 1 }] }]}>
       <Icon name={icon} size={size * 0.42} color={fg} />
     </Pressable>
   );
 }
 
-export function Field({ label, error, testID, style, ...rest }: TextInputProps & { label: string; error?: string | null; testID: string }) {
+export function Field({ label, error, testID, style, inputStyle, ...rest }: TextInputProps & { label: string; error?: string | null; testID: string; inputStyle?: StyleProp<TextStyle> }) {
   const [focus, setFocus] = useState(false);
   return (
     <View style={[{ gap: spacing.xs }, style as any]}>
@@ -97,7 +97,7 @@ export function Field({ label, error, testID, style, ...rest }: TextInputProps &
         placeholderTextColor={colors.muted}
         onFocus={() => setFocus(true)}
         onBlur={() => setFocus(false)}
-        style={[s.input, { borderColor: error ? colors.error : focus ? colors.brandPrimary : colors.border }]}
+        style={[s.input, inputStyle, { borderColor: error ? colors.error : focus ? colors.brandPrimary : colors.border }]}
         {...rest}
       />
       {error ? <Text style={s.error}>{error}</Text> : null}

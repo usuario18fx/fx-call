@@ -24,7 +24,9 @@ export default function HostDashboard() {
   const router = useRouter();
   const toast = useToast();
   const { width } = useWindowDimensions();
-  const wide = width >= 1000;
+  // Three columns only when each panel can remain readable without horizontal overflow.
+  const wide = width >= 1320;
+  const narrow = width < 620;
   const [tab, setTab] = useState<Tab>("people");
   const [keyReady, setKeyReady] = useState(false);
   const [confirmEnd, setConfirmEnd] = useState(false);
@@ -118,7 +120,16 @@ export default function HostDashboard() {
   };
 
   return (
-    <Screen back title={d.room.title} testID="host-dashboard" maxWidth={1200}>
+    <Screen back title={d.room.title} testID="host-dashboard" maxWidth={1480} contentStyle={styles.dashboardContent}>
+      <View testID="crown-room-banner" style={styles.crownBar}>
+        <View style={styles.crownMark}>
+          <Icon name="crown" color="#6ED0FF" size={23} />
+        </View>
+        <View style={styles.crownCopy}>
+          <Label style={styles.crownEyebrow}>FX CALL · PRIVATE CONTROL</Label>
+          <Body style={styles.crownSubtitle}>Manage access, invitations and room security</Body>
+        </View>
+      </View>
       <View style={styles.statusRow}>
         <Badge testID="room-status-badge" label={active ? "Live" : "Ended"} tone={active ? "success" : "neutral"} />
         <Badge testID="room-lock-badge" label={d.room.locked ? "Locked" : "Open to invitations"} tone={d.room.locked ? "warning" : "brand"} icon={d.room.locked ? "lock" : "lock-open"} />
@@ -130,27 +141,27 @@ export default function HostDashboard() {
       ) : null}
       {active ? (
         <View style={styles.controls}>
-          <Button testID="enter-call-button" label="Enter call" icon="video" onPress={() => router.push(`/call/${id}`)} disabled={!keyReady} />
-          <Button testID="lock-room-button" label={d.room.locked ? "Unlock room" : "Lock room"} icon={d.room.locked ? "lock-open" : "lock"} variant="secondary" onPress={setLock} />
-          <Button testID="end-call-all-button" label="End for everyone" icon="phone-off" variant="danger" onPress={() => setConfirmEnd(true)} />
+          <Button testID="enter-call-button" label="Enter call" icon="video" style={narrow ? styles.mobileAction : styles.desktopAction} onPress={() => router.push(`/call/${id}`)} disabled={!keyReady} />
+          <Button testID="lock-room-button" label={d.room.locked ? "Unlock room" : "Lock room"} icon={d.room.locked ? "lock-open" : "lock"} variant="secondary" style={narrow ? styles.mobileAction : styles.desktopAction} onPress={setLock} />
+          <Button testID="end-call-all-button" label="End for everyone" icon="phone-off" variant="danger" style={narrow ? styles.mobileAction : styles.desktopAction} onPress={() => setConfirmEnd(true)} />
         </View>
       ) : (
         <Body style={{ color: colors.muted }}>This meeting has ended. The security timeline remains available for 30 days.</Body>
       )}
 
       {wide ? (
-        <View style={{ flexDirection: "row", gap: spacing.lg, alignItems: "flex-start" }}>
-          <View style={{ flex: 1.2, gap: spacing.lg }}>
+        <View style={styles.desktopGrid}>
+          <View style={[styles.dashboardColumn, { flex: 1.15 }]}>
             <Heading size={18}>Waiting room</Heading>
             {panel("waiting")}
             <Heading size={18}>Participants</Heading>
             {panel("people")}
           </View>
-          <View style={{ flex: 1, gap: spacing.lg }}>
+          <View style={[styles.dashboardColumn, { flex: 0.9 }]}>
             <Heading size={18}>Security timeline</Heading>
             {panel("alerts")}
           </View>
-          <View style={{ flex: 1, gap: spacing.lg }}>
+          <View style={[styles.dashboardColumn, { flex: 1.05 }]}>
             <ChipRow options={TABS.filter((t) => t.key === "invites" || t.key === "settings")} value={tab === "settings" ? "settings" : "invites"} onChange={setTab} testPrefix="dashboard-tab" />
             {panel(tab === "settings" ? "settings" : "invites")}
           </View>
@@ -177,10 +188,28 @@ export default function HostDashboard() {
 }
 
 const styles = StyleSheet.create({
-  statusRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
-  controls: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
+  dashboardContent: { minWidth: 0, width: "100%", paddingHorizontal: spacing.lg },
+  crownBar: {
+    flexDirection: "row", alignItems: "center", gap: spacing.md, minWidth: 0,
+    backgroundColor: "#0D1A29", borderColor: "#205477", borderWidth: 1,
+    borderRadius: 6, padding: spacing.md,
+  },
+  crownMark: {
+    width: 44, height: 44, borderRadius: 6, borderWidth: 1,
+    borderColor: "#2779A8", backgroundColor: "#081625",
+    alignItems: "center", justifyContent: "center",
+  },
+  crownCopy: { flex: 1, minWidth: 0, gap: spacing.xs },
+  crownEyebrow: { color: "#92D4F7", letterSpacing: 1.6, fontSize: 11 },
+  crownSubtitle: { color: colors.onSurfaceSecondary, fontSize: 12 },
+  desktopGrid: { flexDirection: "row", alignItems: "flex-start", gap: spacing.lg, width: "100%" },
+  dashboardColumn: { minWidth: 0, gap: spacing.lg, flexShrink: 1 },
+  statusRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, minWidth: 0 },
+  controls: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, width: "100%" },
+  mobileAction: { width: "100%" },
+  desktopAction: { minWidth: 190, flexGrow: 0, flexShrink: 1 },
   empty: { alignItems: "center", gap: spacing.md, paddingVertical: spacing.xxl },
-  blockRow: { flexDirection: "row", alignItems: "center", padding: spacing.md, gap: spacing.md },
+  blockRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", padding: spacing.md, gap: spacing.md, minWidth: 0 },
   modalBg: { flex: 1, backgroundColor: colors.scrim, alignItems: "center", justifyContent: "center", padding: spacing.xl },
   modal: { width: "100%", maxWidth: 420, gap: spacing.md },
   modalTitle: { fontFamily: fonts.display, fontSize: 24, color: colors.onSurfaceSecondary, textTransform: "uppercase", letterSpacing: 2 },

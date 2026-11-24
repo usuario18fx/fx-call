@@ -109,7 +109,7 @@ export default function Meetings() {
   return (
     <Screen
       testID="meetings-screen"
-      refreshControl={<RefreshControl refreshing={rooms.isRefetching} onRefresh={() => rooms.refetch()} tintColor={colors.onSurface} />}
+      refreshControl={<RefreshControl refreshing={rooms.isRefetching} onRefresh={() => { void rooms.refetch(); }} tintColor={colors.onSurface} />}
     >
       <View style={styles.top}>
         <Logo size={48} />

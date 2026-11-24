@@ -1,6 +1,6 @@
 // FX CALL design tokens — dark only (Matte Luxe). Keys match design_guidelines.json "color".
 import { useMemo } from "react";
-import { Appearance, StyleSheet } from "react-native";
+import { Appearance, type ViewStyle, type TextStyle, type ImageStyle } from "react-native";
 
 export type ColorScheme = "light" | "dark";
 
@@ -50,7 +50,8 @@ export const fonts = {
 };
 
 export const spacing = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32, xxxl: 48 };
-export const radius = { sm: 6, md: 12, lg: 20, pill: 999 };
+// All corners must be <= 7px, including badges, icon buttons and overlays.
+export const radius = { sm: 4, md: 6, lg: 6, pill: 6 } as const;
 
 export function setColorScheme(scheme: ColorScheme | null) {
   Appearance.setColorScheme?.(scheme ?? "unspecified");
@@ -61,11 +62,13 @@ export function useTheme(): { scheme: ColorScheme; colors: ThemeColors } {
   return { scheme: "dark", colors: dark };
 }
 
-export function makeStyles<T extends StyleSheet.NamedStyles<T> | StyleSheet.NamedStyles<any>>(
-  factory: (colors: ThemeColors) => T & StyleSheet.NamedStyles<any>,
+type NamedStyles<T> = { [P in keyof T]: ViewStyle | TextStyle | ImageStyle };
+
+export function makeStyles<T extends NamedStyles<T>>(
+  factory: (colors: ThemeColors) => T,
 ): () => T {
   return function useStyles(): T {
     const { colors: c } = useTheme();
-    return useMemo(() => StyleSheet.create(factory(c)), [c]);
+    return useMemo(() => factory(c), [c]);
   };
 }

@@ -516,6 +516,8 @@ async def security_event(room_id: str, body: EventIn, p=Depends(participant_auth
         await hub.send(room_id, {"type": "security_event", "event": clean(ev)}, host_only=True)
     if "participant_warned" in actions or "participant_removed" in actions or "video_restricted" in actions:
         await hub.send(room_id, {"type": "you_update", "actions": actions}, to_pid=p["id"])
+    if "participant_removed" in actions:
+        await hub.kick(room_id, p["id"])
     return {"id": ev["id"], "actions": actions}
 
 
@@ -548,6 +550,8 @@ async def moderate(room_id: str, pid: str, action: Literal["approve", "reject", 
     if not p or p["role"] == "host":
         raise HTTPException(404, "Participant not found")
     if action == "approve":
+        if room["status"] != "active":
+            raise HTTPException(410, "This meeting has ended")
         if p["status"] != "pending":
             raise HTTPException(409, "Participant is not waiting")
         if room["locked"]:
@@ -574,6 +578,8 @@ async def moderate(room_id: str, pid: str, action: Literal["approve", "reject", 
     await audit(room_id, user["id"], f"participant_{action}", pid)
     await notify(room_id, "participant_update")
     await hub.send(room_id, {"type": "you_update", "actions": [action]}, to_pid=pid)
+    if action in ("reject", "remove", "block"):
+        await hub.kick(room_id, pid)  # they were told above; now stop streaming room signals to them
     return ok()
 
 
@@ -584,16 +590,25 @@ async def ws_endpoint(ws: WebSocket):
     await ws.accept()
     room_id = None
     try:
-        msg = json.loads(await asyncio.wait_for(ws.receive_text(), timeout=10))
+        raw = await asyncio.wait_for(ws.receive_text(), timeout=10)
+        if len(raw) > 512:
+            await ws.close(code=1009)
+            return
+        msg = json.loads(raw)
         room_id, key = str(msg.get("room_id", ""))[:64], str(msg.get("key", ""))[:128]
         p = await db.participants.find_one({"room_id": room_id, "key_hash": sha256(key)}, {"_id": 0})
-        if not p or p["status"] in ("rejected", "blocked"):
+        # Only people still waiting or admitted may listen; removed/left/rejected/blocked get nothing.
+        if not p or p["status"] not in ("pending", "approved"):
+            room_id = None  # not registered in the hub, nothing to clean up
             await ws.close(code=4401)
             return
         hub.add(room_id, ws, p)
         await ws.send_text(json.dumps({"type": "ready"}))
         while True:
-            await ws.receive_text()  # keepalive pings only; no client-originated events are trusted here
+            # keepalive pings only; no client-originated events are trusted here
+            if len(await ws.receive_text()) > 256:
+                await ws.close(code=1009)
+                return
     except (WebSocketDisconnect, asyncio.TimeoutError, json.JSONDecodeError, AttributeError):
         pass
     finally:

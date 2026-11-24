@@ -98,7 +98,7 @@ export function useCall(roomId: string, enabled: boolean) {
       });
       room.on(E.Reconnecting, () => setStatus("reconnecting"));
       room.on(E.Reconnected, () => setStatus("connected"));
-      room.on(E.Disconnected, (reason: number) => {
+      room.on(E.Disconnected, (reason?: number) => {
         audioCleanup.current.forEach((fn) => fn());
         audioCleanup.current.clear();
         roomRef.current = null;
