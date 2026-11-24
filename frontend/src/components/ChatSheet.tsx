@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { FlatList, Modal, Pressable, StyleSheet, Text, TextInput, useWindowDimensions, View } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -13,6 +13,7 @@ export function ChatSheet({ visible, onClose, roomId, myId, messages, onSent }: 
   visible: boolean; onClose: () => void; roomId: string; myId: string; messages: ChatMessage[]; onSent: () => void;
 }) {
   const insets = useSafeAreaInsets();
+  const { height } = useWindowDimensions();
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const list = useRef<FlatList>(null);
@@ -37,7 +38,7 @@ export function ChatSheet({ visible, onClose, roomId, myId, messages, onSent }: 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose} testID="chat-backdrop" />
-      <KeyboardAvoidingView behavior="translate-with-padding" style={[styles.sheet, { paddingBottom: insets.bottom + spacing.md }]}>
+      <KeyboardAvoidingView behavior="translate-with-padding" style={[styles.sheet, { height: Math.min(620, Math.max(280, height * 0.7)), maxHeight: Math.max(260, height - insets.top - 12), paddingBottom: insets.bottom + spacing.md }]}>
         <View style={styles.header}>
           <Heading size={18}>Private chat</Heading>
           <Pressable testID="chat-close-button" onPress={onClose} hitSlop={12} style={styles.close}>
@@ -47,6 +48,8 @@ export function ChatSheet({ visible, onClose, roomId, myId, messages, onSent }: 
         <Label style={{ paddingHorizontal: spacing.lg }}>Visible only to admitted participants · kept 24h</Label>
         <FlatList
           ref={list}
+          style={styles.messages}
+          keyboardShouldPersistTaps="handled"
           testID="chat-message-list"
           data={messages}
           keyExtractor={(m) => m.id}
@@ -85,7 +88,8 @@ export function ChatSheet({ visible, onClose, roomId, myId, messages, onSent }: 
 
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: colors.scrim },
-  sheet: { height: "70%", backgroundColor: colors.surfaceTertiary, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, width: "100%", maxWidth: 640, alignSelf: "center" },
+  sheet: { backgroundColor: colors.surfaceTertiary, borderTopLeftRadius: radius.lg, borderTopRightRadius: radius.lg, width: "100%", maxWidth: 640, alignSelf: "center" },
+  messages: { flex: 1, minHeight: 0 },
   header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: spacing.lg, paddingBottom: spacing.xs },
   close: { width: 44, height: 44, alignItems: "center", justifyContent: "center" },
   empty: { fontFamily: fonts.text, color: colors.muted, textAlign: "center", marginTop: spacing.xl },
@@ -96,5 +100,5 @@ const styles = StyleSheet.create({
   msg: { fontFamily: fonts.text, fontSize: 14, color: colors.onSurfaceSecondary },
   inputRow: { flexDirection: "row", gap: spacing.sm, paddingHorizontal: spacing.lg, alignItems: "center" },
   input: { flex: 1, minHeight: 48, borderRadius: radius.pill, backgroundColor: colors.surface, color: colors.onSurfaceSecondary, paddingHorizontal: spacing.lg, fontFamily: fonts.text, borderWidth: 1, borderColor: colors.border },
-  send: { width: 48, height: 48, borderRadius: 24, backgroundColor: colors.brandPrimary, alignItems: "center", justifyContent: "center" },
+  send: { width: 48, height: 48, borderRadius: radius.md, backgroundColor: colors.brandPrimary, alignItems: "center", justifyContent: "center" },
 });

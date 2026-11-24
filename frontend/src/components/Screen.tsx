@@ -1,6 +1,6 @@
 import { useRouter } from "expo-router";
 import React from "react";
-import { Pressable, StyleProp, StyleSheet, View, ViewStyle } from "react-native";
+import { Platform, Pressable, ScrollView, StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -39,27 +39,45 @@ export function Screen({ title, back, right, children, scroll = true, maxWidth =
   ) : null;
   const pad = bottomPad ?? insets.bottom + spacing.xl;
   const inner = <View style={[styles.content, { maxWidth }, contentStyle]}>{children}</View>;
+  const scrollContent = [
+    styles.scrollContent,
+    { paddingBottom: pad, paddingTop: header ? spacing.md : insets.top + spacing.lg },
+  ];
   return (
     <View style={styles.root} testID={testID}>
       {header}
-      {scroll ? (
-        <KeyboardAwareScrollView
-          bottomOffset={24}
+      {scroll ? Platform.OS === "web" ? (
+        <ScrollView
+          style={styles.scroller}
           keyboardShouldPersistTaps="handled"
           refreshControl={refreshControl}
-          contentContainerStyle={{ paddingBottom: pad, paddingTop: header ? spacing.md : insets.top + spacing.lg }}
+          contentContainerStyle={scrollContent}
+        >
+          {inner}
+        </ScrollView>
+      ) : (
+        <KeyboardAwareScrollView
+          style={styles.scroller}
+          bottomOffset={24}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
+          refreshControl={refreshControl}
+          contentContainerStyle={scrollContent}
         >
           {inner}
         </KeyboardAwareScrollView>
       ) : (
-        <View style={{ flex: 1, paddingBottom: pad }}>{inner}</View>
+        <View style={[styles.fixedContent, { paddingBottom: pad }]}>{inner}</View>
       )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.surface },
+  root: { flex: 1, minHeight: 0, backgroundColor: colors.surface },
+  scroller: { flex: 1, minHeight: 0 },
+  scrollContent: { flexGrow: 1 },
+  fixedContent: { flex: 1, minHeight: 0 },
   header: { backgroundColor: colors.surface, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.divider, paddingBottom: spacing.md, paddingHorizontal: spacing.lg },
   headerInner: { width: "100%", alignSelf: "center", flexDirection: "row", alignItems: "center", gap: spacing.sm, minHeight: 44 },
   back: { width: 44, height: 44, alignItems: "center", justifyContent: "center", marginLeft: -spacing.sm },

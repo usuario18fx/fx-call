@@ -4,7 +4,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { LogBox, Platform, StyleSheet } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -15,7 +15,6 @@ import { ToastProvider } from "@/src/components/ui";
 import { queryClient } from "@/src/query-client";
 import { colors } from "@/src/theme";
 
-LogBox.ignoreAllLogs(true);
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 // STRICT NO SCREEN SHARING: on the website, display capture can never be invoked by this app.

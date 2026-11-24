@@ -10,6 +10,10 @@ export default function TabsLayout() {
   if (usesNativeTabs) {
     return (
       <NativeTabs tintColor={colors.onSurfaceSecondary}>
+        <NativeTabs.Trigger name="studio">
+          <NativeTabs.Trigger.Icon sf="camera.fill" />
+          <NativeTabs.Trigger.Label>Studio</NativeTabs.Trigger.Label>
+        </NativeTabs.Trigger>
         <NativeTabs.Trigger name="meetings">
           <NativeTabs.Trigger.Icon sf="video.fill" />
           <NativeTabs.Trigger.Label>Meetings</NativeTabs.Trigger.Label>
@@ -32,6 +36,7 @@ export default function TabsLayout() {
         tabBarLabelStyle: { fontFamily: fonts.text, fontSize: 11, letterSpacing: 1, textTransform: "uppercase" },
       }}
     >
+      <Tabs.Screen name="studio" options={{ title: "Studio", tabBarIcon: ({ color }) => <Icon name="video" size={22} color={color} /> }} />
       <Tabs.Screen name="meetings" options={{ title: "Meetings", tabBarButtonTestID: "tab-meetings", tabBarIcon: ({ color }) => <Icon name="video" size={22} color={color} /> }} />
       <Tabs.Screen name="account" options={{ title: "Account", tabBarButtonTestID: "tab-account", tabBarIcon: ({ color }) => <Icon name="circle-user-round" size={22} color={color} /> }} />
     </Tabs>

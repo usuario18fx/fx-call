@@ -142,12 +142,16 @@ export default function CallScreen() {
   const n = tiles.length;
   const cols = n <= 1 ? 1 : n <= 4 ? 2 : width > 900 ? 4 : 3;
   const rows = Math.max(1, Math.ceil(n / cols));
-  const stageH = height - insets.top - insets.bottom;
+  // Keep the title and the call controls clear of video tiles on narrow screens.
+  const topChrome = chrome ? (width < 520 ? 124 : 92) : 0;
+  const bottomChrome = chrome ? (width < 520 ? 138 : 88) : 0;
+  const stageH = Math.max(160, height - insets.top - insets.bottom - topChrome - bottomChrome);
+  const tileHeight = Math.max(104, Math.floor(stageH / rows) - 8);
   const isHost = p.role === "host";
 
   return (
     <View style={styles.root} testID="call-screen">
-      <Pressable style={[styles.stage, { paddingTop: insets.top, paddingBottom: insets.bottom }]} onPress={() => setChrome((c) => !c)} testID="call-stage">
+      <Pressable style={[styles.stage, { paddingTop: insets.top + topChrome, paddingBottom: insets.bottom + bottomChrome }]} onPress={() => setChrome((c) => !c)} testID="call-stage">
         {call.status === "unavailable" || call.status === "error" || !me.data?.video_configured ? (
           <View style={styles.center} testID="call-unavailable">
             <Icon name="video-off" size={36} color={colors.muted} />
@@ -155,11 +159,11 @@ export default function CallScreen() {
             {call.status === "error" ? <Button testID="call-retry-button" label="Retry" variant="secondary" onPress={call.retry} /> : null}
           </View>
         ) : layout === "gallery" || n <= 1 ? (
-          <View style={styles.grid}>
+          <ScrollView style={styles.galleryScroll} contentContainerStyle={styles.grid} showsVerticalScrollIndicator={n > 6}>
             {tiles.map((t) => (
-              <TileView key={t.id} t={t} style={{ width: `${100 / cols}%`, height: Math.max(140, stageH / rows) - 8 }} big={n === 1} />
+              <TileView key={t.id} t={t} style={{ width: `${100 / cols}%`, height: tileHeight }} big={n === 1} />
             ))}
-          </View>
+          </ScrollView>
         ) : (
           <View style={{ flex: 1 }}>
             {main ? <TileView t={main} big style={{ flex: 1 }} /> : null}
@@ -223,11 +227,12 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.stage },
   stage: { flex: 1 },
   center: { flex: 1, alignItems: "center", justifyContent: "center", gap: spacing.lg, padding: spacing.xl, backgroundColor: colors.surface },
-  grid: { flex: 1, flexDirection: "row", flexWrap: "wrap", alignContent: "center" },
+  galleryScroll: { flex: 1, minHeight: 0 },
+  grid: { flexGrow: 1, flexDirection: "row", flexWrap: "wrap", alignContent: "flex-start" },
   tile: { padding: 4, overflow: "hidden", borderRadius: radius.md, backgroundColor: colors.surfaceTertiary, borderWidth: 2, borderColor: "transparent" },
   speaking: { borderColor: colors.brandPrimary },
-  avatarWrap: { ...StyleSheet.absoluteFillObject, alignItems: "center", justifyContent: "center" },
-  avatar: { width: 72, height: 72, borderRadius: 36, backgroundColor: colors.surfaceSecondary, alignItems: "center", justifyContent: "center" },
+  avatarWrap: { ...StyleSheet.absoluteFill, alignItems: "center", justifyContent: "center" },
+  avatar: { width: 72, height: 72, borderRadius: 6, backgroundColor: colors.surfaceSecondary, alignItems: "center", justifyContent: "center" },
   avatarText: { fontFamily: fonts.display, fontSize: 32, color: colors.onSurfaceSecondary },
   tileLabel: { position: "absolute", left: spacing.sm, bottom: spacing.sm, flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: colors.scrim, paddingHorizontal: spacing.sm, height: 26, borderRadius: radius.pill, maxWidth: "90%" },
   tileName: { fontFamily: fonts.text, fontSize: 12, color: colors.onSurfaceSecondary, flexShrink: 1 },
@@ -238,6 +243,6 @@ const styles = StyleSheet.create({
   warning: { position: "absolute", left: spacing.lg, right: spacing.lg, backgroundColor: colors.error, borderRadius: radius.md, padding: spacing.lg, paddingRight: 48, gap: 4, maxWidth: 560, alignSelf: "center" },
   warningTitle: { fontFamily: fonts.display, fontSize: 20, color: colors.onError, letterSpacing: 1.5 },
   warnClose: { position: "absolute", right: spacing.md, top: spacing.md, width: 32, height: 32, alignItems: "center", justifyContent: "center" },
-  unread: { position: "absolute", top: -2, right: -2, minWidth: 20, height: 20, borderRadius: 10, backgroundColor: colors.brandPrimary, alignItems: "center", justifyContent: "center", paddingHorizontal: 4 },
+  unread: { position: "absolute", top: -2, right: -2, minWidth: 20, height: 20, borderRadius: 6, backgroundColor: colors.brandPrimary, alignItems: "center", justifyContent: "center", paddingHorizontal: 4 },
   unreadText: { fontFamily: fonts.text, fontSize: 11, color: colors.onBrandPrimary },
 });

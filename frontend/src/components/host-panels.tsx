@@ -36,6 +36,37 @@ export function ChipRow<T extends string>({ options, value, onChange, testPrefix
   );
 }
 
+/** Invitation options wrap into a two-column grid instead of overflowing or creating another scroll area. */
+function InviteChoices<T extends string>({ options, value, onChange, testPrefix }: {
+  options: readonly { key: T; label: string }[];
+  value: T;
+  onChange: (v: T) => void;
+  testPrefix: string;
+}) {
+  return (
+    <View style={styles.inviteChoices}>
+      {options.map((o) => {
+        const selected = o.key === value;
+        return (
+          <Pressable
+            key={o.key}
+            testID={`${testPrefix}-${o.key}`}
+            accessibilityRole="button"
+            accessibilityState={{ selected }}
+            onPress={() => onChange(o.key)}
+            style={[styles.inviteChoice, {
+              backgroundColor: selected ? colors.brandPrimary : colors.surfaceTertiary,
+              borderColor: selected ? "#62C9FD" : colors.borderStrong,
+            }]}
+          >
+            <Text style={[styles.chipText, { color: selected ? colors.onBrandPrimary : colors.onSurface }]}> {o.label} </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
 function CaptureBadge({ p }: { p: Participant }) {
   if (p.platform === "web") return <Badge label="Detection unavailable · browser" tone="neutral" icon="eye-off" />;
   const c = p.capture;
@@ -155,9 +186,9 @@ export function InvitePanel({ roomId, invites, onDone }: { roomId: string; invit
         <Heading size={18}>New private invitation</Heading>
         <Field testID="invite-name-input" label="Invitation name" value={name} onChangeText={setName} placeholder="Legal team" maxLength={60} />
         <Label>Uses</Label>
-        <ChipRow options={USES as any} value={uses} onChange={setUses} testPrefix="invite-uses" />
+        <InviteChoices options={USES} value={uses} onChange={setUses} testPrefix="invite-uses" />
         <Label>Expires</Label>
-        <ChipRow options={EXPIRY as any} value={expiry} onChange={setExpiry} testPrefix="invite-expiry" />
+        <InviteChoices options={EXPIRY} value={expiry} onChange={setExpiry} testPrefix="invite-expiry" />
         {expiry === "custom" ? (
           <Field testID="invite-custom-hours-input" label="Expire after (hours)" value={hours} onChangeText={(t) => setHours(t.replace(/\D/g, "").slice(0, 4))} keyboardType="number-pad" />
         ) : null}
@@ -169,7 +200,7 @@ export function InvitePanel({ roomId, invites, onDone }: { roomId: string; invit
         {created ? (
           <View style={styles.created} testID="invite-created">
             <Label color={colors.onBrandTertiary}>Copy now — for security this link is shown only once</Label>
-            <Text selectable style={[s.body, { color: colors.onSurfaceSecondary }]} testID="invite-url-text">{created.url}</Text>
+            <Text selectable style={[s.body, { color: colors.onSurfaceSecondary, flexShrink: 1 }]} testID="invite-url-text">{created.url}</Text>
             <Button testID="invite-copy-button" compact label="Copy link" icon="copy" variant="secondary" onPress={async () => {
               await Clipboard.setStringAsync(created.url);
               toast("Invitation link copied", "success");
@@ -237,8 +268,14 @@ export function SettingsPanel({ roomId, settings, onDone }: { roomId: string; se
 }
 
 const styles = StyleSheet.create({
-  chip: { height: 36, paddingHorizontal: spacing.lg, borderRadius: radius.pill, alignItems: "center", justifyContent: "center", borderWidth: 1, flexShrink: 0 },
+  chip: { height: 36, paddingHorizontal: spacing.lg, borderRadius: 6, alignItems: "center", justifyContent: "center", borderWidth: 1, flexShrink: 0 },
   chipText: { fontFamily: fonts.text, fontSize: 13, letterSpacing: 0.6 },
+  inviteChoices: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, width: "100%" },
+  inviteChoice: {
+    minHeight: 42, minWidth: "43%", flexGrow: 1, flexShrink: 1,
+    paddingVertical: spacing.sm, paddingHorizontal: spacing.md, borderRadius: 6,
+    borderWidth: 1, justifyContent: "center", alignItems: "center",
+  },
   rowTop: { flexDirection: "row", alignItems: "center", gap: spacing.md },
   rowBetween: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: spacing.md },
   badges: { flexDirection: "row", flexWrap: "wrap", gap: spacing.xs },
@@ -246,6 +283,6 @@ const styles = StyleSheet.create({
   event: { flexDirection: "row", gap: spacing.md, paddingVertical: spacing.md, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.divider },
   dot: { width: 10, height: 10, borderRadius: 5, marginTop: 6 },
   eventTitle: { fontFamily: fonts.display, fontSize: 18, letterSpacing: 1.5 },
-  created: { gap: spacing.sm, padding: spacing.md, borderRadius: radius.md, backgroundColor: colors.brandTertiary },
+  created: { gap: spacing.sm, padding: spacing.md, borderRadius: 6, backgroundColor: colors.brandTertiary, minWidth: 0 },
   settingRow: { flexDirection: "row", alignItems: "center", gap: spacing.md, paddingVertical: spacing.sm, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.divider },
 });

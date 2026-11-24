@@ -3,7 +3,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 import { api, ApiError, clearTokens, loadTokens, publicApi, saveTokens, setAuthLostHandler } from "@/src/api";
 import { sessionDevice } from "@/src/device";
 
-export type User = { id: string; email: string; display_name: string; verified: boolean; totp_enabled: boolean; created_at: string };
+export type User = { id: string; email: string; display_name: string; verified: boolean; totp_enabled: boolean; avatar_data_url?: string | null; created_at: string };
 type TokenOut = { access_token: string; refresh_token: string; user: User };
 
 export type LoginResult = { ok: true } | { ok: false; reason: "totp_required" | "invalid_totp" | "email_not_verified" | "error"; message: string };

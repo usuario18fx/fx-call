@@ -5,7 +5,7 @@ type Props = { track: any; mirror?: boolean; fit?: "cover" | "contain"; style?: 
 
 /** react-native-web renders View as a DOM node; LiveKit attaches its own <video> element into it. */
 export function VideoTile({ track, mirror, fit = "cover", style }: Props) {
-  const ref = useRef<View>(null);
+  const ref = useRef<React.ComponentRef<typeof View>>(null);
   useEffect(() => {
     const host = ref.current as unknown as HTMLElement | null;
     if (!host || !track) return;
