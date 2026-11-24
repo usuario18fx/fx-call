@@ -156,6 +156,7 @@ def public_user(u: dict) -> dict:
         "id": u["id"],
         "email": u["email"],
         "display_name": u["display_name"],
+        "avatar_data_url": u.get("avatar_data_url"),
         "verified": u.get("verified", False),
         "totp_enabled": bool(u.get("totp_secret")),
         "created_at": clean({"c": u["created_at"]})["c"],
