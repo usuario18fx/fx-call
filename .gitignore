@@ -93,3 +93,6 @@ fxcall_*/
 FXCALL-*.txt
 FXCALL-README.md
 .emergent/
+
+*.patch
+app.code-workspace
