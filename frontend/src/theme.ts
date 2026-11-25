@@ -1,41 +1,42 @@
-// FX CALL design tokens — dark only (Matte Luxe). Keys match design_guidelines.json "color".
+// FX CALL — NOVA visual foundation.
+// Keep the established theme API so authentication, calls and account logic stay unchanged.
 import { useMemo } from "react";
 import { Appearance, type ViewStyle, type TextStyle, type ImageStyle } from "react-native";
+import { nova } from "@/src/nova/designTokens";
 
 export type ColorScheme = "light" | "dark";
 
 const dark = {
-  surface: "#0D0D0E",
-  onSurface: "#C6C9D1",
-  surfaceSecondary: "#343B43",
-  onSurfaceSecondary: "#EAECEF",
-  surfaceTertiary: "#262A30",
-  onSurfaceTertiary: "#C6C9D1",
-  surfaceInverse: "#EAECEF",
-  onSurfaceInverse: "#0D0D0E",
-  muted: "#7E8490",
-  brand: "#145B89",
-  onBrand: "#FFFFFF",
-  brandPrimary: "#145B89",
-  onBrandPrimary: "#FFFFFF",
-  brandSecondary: "#104060",
-  onBrandSecondary: "#EAECEF",
-  brandTertiary: "#0B263B",
-  onBrandTertiary: "#7DAAC7",
-  success: "#2D6A4F",
-  onSuccess: "#D8F3DC",
-  warning: "#B5651D",
-  onWarning: "#FDF0D5",
-  error: "#9E2A2B",
-  onError: "#FFCAD4",
-  info: "#145B89",
-  onInfo: "#FFFFFF",
-  border: "#262A30",
-  borderStrong: "#4A545F",
-  divider: "#1A1D21",
-  // video stage (always black regardless of theme)
+  surface: nova.color.canvas,
+  onSurface: "#CBD3D8",
+  surfaceSecondary: nova.color.surfaceRaised,
+  onSurfaceSecondary: nova.color.ink,
+  surfaceTertiary: nova.color.stage,
+  onSurfaceTertiary: "#BFC9CF",
+  surfaceInverse: nova.color.ink,
+  onSurfaceInverse: nova.color.canvas,
+  muted: nova.color.muted,
+  brand: nova.color.mint,
+  onBrand: nova.color.mintInk,
+  brandPrimary: nova.color.mint,
+  onBrandPrimary: nova.color.mintInk,
+  brandSecondary: "#123D38",
+  onBrandSecondary: "#A5FFE8",
+  brandTertiary: nova.color.mintSoft,
+  onBrandTertiary: nova.color.mint,
+  success: "#145C4F",
+  onSuccess: "#9EF4D9",
+  warning: "#5C3719",
+  onWarning: "#FFDCAD",
+  error: "#70262B",
+  onError: "#FFDEE0",
+  info: "#16465C",
+  onInfo: "#A8ECF9",
+  border: nova.color.line,
+  borderStrong: nova.color.lineStrong,
+  divider: nova.color.line,
   stage: "#000000",
-  scrim: "rgba(13,13,14,0.72)",
+  scrim: nova.color.scrim,
 };
 
 export type ThemeColors = typeof dark;
@@ -45,13 +46,13 @@ export const themes: { light: ThemeColors; dark?: ThemeColors } = { light: dark,
 export const colors = dark;
 
 export const fonts = {
-  display: "Cormorant",
+  display: "DMSans",
   text: "DMSans",
 };
 
-export const spacing = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32, xxxl: 48 };
-// All corners must be <= 7px, including badges, icon buttons and overlays.
-export const radius = { sm: 4, md: 6, lg: 6, pill: 6 } as const;
+export const spacing = nova.space;
+// Rectangular surfaces keep subtle corners; buttons and pills intentionally follow NOVA's capsule shape.
+export const radius = { sm: 4, md: 6, lg: 6, pill: 999 } as const;
 
 export function setColorScheme(scheme: ColorScheme | null) {
   Appearance.setColorScheme?.(scheme ?? "unspecified");
