@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -1930,6 +1930,9 @@
     }
 
     /* FX CALL BRIDGE: preserve the supplied Studio design while respecting real features. */
+    html, body { height: 100%; overscroll-behavior: none; }
+    /* Fill exactly the visible frame. 100dvh is taller than a WebView sitting above a tab bar, which hid the mode dial. */
+    .app { position: fixed !important; inset: 0; width: auto !important; height: auto !important; }
     .app { padding-bottom: env(safe-area-inset-bottom, 0px); }
     .choice[disabled] { opacity:.32; cursor:not-allowed; }
     .camera-view { overflow:hidden; }
@@ -2074,59 +2077,9 @@
       <div class="camera-view">
         <video class="camera-video" id="cameraVideo" autoplay playsinline muted></video>
 
-        <div class="cam-fallback fx-locked-fallback" id="camFallback">
-          <div class="fx-locked-avatar" data-fx-protected-avatar="v1" role="img" aria-label="Blue protected profile avatar with green lock">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 530" aria-hidden="true" focusable="false">
-              <defs>
-                <linearGradient id="fxAvatarBackdrop" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0" stop-color="#1285df"/>
-                  <stop offset="0.43" stop-color="#0a376b"/>
-                  <stop offset="1" stop-color="#050e1b"/>
-                </linearGradient>
-                <radialGradient id="fxAvatarAura" cx=".33" cy=".13" r=".92">
-                  <stop offset="0" stop-color="#39baff" stop-opacity=".54"/>
-                  <stop offset=".5" stop-color="#0b73d0" stop-opacity=".14"/>
-                  <stop offset="1" stop-color="#081b31" stop-opacity="0"/>
-                </radialGradient>
-                <radialGradient id="fxAvatarHead" cx=".34" cy=".19" r=".85">
-                  <stop offset="0" stop-color="#6a7d91"/>
-                  <stop offset=".38" stop-color="#354659"/>
-                  <stop offset=".74" stop-color="#192638"/>
-                  <stop offset="1" stop-color="#0a121f"/>
-                </radialGradient>
-                <linearGradient id="fxAvatarBody" x1="0" y1="0" x2=".9" y2="1">
-                  <stop offset="0" stop-color="#3f7eac"/>
-                  <stop offset=".22" stop-color="#214a70"/>
-                  <stop offset=".69" stop-color="#0e284c"/>
-                  <stop offset="1" stop-color="#091529"/>
-                </linearGradient>
-                <linearGradient id="fxAvatarLock" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0" stop-color="#65ffd1"/>
-                  <stop offset=".42" stop-color="#2dd69b"/>
-                  <stop offset="1" stop-color="#07875b"/>
-                </linearGradient>
-                <filter id="fxAvatarLockGlow" x="-100%" y="-100%" width="300%" height="300%">
-                  <feGaussianBlur stdDeviation="9"/>
-                </filter>
-              </defs>
-              <rect x="38" y="58" width="424" height="410" rx="6" fill="url(#fxAvatarBackdrop)"/>
-              <rect x="38" y="58" width="424" height="410" rx="6" fill="url(#fxAvatarAura)"/>
-              <path d="M38 174V58h424" fill="none" stroke="#4daaff" stroke-opacity=".32" stroke-width="3"/>
-              <path d="M38 468V58" fill="none" stroke="#71cfff" stroke-opacity=".22" stroke-width="2"/>
-              <circle cx="249" cy="209" r="91" fill="url(#fxAvatarHead)" stroke="#7995b2" stroke-opacity=".53" stroke-width="2"/>
-              <path d="M248 298c-94 0-177 58-184 162h368c-7-104-89-162-184-162Z" fill="url(#fxAvatarBody)" stroke="#4c98db" stroke-opacity=".48" stroke-width="2"/>
-              <path d="M80 453c18-76 77-130 165-135" fill="none" stroke="#80caff" stroke-opacity=".14" stroke-width="7"/>
-              <ellipse cx="249" cy="464" rx="184" ry="9" fill="#0b0f19" opacity=".64"/>
-              <g transform="translate(347 322)">
-                <path d="M22 57V39a39 39 0 0 1 78 0v18" fill="none" stroke="#19df9d" stroke-width="16" stroke-linecap="round" filter="url(#fxAvatarLockGlow)" opacity=".8"/>
-                <path d="M22 57V39a39 39 0 0 1 78 0v18" fill="none" stroke="#6cffe0" stroke-width="13" stroke-linecap="round"/>
-                <rect x="4" y="54" width="114" height="91" rx="6" fill="#0a3c34" stroke="#34fdb6" stroke-width="3" filter="url(#fxAvatarLockGlow)" opacity=".76"/>
-                <rect x="4" y="54" width="114" height="91" rx="6" fill="url(#fxAvatarLock)" stroke="#9effdb" stroke-opacity=".94" stroke-width="2"/>
-                <rect x="12" y="63" width="98" height="73" rx="4" fill="#073c32" opacity=".38"/>
-                <path d="M61 85a13 13 0 0 0-6 25l-5 18h22l-5-18a13 13 0 0 0-6-25Z" fill="#dcffed"/>
-              </g>
-            </svg>
-          </div>
+        <div class="cam-fallback" id="camFallback">
+          <div class="fallback-head"></div>
+          <div class="fallback-body"></div>
         </div>
 
         <div class="camera-screen"></div>
@@ -2143,7 +2096,7 @@
 
           <div class="camera-state">
             <span class="state-dot"></span>
-            LOCAL PREVIEW <span class="slash">/</span> CAMERA
+            VISTA PREVIA <span class="slash">/</span> LOCAL
           </div>
 
           <button class="text-action" type="button" data-action="settings">
@@ -2162,18 +2115,18 @@
         <div class="side-label right">SECURE CHANNEL</div>
 
         <div class="network-meta">
-          <span>DEVICE PREVIEW</span>
-          <span><strong>●</strong> SECURE SESSION</span>
+          <span>DISPOSITIVO</span>
+          <span><strong>●</strong> SESIÓN SEGURA</span>
         </div>
 
         <div class="recent-orbit">
-          <span class="micro">YOUR ROOMS</span>
+          <span class="micro">TUS SALAS</span>
           <div class="recent-avatars" id="fxNovaRecent"><button class="recent-btn add" type="button" onclick="FXNOVA_post('open-meetings')" aria-label="All meetings">+</button></div>
         </div>
 
         <div class="camera-bottom-caption">
           <span class="dot"></span>
-          Local preview · not streaming
+          <span id="fxCaption">Cámara apagada · toca el icono de cámara para activarla</span>
         </div>
 
         <div class="control-rail">
@@ -2199,32 +2152,31 @@
         </div>
       </div>
 
-      <div id="fxNovaNotice">Camera preview is off. Tap the camera icon to enable it.</div>
-      <div class="mode-dial" aria-label="Studio modes">
+      <div class="mode-dial" aria-label="Seleccionar modo">
         <button class="mode-node live selected" type="button" data-mode="live" onclick="selectMode('live')">
           <span class="mode-index">01</span>
           <span>
-            <span class="mode-name">LIVE</span>
-            <span class="mode-meta">Invite only</span>
+            <span class="mode-name">EN VIVO</span>
+            <span class="mode-meta">Con invitación</span>
           </span>
         </button>
 
         <button class="core-launch" type="button" id="coreLaunch" onclick="launchSelected()" aria-label="Abrir secuencia del modo seleccionado">
-          <span class="core-kicker">OPEN</span>
-          <span class="core-title" id="coreTitle">LIVE</span>
+          <span class="core-kicker">ABRIR</span>
+          <span class="core-title" id="coreTitle">EN VIVO</span>
           <span class="core-arrow">↗</span>
         </button>
 
         <button class="mode-node private" type="button" data-mode="private" onclick="selectMode('private')">
           <span class="mode-index">02</span>
           <span>
-            <span class="mode-name">PRIVATE</span>
+            <span class="mode-name">PRIVADO</span>
             <span class="mode-meta">1:1</span>
           </span>
         </button>
       </div>
 
-      <div class="mode-hint">Select a mode, then open the studio</div>
+      <div class="mode-hint">Selecciona un modo y pulsa el núcleo para abrir la secuencia</div>
     </section>
 
     <!-- ============================================================
@@ -2257,7 +2209,7 @@
 
         <div class="room-chat">
           <span class="micro">CHAT</span>
-          <div class="chat-line"><b>FX CALL</b> · Live chat requires backend integration</div>
+          <div class="chat-line"><b>FX CALL</b> · El chat se usa dentro de la sala real</div>
           <div class="chat-line"></div>
         </div>
 
@@ -2308,7 +2260,7 @@
           <div class="private-id">
             <span class="lock-pill">
               <svg class="ico"><use href="#i-lock"></use></svg>
-              ENCRYPTED TRANSPORT
+              CIFRADO EN TRÁNSITO
             </span>
             <h2 id="privateName">Marta</h2>
             <p><span id="privateTimer">00:00</span> · LLAMADA PRIVADA</p>
@@ -2371,7 +2323,7 @@
 
         <div class="command-title">
           <span class="micro">NOVA / CONTROL</span>
-          <h2>Command Center</h2><span class="micro">Preview controls are local · Account changes open real settings</span>
+          <h2>Command Center</h2><span class="micro">Los controles de vista previa son locales · Cuenta abre los ajustes reales</span>
         </div>
 
         <div class="search-box">
@@ -2423,16 +2375,16 @@
         <div class="launch-form">
           <label class="field">
             NOMBRE DE LA EMISIÓN
-            <input id="liveTitleInput" type="text" value="My Live Room" />
+            <input id="liveTitleInput" type="text" value="Mi sala en vivo" />
           </label>
 
           <div class="field">
             AUDIENCIA
             <div class="choice-row" id="audienceChoices">
-              <button class="choice" type="button" disabled title="Public broadcasting is not yet enabled">Public · unavailable</button>
-              <button class="choice" type="button" disabled title="Followers broadcasting is not yet enabled">Followers · unavailable</button>
-              <button class="choice active" type="button" onclick="selectChoice(this)">Invite only</button>
-              <button class="choice" type="button" onclick="selectChoice(this)">Private link</button>
+              <button class="choice" type="button" disabled title="La emisión pública aún no está activada">Público · no disponible</button>
+              <button class="choice" type="button" disabled title="La emisión a seguidores aún no está activada">Seguidores · no disponible</button>
+              <button class="choice active" type="button" onclick="selectChoice(this)">Solo invitados</button>
+              <button class="choice" type="button" onclick="selectChoice(this)">Enlace privado</button>
             </div>
           </div>
 
@@ -2457,7 +2409,7 @@
 
           <div class="launch-note">
             <svg class="ico"><use href="#i-lock"></use></svg>
-            This opens a real FX CALL room with invitations. Public broadcasting is not configured.
+            Se abre una sala real de FX CALL con invitaciones. La emisión pública aún no está configurada.
           </div>
 
           <button class="launch-action" type="button" onclick="startLive()">
@@ -2482,8 +2434,8 @@
         <div class="launch-intro">
           <div>
             <span class="seq-label">SEQ / 02 — DARK CHANNEL</span>
-            <h2 id="privateLaunchTitle">1:1<br><span>PRIVATE</span></h2>
-            <p>A private room with invite links and host approval. Camera access is requested when you enter the actual call.</p>
+            <h2 id="privateLaunchTitle">1:1<br><span>PRIVADO</span></h2>
+            <p>Una sala privada con enlace de invitación y tu aprobación. La cámara se pide al entrar a la llamada real.</p>
           </div>
 
           <span class="launch-stamp">● CIFRADO DE EXTREMO A EXTREMO</span>
@@ -2492,7 +2444,7 @@
         <div class="launch-form">
           <label class="field">
             CONTACTO O ENLACE
-            <input id="contactInput" type="text" value="" placeholder="Room name or guest" />
+            <input id="contactInput" type="text" value="" placeholder="Nombre de la sala o invitado" />
           </label>
 
           <div class="field">
@@ -2516,7 +2468,7 @@
 
           <div class="launch-note">
             <svg class="ico"><use href="#i-lock"></use></svg>
-            Nadie verá tu cámara hasta que la otra persona acepte. Media is transported over an encrypted connection; separate ENCRYPTED TRANSPORT is not enabled.
+            Nadie verá tu cámara hasta que la otra persona acepte. El vídeo viaja por una conexión cifrada.
           </div>
 
           <button class="launch-action" type="button" onclick="startPrivate()">
@@ -2558,17 +2510,17 @@
         kicker: 'IDENTIDAD',
         title: 'Cuenta y perfil',
         items: [
-          { label: 'Display name', value: 'FX CALL' },
-          { label: 'Username', value: 'Account' },
-          { label: 'Email address', value: 'Account settings' },
-          { label: 'Biography', value: 'Not set' },
+          { label: 'Nombre visible', value: 'FX CALL' },
+          { label: 'Nombre de usuario', value: 'Cuenta' },
+          { label: 'Correo electrónico', value: 'Ajustes de cuenta' },
+          { label: 'Biografía', value: 'Sin definir' },
           { label: 'Idioma', value: 'Español' },
-          { label: 'Region & time zone', value: 'Device setting' },
+          { label: 'Región y zona horaria', value: 'Ajuste del dispositivo' },
           { label: 'Tipo de cuenta', value: 'Personal' },
-          { label: 'Linked accounts', value: 'Account settings' },
+          { label: 'Cuentas vinculadas', value: 'Ajustes de cuenta' },
           { label: 'Cambiar contraseña', value: 'Gestionar' },
           { label: 'Passkeys y biometría', type: 'switch', on: true },
-          { label: 'Active sessions', value: 'Open account' },
+          { label: 'Sesiones activas', value: 'Abrir cuenta' },
           { label: 'Descargar mis datos', value: 'Solicitar' },
           { label: 'Eliminar cuenta', value: 'Zona de riesgo' }
         ]
@@ -2644,12 +2596,12 @@
           { label: 'Sala de espera', type: 'switch', on: true },
           { label: 'Video activado al iniciar', type: 'switch', on: true },
           { label: 'Micrófono activado al iniciar', type: 'switch', on: true },
-          { label: 'Encrypted transport', value: 'Via LiveKit' },
-          { label: 'Screen sharing', value: 'Disabled' },
+          { label: 'Cifrado en tránsito', value: 'Vía LiveKit' },
+          { label: 'Compartir pantalla', value: 'Desactivado' },
           { label: 'Grabar con consentimiento', type: 'switch', on: false },
           { label: 'Historial de llamadas', type: 'switch', on: true },
           { label: 'Mostrar estado en llamada', type: 'switch', on: true },
-          { label: 'Screenshot blocking', value: 'Not supported' },
+          { label: 'Bloqueo de capturas', value: 'No compatible' },
           { label: 'Reportar y bloquear', value: 'Gestionar' },
           { label: 'Retardo de entrada', value: '0 s' }
         ]
@@ -2975,7 +2927,7 @@
         if (timer) timer.textContent = formatTime(privateSeconds);
       }, 1000);
 
-      toast('Canal privado abierto · ENCRYPTED TRANSPORT');
+      toast('Canal privado abierto · cifrado en tránsito');
     }
 
     function endPrivate() {
@@ -3294,7 +3246,7 @@
     }else if(window.parent !== window){
       window.parent.postMessage(data, window.location.origin);
     }else{
-      notify('Open NOVA Studio through your FX CALL account.');
+      notify('Abre el Studio desde tu cuenta de FX CALL.');
     }
   }
   window.FXNOVA_post = post;
@@ -3303,13 +3255,13 @@
     if(!container) return;
     container.textContent='';
     (Array.isArray(rooms)?rooms:[]).filter(function(room){return room && room.status==='active';}).slice(0,3).forEach(function(room){
-      var b=document.createElement('button');b.type='button';b.className='recent-btn';b.title=String(room.title||'Room');
+      var b=document.createElement('button');b.type='button';b.className='recent-btn';b.title=String(room.title||'Sala');
       b.textContent=String(room.title||'R').slice(0,1).toUpperCase();
       b.addEventListener('click',function(){post('open-room',{id:String(room.id||'')});});
       container.appendChild(b);
     });
     var more=document.createElement('button');more.type='button';more.className='recent-btn add';more.textContent='+';
-    more.title='All meetings';more.addEventListener('click',function(){post('open-meetings');});container.appendChild(more);
+    more.title='Todas las reuniones';more.addEventListener('click',function(){post('open-meetings');});container.appendChild(more);
   }
   window.FXNOVA_receive=function(data){
     if(!data||typeof data!=='object')return;
@@ -3317,14 +3269,14 @@
       var name=String(data.displayName||'FX CALL').slice(0,70);
       var el=document.getElementById('fxNovaName');if(el)el.textContent=name;
       var account=settingsData.find(function(c){return c.id==='account';});
-      if(account){account.items[0].value=name;account.items[1].value='@'+name.replace(/\s+/g,'').toLowerCase().slice(0,30);account.items[2].value=data.email||'Account settings';}
+      if(account){account.items[0].value=name;account.items[1].value='@'+name.replace(/\s+/g,'').toLowerCase().slice(0,30);account.items[2].value=data.email||'Ajustes de cuenta';}
       var privacy=settingsData.find(function(c){return c.id==='privacy';});
       if(privacy)privacy.items.forEach(function(it){if(it.label==='Verificación en dos pasos')it.on=!!data.totpEnabled;});
       if(typeof renderCommand==='function')renderCommand();
       if(Array.isArray(data.rooms))renderRooms(data.rooms);
     }else if(data.type==='rooms'){renderRooms(data.rooms);}
     else if(data.type==='error'){pendingLaunch=false;notify(String(data.message||'Request failed'));}
-    else if(data.type==='busy'){notify('Creating your secure room…');}
+    else if(data.type==='busy'){notify('Creando tu sala segura…');}
   };
   window.addEventListener('message',function(event){
     if(event.origin !== window.location.origin)return;
@@ -3345,20 +3297,20 @@
     var title=(document.getElementById('contactInput')||{}).value||'Private meeting';
     closeLaunch();post('create-room',{title:String(title).trim().slice(0,80)||'Private meeting',mode:'private'});setTimeout(function(){pendingLaunch=false;},3500);
   };
-  function previewStatus(message){var el=document.getElementById('fxNovaNotice');if(el)el.textContent=message;}
+  function previewStatus(message){var el=document.getElementById('fxCaption');if(el)el.textContent=message;}
   async function stopCamera(){
     if(previewStream){previewStream.getTracks().forEach(function(t){t.stop();});previewStream=null;}
     var video=document.getElementById('cameraVideo');if(video){video.pause();video.srcObject=null;video.classList.remove('live');}
-    hasCamera=false;app.classList.remove('camera-off');previewStatus('Camera preview is off. Your room is not streaming.');
+    hasCamera=false;app.classList.remove('camera-off');previewStatus('Cámara apagada · tu sala no está transmitiendo');
   }
   async function startCamera(){
-    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){notify('Camera preview unavailable here. Use Safari or the installed app.');return;}
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){notify('Vista previa no disponible aquí. Usa Safari o la app instalada.');return;}
     try{
       var stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:cameraFacing}},audio:false});
       await stopCamera();previewStream=stream;var video=document.getElementById('cameraVideo');
       if(video){video.srcObject=stream;await video.play();video.classList.add('live');}
-      hasCamera=true;app.classList.remove('camera-off');previewStatus('Local camera preview · not broadcasting');
-    }catch(e){notify('Camera access denied or unavailable. Check browser permissions.');}
+      hasCamera=true;app.classList.remove('camera-off');previewStatus('Vista previa local · sin transmitir');
+    }catch(e){notify('Acceso a la cámara denegado o no disponible. Revisa los permisos.');}
   }
   // The WebView/iframe preview is separate from the real LiveKit call. Real call controls remain in /call/:id.
   document.addEventListener('click',function(event){
@@ -3369,17 +3321,17 @@
     if(action==='cam'){
       if(hasCamera)stopCamera();else startCamera();
     }else if(action==='mic'){
-      if(hasMic){if(micStream)micStream.getTracks().forEach(function(t){t.stop();});micStream=null;hasMic=false;notify('Microphone test stopped');}
-      else if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia){navigator.mediaDevices.getUserMedia({audio:true}).then(function(s){micStream=s;hasMic=true;notify('Microphone permission granted · local test only');}).catch(function(){notify('Microphone permission denied');});}
+      if(hasMic){if(micStream)micStream.getTracks().forEach(function(t){t.stop();});micStream=null;hasMic=false;notify('Prueba de micrófono detenida');}
+      else if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia){navigator.mediaDevices.getUserMedia({audio:true}).then(function(s){micStream=s;hasMic=true;notify('Micrófono permitido · solo prueba local');}).catch(function(){notify('Microphone permission denied');});}
     }else if(action==='flip'){
       cameraFacing=cameraFacing==='user'?'environment':'user';
-      if(hasCamera)startCamera();else notify('Camera selected: '+(cameraFacing==='user'?'front':'rear'));
+      if(hasCamera)startCamera();else notify('Cámara seleccionada: '+(cameraFacing==='user'?'frontal':'trasera'));
     }else if(action==='fx'){
-      app.classList.toggle('fx-warm');notify(app.classList.contains('fx-warm')?'Warm preview filter on':'Preview filter off');
-    }else if(action==='screen'){notify('Screen sharing is disabled in FX CALL');}
-    else if(action==='chat'){notify('Chat is available inside the real call');}
-    else if(action==='volume'){notify('Audio routing is controlled by your device');}
-    else{notify('Open an active room to end your call');}
+      app.classList.toggle('fx-warm');notify(app.classList.contains('fx-warm')?'Filtro cálido activado':'Filtro desactivado');
+    }else if(action==='screen'){notify('Compartir pantalla está desactivado en FX CALL');}
+    else if(action==='chat'){notify('El chat está disponible dentro de la llamada real');}
+    else if(action==='volume'){notify('La salida de audio la controla tu dispositivo');}
+    else{notify('Abre una sala activa para terminar la llamada');}
     var kind=action;
     document.querySelectorAll('[data-action="'+kind+'"]').forEach(function(b){
       if(kind==='cam')b.classList.toggle('off',!hasCamera);
@@ -3398,17 +3350,17 @@
       var sel=settingsData.find(function(c){return c.id===parts[0];});
       var setting=sel&&sel.items[Number(parts[1])];
       if(category.id==='camera' && setting && setting.label==='Espejar video frontal'){
-        app.classList.toggle('mirrored');notify('Front camera mirror: '+(app.classList.contains('mirrored')?'on':'off'));
+        app.classList.toggle('mirrored');notify('Espejo de cámara frontal: '+(app.classList.contains('mirrored')?'activado':'desactivado'));
         return;
       }
-      event.preventDefault();event.stopImmediatePropagation();notify('Not available in FX CALL yet');
+      event.preventDefault();event.stopImmediatePropagation();notify('Aún no disponible en FX CALL');
     }else{
       event.preventDefault();event.stopImmediatePropagation();
-      notify('This setting is not connected yet');
+      notify('Este ajuste aún no está conectado');
     }
   },true);
   document.getElementById('resetBtn').addEventListener('click',function(e){
-    e.preventDefault();e.stopImmediatePropagation();app.classList.remove('fx-warm','mirrored');notify('Local camera preview settings reset');
+    e.preventDefault();e.stopImmediatePropagation();app.classList.remove('fx-warm','mirrored');notify('Ajustes de vista previa restablecidos');
   },true);
   document.querySelectorAll('[data-action="cam"]').forEach(function(b){b.classList.add('off');});
   document.querySelectorAll('[data-action="mic"]').forEach(function(b){b.classList.add('off');});
