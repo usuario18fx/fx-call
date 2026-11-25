@@ -8,7 +8,7 @@ import { Platform, Pressable, StyleSheet, Switch, View } from "react-native";
 import { api } from "@/src/api";
 import { useAuth } from "@/src/auth";
 import { Screen } from "@/src/components/Screen";
-import { Badge, Body, Button, Card, Divider, ErrorText, Field, Heading, Icon, type IconName, Label, useToast } from "@/src/components/ui";
+import { Badge, Body, Button, Card, ErrorText, Field, Heading, Icon, type IconName, Label, useToast } from "@/src/components/ui";
 import { deviceInfo } from "@/src/device";
 import { platformLabel, timeAgo } from "@/src/privacy/labels";
 import { getCaptureCapabilities } from "@/src/privacy/shield";
