@@ -413,6 +413,19 @@ export default function Account() {
 
         {section === "email" ? (
           <View style={styles.emailInlinePanel} testID="email-settings-panel">
+            <View style={styles.emailPanelHeader}>
+              <Label>{emailStep === "request" ? "CHANGE EMAIL" : "VERIFY EMAIL"}</Label>
+              <Pressable
+                testID="email-edit-cancel"
+                accessibilityRole="button"
+                accessibilityLabel="Close email editing"
+                disabled={busy}
+                onPress={() => { setSection(null); setErr(null); }}
+                style={styles.emailClose}
+              >
+                <Icon name="x" size={18} color={nova.color.muted} />
+              </Pressable>
+            </View>
             {emailStep === "request" ? (
               <>
                 <Label>We will send a six-digit confirmation code to your new address.</Label>
@@ -425,7 +438,6 @@ export default function Account() {
               </>
             ) : (
               <>
-                <Body style={styles.panelTitle}>Verify your new email</Body>
                 <Label>A code was sent to {newEmail}. It expires in 15 minutes.</Label>
                 <Field testID="email-change-code" label="6-digit code" value={emailCode} onChangeText={(v) => setEmailCode(v.replace(/\D/g, "").slice(0, 6))} keyboardType="number-pad" />
                 <Button testID="email-change-confirm" label="Verify & update email" disabled={busy || emailCode.length !== 6} onPress={confirmEmailChange} />
@@ -433,15 +445,6 @@ export default function Account() {
               </>
             )}
             <ErrorText testID="account-error">{err}</ErrorText>
-            <Pressable
-              testID="email-edit-cancel"
-              accessibilityRole="button"
-              accessibilityLabel="Close email editing"
-              onPress={() => { setSection(null); setErr(null); }}
-              style={styles.emailClose}
-            >
-              <Icon name="x" size={18} color={nova.color.muted} />
-            </Pressable>
           </View>
         ) : null}
 
@@ -611,7 +614,8 @@ const styles = StyleSheet.create({
   profileEmailRow: { flexDirection: "row", alignItems: "center", gap: spacing.xs, minWidth: 0 },
   profileEmail: { fontSize: 14, color: nova.color.ink, flexShrink: 1 },
   emailInlinePanel: { padding: spacing.md, gap: spacing.md, backgroundColor: nova.color.stage, borderWidth: 1, borderColor: nova.color.lineStrong, borderRadius: 6 },
-  emailClose: { position: "absolute", top: 8, right: 8, width: 36, height: 36, justifyContent: "center", alignItems: "center" },
+  emailPanelHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: spacing.sm },
+  emailClose: { width: 36, height: 36, justifyContent: "center", alignItems: "center" },
   nameEditButton: { width: 36, height: 36, alignItems: "center", justifyContent: "center", borderRadius: 6 },
   editEmoji: { fontSize: 15, lineHeight: 21 },
   avatar: { width: 54, height: 54, borderRadius: 6, borderWidth: 1, borderColor: nova.color.mint, backgroundColor: nova.color.mintSoft, alignItems: "center", justifyContent: "center" },
