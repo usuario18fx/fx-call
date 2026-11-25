@@ -17,6 +17,7 @@ import { nova } from "@/src/nova/designTokens";
 
 type Session = { id: string; platform: string; os: string; device_name: string; created_at: string; last_used_at: string; current: boolean };
 type Section = "email" | "password" | "twofa" | "devices" | "privacy";
+const SECTION_TITLES: Record<Section, string> = { email: "Email", password: "Password", twofa: "Two-factor authentication", devices: "Devices & sessions", privacy: "Privacy Shield" };
 
 function MenuRow({ icon, title, subtitle, expanded, onPress, testID }: {
   icon: IconName; title: string; subtitle: string; expanded: boolean; onPress: () => void; testID: string;
@@ -44,6 +45,7 @@ export default function Account() {
   const router = useRouter();
   const toast = useToast();
   const [section, setSection] = useState<Section | null>(null);
+  const [accountView, setAccountView] = useState<"profile" | "settings">("profile");
   const [busy, setBusy] = useState(false);
   const [name, setName] = useState(user?.display_name ?? "");
   const [err, setErr] = useState<string | null>(null);
@@ -76,7 +78,29 @@ export default function Account() {
 
   const toggle = (next: Section) => {
     setErr(null);
-    setSection((previous) => previous === next ? null : next);
+    setSection(next);
+  };
+
+  const backToProfile = () => {
+    setSection(null);
+    setAccountView("profile");
+    setErr(null);
+    setEmailPassword("");
+    setEmailTotp("");
+    setEmailCode("");
+    setOldPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setPasswordCode("");
+  };
+  const backToSettings = () => {
+    setSection(null);
+    setAccountView("settings");
+    setErr(null);
+    setOldPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setPasswordCode("");
   };
 
   const run = async (fn: () => Promise<void>) => {
@@ -190,9 +214,49 @@ export default function Account() {
   });
 
   return (
-    <Screen title="Profile" testID="account-screen" maxWidth={760}>
-      <Label style={{ color: nova.color.mint }}>NOVA / ACCOUNT CONTROL</Label>
+    <Screen testID="account-screen" maxWidth={760}>
+      {section !== null || accountView === "settings" ? (
+        <View style={styles.accountBreadcrumb} testID="account-breadcrumb">
+          <Pressable
+            testID="breadcrumb-profile"
+            accessibilityRole="button"
+            accessibilityLabel="Back to Profile"
+            onPress={backToProfile}
+            style={styles.crumbButton}
+          >
+            <Icon name="arrow-left" size={21} color={nova.color.ink} />
+            <Body style={styles.crumbLink}>Profile</Body>
+          </Pressable>
+          <Icon name="chevron-right" size={18} color={nova.color.muted} />
+          {section !== null && accountView === "settings" ? (
+            <>
+              <Pressable testID="breadcrumb-settings" accessibilityRole="button" accessibilityLabel="Back to Settings" onPress={backToSettings} style={styles.crumbButton}>
+                <Body style={styles.crumbLink}>Settings</Body>
+              </Pressable>
+              <Icon name="chevron-right" size={18} color={nova.color.muted} />
+            </>
+          ) : null}
+          <Heading size={21} style={styles.crumbCurrent}>{section ? SECTION_TITLES[section] : "Settings"}</Heading>
+        </View>
+      ) : (
+        <View style={styles.accountTitleRow}>
+          <View style={{ gap: spacing.xs }}>
+            <Label style={{ color: nova.color.mint }}>FX CALL / NOVA</Label>
+            <Heading size={28}>Profile</Heading>
+          </View>
+          <Pressable
+            testID="account-open-settings"
+            accessibilityRole="button"
+            accessibilityLabel="Open account settings"
+            onPress={() => { setAccountView("settings"); setSection(null); setErr(null); }}
+            style={styles.settingsGear}
+          >
+            <Icon name="settings-2" size={23} color={nova.color.mint} />
+          </Pressable>
+        </View>
+      )}
 
+      {accountView === "profile" && section === null ? (
       <Card style={styles.profileCard} testID="profile-card">
         <View style={styles.profileHeader}>
           <Pressable
@@ -411,6 +475,19 @@ export default function Account() {
           </View>
         ) : null}
 
+      </Card>
+      ) : null}
+
+      {section === "email" ? (
+        <Card style={styles.profileCard} testID="email-detail-card">
+          <View style={styles.emailDetailTop}>
+            <Label>CURRENT EMAIL</Label>
+            <Badge label={user?.verified ? "Verified" : "Not verified"} tone={user?.verified ? "success" : "warning"} />
+          </View>
+          <View style={styles.emailCurrentLine}>
+            <Body selectable style={styles.emailCurrentValue}>{user?.email}</Body>
+            {user?.verified ? <Icon name="badge-check" size={23} color={nova.color.mint} /> : null}
+          </View>
         {section === "email" ? (
           <View style={styles.emailInlinePanel} testID="email-settings-panel">
             <View style={styles.emailPanelHeader}>
@@ -448,11 +525,30 @@ export default function Account() {
           </View>
         ) : null}
 
-      </Card>
 
+        </Card>
+      ) : null}
+
+      {accountView === "settings" && section !== "email" ? (
       <Card style={{ gap: spacing.xs }} testID="account-settings-card">
-        <Heading size={18} style={styles.sectionHeading}>Account & Security</Heading>
-        <MenuRow testID="settings-password" icon="lock-keyhole" title="Password" subtitle="Update your sign-in password" expanded={section === "password"} onPress={() => toggle("password")} />
+        {section === null ? (
+          <>
+            <Label style={{ color: nova.color.mint }}>FX CALL / SETTINGS</Label>
+            <Heading size={22} style={styles.sectionHeading}>Settings</Heading>
+            <Pressable testID="settings-open-studio" accessibilityRole="button" onPress={() => router.push("/studio")} style={styles.settingsQuickLink}>
+              <Icon name="video" size={21} color={nova.color.mint} />
+              <Body style={styles.menuTitle}>Camera & Studio</Body>
+              <Icon name="chevron-right" size={19} color={colors.muted} />
+            </Pressable>
+            <Pressable testID="settings-open-meetings" accessibilityRole="button" onPress={() => router.push("/meetings")} style={styles.settingsQuickLink}>
+              <Icon name="users" size={21} color={nova.color.mint} />
+              <Body style={styles.menuTitle}>Meetings</Body>
+              <Icon name="chevron-right" size={19} color={colors.muted} />
+            </Pressable>
+            <Label>ACCOUNT & SECURITY</Label>
+          </>
+        ) : null}
+        {section === null ? <MenuRow testID="settings-password" icon="lock-keyhole" title="Password" subtitle="Update your sign-in password" expanded={section === "password"} onPress={() => toggle("password")} /> : null}
         {section === "password" ? (
           <View style={styles.panel} testID="password-settings-panel">
             <Body style={styles.panelTitle}>Change password</Body>
@@ -473,7 +569,7 @@ export default function Account() {
           </View>
         ) : null}
 
-        <MenuRow testID="settings-2fa" icon="shield-check" title="Two-factor authentication" subtitle={user?.totp_enabled ? "Enabled" : "Add an extra sign-in step"} expanded={section === "twofa"} onPress={() => toggle("twofa")} />
+        {section === null ? <MenuRow testID="settings-2fa" icon="shield-check" title="Two-factor authentication" subtitle={user?.totp_enabled ? "Enabled" : "Add an extra sign-in step"} expanded={section === "twofa"} onPress={() => toggle("twofa")} /> : null}
         {section === "twofa" ? (
           <View style={styles.panel} testID="twofa-card">
             <View style={styles.rowBetween}>
@@ -533,7 +629,7 @@ export default function Account() {
           </View>
         ) : null}
 
-        <MenuRow testID="settings-devices" icon="smartphone" title="Devices & sessions" subtitle="Review and sign out devices" expanded={section === "devices"} onPress={() => toggle("devices")} />
+        {section === null ? <MenuRow testID="settings-devices" icon="smartphone" title="Devices & sessions" subtitle="Review and sign out devices" expanded={section === "devices"} onPress={() => toggle("devices")} /> : null}
         {section === "devices" ? (
           <View style={styles.panel} testID="sessions-card">
             <Body style={styles.panelTitle}>Active sessions</Body>
@@ -574,7 +670,7 @@ export default function Account() {
           </View>
         ) : null}
 
-        <MenuRow testID="settings-privacy" icon="shield" title="Privacy Shield" subtitle="Security capabilities on this device" expanded={section === "privacy"} onPress={() => toggle("privacy")} />
+        {section === null ? <MenuRow testID="settings-privacy" icon="shield" title="Privacy Shield" subtitle="Security capabilities on this device" expanded={section === "privacy"} onPress={() => toggle("privacy")} /> : null}
         {section === "privacy" ? (
           <View style={styles.panel} testID="capability-report-card">
             <Label>{dev.os} · {dev.model}</Label>
@@ -587,12 +683,15 @@ export default function Account() {
         ) : null}
         {section !== "email" ? <ErrorText testID="account-error">{err}</ErrorText> : null}
       </Card>
+      ) : null}
 
+      {accountView === "settings" && section === null ? (
       <Card style={{ gap: spacing.sm }} testID="sign-out-card">
         <Heading size={18}>Sessions</Heading>
         <Button testID="logout-button" label="Sign out" variant="secondary" icon="log-out" onPress={() => signOut(false)} />
         <Button testID="logout-all-button" label="Sign out of all devices" variant="danger" icon="shield-off" onPress={() => signOut(true)} />
       </Card>
+      ) : null}
     </Screen>
   );
 }
@@ -607,6 +706,17 @@ function CapRow({ label, on, offText = "Unavailable" }: { label: string; on: boo
 }
 
 const styles = StyleSheet.create({
+  accountTitleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: spacing.md, paddingVertical: spacing.sm },
+  settingsGear: { width: 46, height: 46, borderRadius: 6, borderColor: nova.color.lineStrong, backgroundColor: nova.color.surfaceRaised, borderWidth: 1, alignItems: "center", justifyContent: "center" },
+  accountBreadcrumb: { flexDirection: "row", alignItems: "center", gap: spacing.sm, flexWrap: "wrap", paddingVertical: spacing.sm },
+  crumbButton: { flexDirection: "row", alignItems: "center", gap: spacing.sm, minHeight: 44 },
+  crumbLink: { fontSize: 16, color: nova.color.muted },
+  crumbCurrent: { flexShrink: 1 },
+  emailDetailTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: spacing.md },
+  emailCurrentLine: { flexDirection: "row", alignItems: "center", gap: spacing.sm, flexWrap: "wrap" },
+  emailCurrentValue: { fontSize: 20, flexShrink: 1, color: nova.color.ink },
+  settingsQuickLink: { flexDirection: "row", alignItems: "center", gap: spacing.md, paddingVertical: spacing.md, minHeight: 54, borderTopColor: nova.color.line, borderTopWidth: 1 },
+
   profileCard: { gap: spacing.md, backgroundColor: nova.color.surfaceRaised, borderColor: nova.color.lineStrong },
   profileHeader: { flexDirection: "row", alignItems: "center", gap: spacing.md, flexWrap: "wrap" },
   profileIdentity: { flex: 1, minWidth: 150, gap: spacing.xs },
