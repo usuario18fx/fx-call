@@ -85,6 +85,8 @@ export default function Account() {
     setSection(null);
     setAccountView("profile");
     setErr(null);
+    setEmailStep("request");
+    setNewEmail("");
     setEmailPassword("");
     setEmailTotp("");
     setEmailCode("");
@@ -488,8 +490,7 @@ export default function Account() {
             <Body selectable style={styles.emailCurrentValue}>{user?.email}</Body>
             {user?.verified ? <Icon name="badge-check" size={23} color={nova.color.mint} /> : null}
           </View>
-        {section === "email" ? (
-          <View style={styles.emailInlinePanel} testID="email-settings-panel">
+        <View style={styles.emailInlinePanel} testID="email-settings-panel">
             <View style={styles.emailPanelHeader}>
               <Label>{emailStep === "request" ? "CHANGE EMAIL" : "VERIFY EMAIL"}</Label>
               <Pressable
@@ -497,7 +498,7 @@ export default function Account() {
                 accessibilityRole="button"
                 accessibilityLabel="Close email editing"
                 disabled={busy}
-                onPress={() => { setSection(null); setErr(null); }}
+                onPress={backToProfile}
                 style={styles.emailClose}
               >
                 <Icon name="x" size={18} color={nova.color.muted} />
@@ -522,10 +523,7 @@ export default function Account() {
               </>
             )}
             <ErrorText testID="account-error">{err}</ErrorText>
-          </View>
-        ) : null}
-
-
+        </View>
         </Card>
       ) : null}
 
