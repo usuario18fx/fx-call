@@ -9,7 +9,7 @@ import { colors, fonts } from "@/src/theme";
 export default function TabsLayout() {
   if (usesNativeTabs) {
     return (
-      <NativeTabs tintColor={colors.onSurfaceSecondary}>
+      <NativeTabs tintColor={colors.brandPrimary}>
         <NativeTabs.Trigger name="studio">
           <NativeTabs.Trigger.Icon sf="camera.fill" />
           <NativeTabs.Trigger.Label>Studio</NativeTabs.Trigger.Label>
@@ -29,9 +29,9 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.onSurfaceSecondary,
+        tabBarActiveTintColor: colors.brandPrimary,
         tabBarInactiveTintColor: colors.muted,
-        tabBarStyle: { backgroundColor: colors.surfaceTertiary, borderTopColor: colors.border, ...(Platform.OS === "web" ? { height: 64 } : {}) },
+        tabBarStyle: { backgroundColor: "rgba(5,9,12,0.98)", borderTopColor: colors.borderStrong, borderTopWidth: 1, ...(Platform.OS === "web" ? { height: 64 } : {}) },
         tabBarItemStyle: { alignSelf: "center" },
         tabBarLabelStyle: { fontFamily: fonts.text, fontSize: 11, letterSpacing: 1, textTransform: "uppercase" },
       }}
