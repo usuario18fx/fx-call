@@ -62,6 +62,7 @@ export default function Account() {
   const [passwordCodeSent, setPasswordCodeSent] = useState(false);
   const [passwordTotp, setPasswordTotp] = useState("");
   const [confirmOtherSessions, setConfirmOtherSessions] = useState(false);
+  const [editingName, setEditingName] = useState(false);
   const [editingAvatar, setEditingAvatar] = useState(false);
   const [avatarDraft, setAvatarDraft] = useState<string | null>(null);
   const [avatarZoom, setAvatarZoom] = useState(1);
@@ -198,7 +199,13 @@ export default function Account() {
             testID="edit-profile-photo"
             accessibilityRole="button"
             accessibilityLabel="Edit profile photo"
-            onPress={() => { setEditingAvatar((v) => !v); setAvatarDraft(null); setErr(null); }}
+            accessibilityState={{ expanded: editingAvatar }}
+            onPress={() => {
+              setEditingAvatar((value) => !value);
+              setAvatarDraft(null);
+              setEditingName(false);
+              setErr(null);
+            }}
             style={styles.avatar}
           >
             {user?.avatar_data_url ? (
@@ -206,47 +213,180 @@ export default function Account() {
             ) : (
               <Body style={styles.avatarText}>{(user?.display_name || "F").charAt(0).toUpperCase()}</Body>
             )}
-            <View style={styles.avatarEditIcon}><Icon name="camera" size={12} color={colors.onSurfaceSecondary} /></View>
+            <View style={styles.avatarEditIcon}>
+              <Body style={styles.editEmoji}>✏️</Body>
+            </View>
           </Pressable>
-          <View style={{ flex: 1, gap: spacing.xs }}>
-            <Heading size={22}>{user?.display_name || "FX CALL MEMBER"}</Heading>
-            <Label>{user?.email}</Label>
+
+          <View style={styles.profileIdentity}>
+            <View style={styles.profileNameRow}>
+              <Heading size={22} style={{ flexShrink: 1 }}>{user?.display_name || "FX CALL MEMBER"}</Heading>
+              <Pressable
+                testID="edit-display-name"
+                accessibilityRole="button"
+                accessibilityLabel="Edit display name"
+                accessibilityState={{ expanded: editingName }}
+                onPress={() => {
+                  setName(user?.display_name ?? "");
+                  setEditingName((value) => !value);
+                  setEditingAvatar(false);
+                  setAvatarDraft(null);
+                  setErr(null);
+                }}
+                style={styles.nameEditButton}
+              >
+                <Body style={styles.editEmoji}>✏️</Body>
+              </Pressable>
+            </View>
+            <Label style={{ textTransform: "none" }}>{user?.email}</Label>
           </View>
           <Badge label={user?.verified ? "Verified" : "Unverified"} tone={user?.verified ? "success" : "warning"} />
         </View>
-        {editingAvatar ? (
-          <View style={styles.photoPanel} testID="profile-photo-editor">
-            <Body style={styles.panelTitle}>Edit profile photo</Body>
-            {avatarDraft ? (
-              <>
-                <View style={styles.avatarPreviewCrop}>
-                  <Image source={{ uri: avatarDraft }} style={{ width: 128, height: 128, transform: [{ scale: avatarZoom }] }} contentFit="cover" />
-                </View>
-                <Label>Crop & zoom</Label>
-                <View style={styles.avatarEditorActions}>
-                  <Button testID="avatar-zoom-out" label="−" variant="secondary" compact disabled={busy || avatarZoom <= 1} onPress={() => setAvatarZoom((z) => Math.max(1, +(z - 0.25).toFixed(2)))} />
-                  <Body>{Math.round(avatarZoom * 100)}%</Body>
-                  <Button testID="avatar-zoom-in" label="+" variant="secondary" compact disabled={busy || avatarZoom >= 2.5} onPress={() => setAvatarZoom((z) => Math.min(2.5, +(z + 0.25).toFixed(2)))} />
-                </View>
-                <Button testID="avatar-save" label="Save photo" icon="check" disabled={busy} onPress={saveAvatar} />
-              </>
-            ) : null}
-            <View style={styles.avatarEditorActions}>
-              <Button testID="avatar-choose" compact label="Choose photo" icon="image" variant="secondary" disabled={busy} onPress={() => pickAvatar(false)} />
-              {Platform.OS !== "web" ? (
-                <Button testID="avatar-camera" compact label="Take photo" icon="camera" variant="secondary" disabled={busy} onPress={() => pickAvatar(true)} />
-              ) : null}
+
+        {editingName ? (
+          <View style={styles.inlineNameEditor} testID="profile-name-editor">
+            <View style={{ flex: 1, minWidth: 160 }}>
+              <Field testID="profile-name-input" label="Display name" value={name} onChangeText={setName} maxLength={60} autoComplete="name" />
             </View>
-            {user?.avatar_data_url ? <Button testID="avatar-remove" compact label="Remove current photo" icon="trash-2" variant="ghost" disabled={busy} onPress={removeAvatar} /> : null}
-            <Button testID="avatar-cancel" compact label="Close editor" variant="ghost" onPress={() => { setEditingAvatar(false); setAvatarDraft(null); }} />
+            <View style={styles.inlineEditorActions}>
+              <Pressable
+                testID="profile-save-button"
+                accessibilityRole="button"
+                accessibilityLabel="Save display name"
+                disabled={busy || !name.trim()}
+                onPress={() => run(async () => {
+                  setUser(await api("/auth/me", { method: "PATCH", body: { display_name: name.trim() } }));
+                  setEditingName(false);
+                  toast("Profile saved", "success");
+                })}
+                style={[styles.iconAction, styles.confirmAction, (busy || !name.trim()) && styles.disabledAction]}
+              >
+                <Icon name="check" size={18} color={nova.color.mintInk} />
+              </Pressable>
+              <Pressable
+                testID="profile-cancel-button"
+                accessibilityRole="button"
+                accessibilityLabel="Cancel editing display name"
+                disabled={busy}
+                onPress={() => { setName(user?.display_name ?? ""); setEditingName(false); }}
+                style={styles.iconAction}
+              >
+                <Icon name="x" size={18} color={nova.color.ink} />
+              </Pressable>
+            </View>
           </View>
         ) : null}
-        <Divider />
-        <Field testID="profile-name-input" label="Display name" value={name} onChangeText={setName} maxLength={60} autoComplete="name" />
-        <Button testID="profile-save-button" compact label="Save display name" variant="secondary" disabled={busy || !name.trim()} onPress={() => run(async () => {
-          setUser(await api("/auth/me", { method: "PATCH", body: { display_name: name.trim() } }));
-          toast("Profile saved", "success");
-        })} />
+
+        {editingAvatar ? (
+          <View style={styles.photoPanel} testID="profile-photo-editor">
+            {avatarDraft ? (
+              <View style={styles.photoPreviewRow}>
+                <View style={styles.avatarPreviewCrop}>
+                  <Image
+                    source={{ uri: avatarDraft }}
+                    style={{ width: 96, height: 96, transform: [{ scale: avatarZoom }] }}
+                    contentFit="cover"
+                  />
+                </View>
+                <View style={styles.photoPreviewControls}>
+                  <Label>ZOOM · {Math.round(avatarZoom * 100)}%</Label>
+                  <View style={styles.inlineEditorActions}>
+                    <Pressable
+                      testID="avatar-zoom-out"
+                      accessibilityRole="button"
+                      accessibilityLabel="Zoom out"
+                      disabled={busy || avatarZoom <= 1}
+                      style={[styles.iconAction, (busy || avatarZoom <= 1) && styles.disabledAction]}
+                      onPress={() => setAvatarZoom((z) => Math.max(1, +(z - 0.25).toFixed(2)))}
+                    >
+                      <Icon name="minus" size={18} color={nova.color.ink} />
+                    </Pressable>
+                    <Pressable
+                      testID="avatar-zoom-in"
+                      accessibilityRole="button"
+                      accessibilityLabel="Zoom in"
+                      disabled={busy || avatarZoom >= 2.5}
+                      style={[styles.iconAction, (busy || avatarZoom >= 2.5) && styles.disabledAction]}
+                      onPress={() => setAvatarZoom((z) => Math.min(2.5, +(z + 0.25).toFixed(2)))}
+                    >
+                      <Icon name="plus" size={18} color={nova.color.ink} />
+                    </Pressable>
+                    <Pressable
+                      testID="avatar-save"
+                      accessibilityRole="button"
+                      accessibilityLabel="Save profile photo"
+                      disabled={busy}
+                      onPress={saveAvatar}
+                      style={[styles.iconAction, styles.confirmAction, busy && styles.disabledAction]}
+                    >
+                      <Icon name="check" size={18} color={nova.color.mintInk} />
+                    </Pressable>
+                    <Pressable
+                      testID="avatar-cancel"
+                      accessibilityRole="button"
+                      accessibilityLabel="Cancel photo editing"
+                      disabled={busy}
+                      onPress={() => { setEditingAvatar(false); setAvatarDraft(null); }}
+                      style={styles.iconAction}
+                    >
+                      <Icon name="x" size={18} color={nova.color.ink} />
+                    </Pressable>
+                  </View>
+                </View>
+              </View>
+            ) : (
+              <View style={styles.photoPickerRow}>
+                <Pressable
+                  testID="avatar-choose"
+                  accessibilityRole="button"
+                  accessibilityLabel="Choose profile photo from gallery"
+                  disabled={busy}
+                  onPress={() => pickAvatar(false)}
+                  style={styles.photoPickerButton}
+                >
+                  <Icon name="image" size={16} color={nova.color.mint} />
+                  <Body>Gallery</Body>
+                </Pressable>
+                {Platform.OS !== "web" ? (
+                  <Pressable
+                    testID="avatar-camera"
+                    accessibilityRole="button"
+                    accessibilityLabel="Take profile photo"
+                    disabled={busy}
+                    onPress={() => pickAvatar(true)}
+                    style={styles.photoPickerButton}
+                  >
+                    <Icon name="camera" size={16} color={nova.color.mint} />
+                    <Body>Camera</Body>
+                  </Pressable>
+                ) : null}
+                {user?.avatar_data_url ? (
+                  <Pressable
+                    testID="avatar-remove"
+                    accessibilityRole="button"
+                    accessibilityLabel="Remove current profile photo"
+                    disabled={busy}
+                    onPress={removeAvatar}
+                    style={styles.photoPickerButton}
+                  >
+                    <Icon name="trash-2" size={16} color="#FF969B" />
+                    <Body>Remove</Body>
+                  </Pressable>
+                ) : null}
+                <Pressable
+                  testID="avatar-cancel"
+                  accessibilityRole="button"
+                  accessibilityLabel="Close photo options"
+                  disabled={busy}
+                  onPress={() => { setEditingAvatar(false); setAvatarDraft(null); }}
+                  style={styles.iconAction}
+                >
+                  <Icon name="x" size={18} color={nova.color.ink} />
+                </Pressable>
+              </View>
+            )}
+          </View>
+        ) : null}
       </Card>
 
       <Card style={{ gap: spacing.xs }} testID="account-settings-card">
@@ -444,14 +584,26 @@ function CapRow({ label, on, offText = "Unavailable" }: { label: string; on: boo
 
 const styles = StyleSheet.create({
   profileCard: { gap: spacing.md, backgroundColor: nova.color.surfaceRaised, borderColor: nova.color.lineStrong },
-  profileHeader: { flexDirection: "row", alignItems: "center", gap: spacing.md },
-  avatar: { width: 48, height: 48, borderRadius: 6, borderWidth: 1, borderColor: nova.color.mint, backgroundColor: nova.color.mintSoft, alignItems: "center", justifyContent: "center" },
-  avatarText: { fontSize: 21, fontWeight: "700", color: nova.color.mint },
-  avatarImage: { width: 46, height: 46, borderRadius: 5 },
-  avatarEditIcon: { position: "absolute", right: -5, bottom: -5, backgroundColor: colors.brandPrimary, padding: 3, borderRadius: 5, borderWidth: 1, borderColor: colors.surface },
-  photoPanel: { padding: spacing.md, gap: spacing.md, backgroundColor: colors.surfaceTertiary, borderWidth: 1, borderColor: colors.borderStrong, borderRadius: 6 },
-  avatarPreviewCrop: { width: 128, height: 128, alignSelf: "center", overflow: "hidden", alignItems: "center", justifyContent: "center", borderRadius: 6, backgroundColor: colors.surface },
-  avatarEditorActions: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: spacing.sm },
+  profileHeader: { flexDirection: "row", alignItems: "center", gap: spacing.md, flexWrap: "wrap" },
+  profileIdentity: { flex: 1, minWidth: 150, gap: spacing.xs },
+  profileNameRow: { flexDirection: "row", alignItems: "center", gap: spacing.xs },
+  nameEditButton: { width: 36, height: 36, alignItems: "center", justifyContent: "center", borderRadius: 6 },
+  editEmoji: { fontSize: 15, lineHeight: 21 },
+  avatar: { width: 54, height: 54, borderRadius: 6, borderWidth: 1, borderColor: nova.color.mint, backgroundColor: nova.color.mintSoft, alignItems: "center", justifyContent: "center" },
+  avatarText: { fontSize: 23, fontWeight: "700", color: nova.color.mint },
+  avatarImage: { width: 52, height: 52, borderRadius: 5 },
+  avatarEditIcon: { position: "absolute", right: -6, bottom: -6, backgroundColor: nova.color.mint, width: 24, height: 24, alignItems: "center", justifyContent: "center", borderRadius: 6, borderWidth: 1, borderColor: nova.color.canvas },
+  inlineNameEditor: { flexDirection: "row", alignItems: "flex-end", flexWrap: "wrap", gap: spacing.sm },
+  inlineEditorActions: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: spacing.sm },
+  iconAction: { width: 42, height: 42, borderWidth: 1, borderColor: nova.color.lineStrong, borderRadius: 6, justifyContent: "center", alignItems: "center", backgroundColor: nova.color.surface },
+  confirmAction: { backgroundColor: nova.color.mint, borderColor: nova.color.mint },
+  disabledAction: { opacity: 0.4 },
+  photoPanel: { padding: spacing.sm, backgroundColor: nova.color.stage, borderWidth: 1, borderColor: nova.color.lineStrong, borderRadius: 6 },
+  photoPickerRow: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: spacing.sm },
+  photoPickerButton: { flexDirection: "row", gap: spacing.sm, alignItems: "center", paddingHorizontal: spacing.md, minHeight: 42, backgroundColor: nova.color.surface, borderRadius: 6, borderColor: nova.color.lineStrong, borderWidth: 1 },
+  photoPreviewRow: { flexDirection: "row", alignItems: "center", gap: spacing.md, flexWrap: "wrap" },
+  photoPreviewControls: { flex: 1, minWidth: 180, gap: spacing.sm },
+  avatarPreviewCrop: { width: 96, height: 96, overflow: "hidden", alignItems: "center", justifyContent: "center", borderRadius: 6, backgroundColor: nova.color.surface },
   passwordInput: { backgroundColor: "#14272B", color: nova.color.ink },
   currentEmailText: { color: colors.onSurfaceSecondary, fontSize: 20, flexShrink: 1, letterSpacing: 0.1 },
   verifiedEmailRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, flexWrap: "wrap" },
