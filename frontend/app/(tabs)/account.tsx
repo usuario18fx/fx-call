@@ -1,3 +1,5 @@
+import { LanguageSwitch } from "@/src/components/LanguageSwitch";
+import { useLang } from "@/src/i18n";
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
@@ -42,6 +44,7 @@ export default function Account() {
   const { user, setUser, refreshUser, logout } = useAuth();
   const router = useRouter();
   const toast = useToast();
+  const { t } = useLang();
   const [section, setSection] = useState<Section | null>(null);
   const [busy, setBusy] = useState(false);
   const [name, setName] = useState(user?.display_name ?? "");
@@ -414,6 +417,11 @@ export default function Account() {
             {sessions.isError ? <Label>Could not load sessions. Please try again.</Label> : null}
           </View>
         ) : null}
+
+        <View style={{ gap: spacing.sm, paddingVertical: spacing.sm }} testID="language-switch-row">
+          <Label>{t("lang.title")} · {t("lang.subtitle")}</Label>
+          <LanguageSwitch />
+        </View>
 
         <MenuRow testID="settings-privacy" icon="shield" title="Privacy Shield" subtitle="Security capabilities on this device" expanded={section === "privacy"} onPress={() => toggle("privacy")} />
         {section === "privacy" ? (

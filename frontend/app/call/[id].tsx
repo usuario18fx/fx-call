@@ -7,10 +7,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { participantApi } from "@/src/api";
 import { ChatMessage, ChatSheet } from "@/src/components/ChatSheet";
-import { Badge, Body, Button, Heading, Icon, IconButton, Label, Loading } from "@/src/components/ui";
+import { CallDock } from "@/src/components/CallDock";
+import { Badge, Body, Button, Heading, Icon, Label, Loading } from "@/src/components/ui";
+import { useLang } from "@/src/i18n";
 import { Watermark } from "@/src/components/Watermark";
 import { PRIVACY_WARNING } from "@/src/privacy/labels";
-import { getCaptureCapabilities, setCaptureProtection, startShield } from "@/src/privacy/shield";
+import { getCaptureCapabilities } from "@/src/privacy/shield";
+import { useShield } from "@/src/privacy/useShield";
 import { useRoomSocket } from "@/src/realtime";
 import { colors, fonts, radius, spacing } from "@/src/theme";
 import { pickAudioRoute, supportsAudioRoute } from "@/src/video/lk";
@@ -26,6 +29,7 @@ type Me = {
 const QUALITY_ICON: Record<string, any> = { excellent: "signal-high", good: "signal-medium", poor: "signal-low", lost: "signal-zero", unknown: "signal" };
 
 function TileView({ t, style, big }: { t: Tile; style?: any; big?: boolean }) {
+  const { t: tr } = useLang();
   return (
     <View style={[styles.tile, t.speaking && styles.speaking, style]} testID={`video-tile-${t.isLocal ? "local" : t.id}`}>
       {t.videoTrack ? (
@@ -37,7 +41,7 @@ function TileView({ t, style, big }: { t: Tile; style?: any; big?: boolean }) {
       )}
       <View style={styles.tileLabel}>
         {!t.micOn ? <Icon name="mic-off" size={13} color={colors.onError} /> : null}
-        <Text style={styles.tileName} numberOfLines={1}>{t.isLocal ? "You" : t.name}{t.role === "host" ? " · Host" : ""}</Text>
+        <Text style={styles.tileName} numberOfLines={1}>{t.isLocal ? tr("call.you") : t.name}{t.role === "host" ? ` · ${tr("call.host")}` : ""}</Text>
         <Icon name={QUALITY_ICON[t.quality] ?? "signal"} size={13} color={t.quality === "poor" || t.quality === "lost" ? colors.onWarning : colors.onSurface} />
       </View>
     </View>
@@ -48,11 +52,13 @@ export default function CallScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { t: tr } = useLang();
   const { width, height } = useWindowDimensions();
   const [layout, setLayout] = useState<"gallery" | "speaker">("gallery");
   const [chrome, setChrome] = useState(true);
   const [chatOpen, setChatOpen] = useState(false);
   const [warning, setWarning] = useState<string | null>(null);
+  const [selfNotice, setSelfNotice] = useState(false);
   const [stamp, setStamp] = useState(() => new Date().toLocaleString());
 
   const me = useQuery({ queryKey: ["me", id], queryFn: () => participantApi<Me>(id, "/me"), refetchInterval: 5000 });
@@ -66,37 +72,33 @@ export default function CallScreen() {
   useRoomSocket(id, !!p, (m) => {
     if (m.type === "message") msgs.refetch();
     if (m.type === "you_update") {
-      if (m.actions?.includes("participant_warned")) setWarning("Your device reported a screen capture. The host has been notified.");
-      if (m.actions?.includes("video_restricted") || m.actions?.includes("restrict-video")) setWarning("The host restricted your access to video.");
+      if (m.actions?.includes("participant_warned")) setWarning(tr("call.captureWarn"));
+      if (m.actions?.includes("video_restricted") || m.actions?.includes("restrict-video")) setWarning(tr("call.restricted"));
       me.refetch();
     }
     if (m.type === "room_ended" || m.type === "room_update") me.refetch();
   });
 
-  // FX PRIVACY SHIELD — report genuine OS capture signals for this authenticated participant.
+  // FX PRIVACY SHIELD — always-on protection + on-device notice for every capture; server report for the host timeline.
   useEffect(() => {
     if (!approved) return;
     const caps = getCaptureCapabilities();
     participantApi(id, "/state", { body: { capture: { screenshot: caps.screenshot, recording: caps.recording, source: caps.source.slice(0, 80) } } }).catch(() => {});
-    return startShield(async (e) => {
-      try {
-        const r = await participantApi<{ actions: string[] }>(id, "/security-events", { body: { event_type: e.type, detection_source: e.source } });
-        if (r.actions.includes("participant_warned")) setWarning("Your device reported a screen capture. The host has been notified.");
-        me.refetch();
-      } catch {
-        // rate-limited or not admitted
-      }
-    });
-  }, [approved, id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [approved, id]);
 
-  const protect = !!me.data?.room.settings.capture_protection;
+  const shield = useShield({
+    active: !!approved,
+    report: async (e) => {
+      const r = await participantApi<{ actions: string[] }>(id, "/security-events", { body: { event_type: e.type, detection_source: e.source } });
+      if (r.actions.includes("participant_warned")) setWarning(tr("call.captureWarn"));
+      me.refetch();
+    },
+  });
   useEffect(() => {
-    if (!approved || !protect) return;
-    setCaptureProtection(true);
-    return () => {
-      setCaptureProtection(false);
-    };
-  }, [approved, protect]);
+    if (shield.hits > 0) setSelfNotice(true);
+    const off = setTimeout(() => setSelfNotice(false), 6000);
+    return () => clearTimeout(off);
+  }, [shield.hits]);
 
   useEffect(() => {
     const t = setInterval(() => setStamp(new Date().toLocaleString()), 30000);
@@ -118,23 +120,23 @@ export default function CallScreen() {
     else router.replace("/");
   };
 
-  if (me.isLoading) return <Loading label="Connecting to private room" />;
+  if (me.isLoading) return <Loading label={tr("call.connecting")} />;
   if (me.isError || !p)
     return (
       <View style={[styles.center, { paddingTop: insets.top }]}>
-        <Body>Your access to this meeting is not valid on this device.</Body>
-        <Button testID="call-home-button" label="Go home" onPress={() => router.replace("/")} />
+        <Body>{tr("call.invalid")}</Body>
+        <Button testID="call-home-button" label={tr("call.home")} onPress={() => router.replace("/")} />
       </View>
     );
 
   if (removed || ended || call.status === "ended") {
-    const msg = ended ? "The host ended this meeting." : p.status === "removed" ? "You were removed from this meeting." : p.status === "blocked" ? "The host blocked you from this meeting." : call.error ?? "You left the call.";
+    const msg = ended ? tr("call.endedHost") : p.status === "removed" ? tr("call.endedRemoved") : p.status === "blocked" ? tr("call.endedBlocked") : call.error ?? tr("call.endedLeft");
     return (
       <View style={[styles.center, { paddingTop: insets.top }]} testID="call-ended-view">
         <Icon name="phone-off" size={36} color={colors.muted} />
-        <Heading size={22}>Call ended</Heading>
+        <Heading size={22}>{tr("call.endedTitle")}</Heading>
         <Body testID="call-ended-reason" style={{ textAlign: "center" }}>{msg}</Body>
-        <Button testID="call-ended-home-button" label="Done" onPress={() => router.replace("/")} />
+        <Button testID="call-ended-home-button" label={tr("call.done")} onPress={() => router.replace("/")} />
       </View>
     );
   }
@@ -144,7 +146,7 @@ export default function CallScreen() {
   const rows = Math.max(1, Math.ceil(n / cols));
   // Keep the title and the call controls clear of video tiles on narrow screens.
   const topChrome = chrome ? (width < 520 ? 124 : 92) : 0;
-  const bottomChrome = chrome ? (width < 520 ? 138 : 88) : 0;
+  const bottomChrome = chrome ? 128 : 0;
   const stageH = Math.max(160, height - insets.top - insets.bottom - topChrome - bottomChrome);
   const tileHeight = Math.max(104, Math.floor(stageH / rows) - 8);
   const isHost = p.role === "host";
@@ -155,8 +157,8 @@ export default function CallScreen() {
         {call.status === "unavailable" || call.status === "error" || !me.data?.video_configured ? (
           <View style={styles.center} testID="call-unavailable">
             <Icon name="video-off" size={36} color={colors.muted} />
-            <Body style={{ textAlign: "center", maxWidth: 420 }}>{!me.data?.video_configured ? "The video service is not configured yet." : call.error}</Body>
-            {call.status === "error" ? <Button testID="call-retry-button" label="Retry" variant="secondary" onPress={call.retry} /> : null}
+            <Body style={{ textAlign: "center", maxWidth: 420 }}>{!me.data?.video_configured ? tr("call.noVideo") : call.error}</Body>
+            {call.status === "error" ? <Button testID="call-retry-button" label={tr("call.retry")} variant="secondary" onPress={call.retry} /> : null}
           </View>
         ) : layout === "gallery" || n <= 1 ? (
           <ScrollView style={styles.galleryScroll} contentContainerStyle={styles.grid} showsVerticalScrollIndicator={n > 6}>
@@ -172,12 +174,12 @@ export default function CallScreen() {
             </ScrollView>
           </View>
         )}
-        {me.data?.room.settings.watermark ? <Watermark name={p.display_name} id={p.id} stamp={stamp} /> : null}
+        {me.data?.room.settings.watermark ? <Watermark name={p.display_name} id={p.id} stamp={stamp} boost={shield.boost} /> : null}
       </Pressable>
 
       {call.status === "connecting" || call.status === "reconnecting" ? (
         <View style={[styles.statusPill, { top: insets.top + 64 }]} testID="call-connection-status">
-          <Label color={colors.onSurfaceSecondary}>{call.status === "connecting" ? "Connecting securely…" : "Connection lost. Reconnecting securely…"}</Label>
+          <Label color={colors.onSurfaceSecondary}>{call.status === "connecting" ? tr("call.connectingSecure") : tr("call.reconnecting")}</Label>
         </View>
       ) : null}
 
@@ -189,32 +191,41 @@ export default function CallScreen() {
         </Animated.View>
       ) : null}
 
+      {selfNotice ? (
+        <Animated.View entering={FadeInDown} style={[styles.selfNotice, { top: insets.top + spacing.sm }]} testID="self-capture-notice">
+          <Icon name="shield-alert" size={20} color="#FFD7A8" />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.selfTitle}>{tr("call.captureSelf")}</Text>
+            <Text style={styles.selfSub}>{tr("call.captureSelfSub")}</Text>
+          </View>
+        </Animated.View>
+      ) : null}
+
       {chrome ? (
         <>
           <Animated.View entering={FadeIn} style={[styles.topBar, { paddingTop: insets.top + spacing.sm }]}>
             <View style={{ flex: 1 }}>
               <Heading size={18} testID="call-room-title">{me.data?.room.title}</Heading>
               <View style={{ flexDirection: "row", gap: spacing.xs, marginTop: 4, flexWrap: "wrap" }}>
-                <Badge label={`${n} in call`} tone="neutral" icon="users" />
-                <Badge label="Encrypted transport" tone="brand" icon="lock" />
-                <Badge testID="shield-status-badge" label={Platform.OS === "web" ? "Capture detection unavailable" : "Privacy Shield on"} tone={Platform.OS === "web" ? "neutral" : "success"} icon="shield" />
+                <Badge label={tr("call.inCall", { n })} tone="neutral" icon="users" />
+                <Badge label={tr("call.encrypted")} tone="brand" icon="lock" />
+                <Badge testID="shield-status-badge" label={Platform.OS === "web" ? tr("call.shieldOff") : tr("call.shieldOn")} tone={Platform.OS === "web" ? "neutral" : "success"} icon="shield" />
               </View>
             </View>
-            {isHost ? <Button testID="call-dashboard-button" compact label="Security" icon="shield-alert" variant="secondary" onPress={() => router.push(`/host/${id}`)} /> : null}
+            {isHost ? <Button testID="call-dashboard-button" compact label={tr("call.security")} icon="shield-alert" variant="secondary" onPress={() => router.push(`/host/${id}`)} /> : null}
           </Animated.View>
 
-          <Animated.View entering={FadeInDown} style={[styles.controls, { bottom: insets.bottom + spacing.lg }]} testID="call-controls">
-            <IconButton testID="toggle-mic-button" label="Microphone" icon={call.micOn ? "mic" : "mic-off"} active={!call.micOn} onPress={call.toggleMic} />
-            <IconButton testID="toggle-camera-button" label="Camera" icon={call.camOn ? "video" : "video-off"} active={!call.camOn} onPress={call.toggleCam} />
-            {Platform.OS !== "web" ? <IconButton testID="flip-camera-button" label="Switch camera" icon="switch-camera" onPress={call.flipCamera} /> : null}
-            {supportsAudioRoute ? <IconButton testID="audio-route-button" label="Audio output" icon="volume-2" onPress={() => pickAudioRoute().catch(() => {})} /> : null}
-            <IconButton testID="layout-toggle-button" label="Layout" icon={layout === "gallery" ? "layout-grid" : "square-user"} onPress={() => setLayout((l) => (l === "gallery" ? "speaker" : "gallery"))} />
-            <View>
-              <IconButton testID="open-chat-button" label="Chat" icon="message-square" onPress={() => { setChatOpen(true); setSeen(msgs.data?.length ?? 0); }} />
-              {unread ? <View style={styles.unread}><Text style={styles.unreadText}>{unread}</Text></View> : null}
-            </View>
-            <IconButton testID="end-call-button" label="Leave call" icon="phone-off" tone="danger" onPress={exit} />
-          </Animated.View>
+          <CallDock
+            bottom={insets.bottom + spacing.md}
+            micOn={call.micOn} camOn={call.camOn} layout={layout} unread={unread} isHost={isHost}
+            showFlip={Platform.OS !== "web"} showAudio={supportsAudioRoute}
+            onMic={call.toggleMic} onCam={call.toggleCam} onFlip={call.flipCamera}
+            onAudio={() => pickAudioRoute().catch(() => {})}
+            onLayout={() => setLayout((l) => (l === "gallery" ? "speaker" : "gallery"))}
+            onChat={() => { setChatOpen(true); setSeen(msgs.data?.length ?? 0); }}
+            onSecurity={() => router.push(`/host/${id}`)}
+            onLeave={exit}
+          />
         </>
       ) : null}
 
@@ -239,6 +250,9 @@ const styles = StyleSheet.create({
   strip: { position: "absolute", bottom: 110, left: 0, right: 0, flexGrow: 0 },
   topBar: { position: "absolute", top: 0, left: 0, right: 0, flexDirection: "row", alignItems: "flex-start", gap: spacing.md, paddingHorizontal: spacing.lg, paddingBottom: spacing.md, backgroundColor: colors.scrim },
   controls: { position: "absolute", alignSelf: "center", flexDirection: "row", gap: spacing.sm, padding: spacing.sm, borderRadius: radius.pill, backgroundColor: colors.surfaceTertiary, borderWidth: 1, borderColor: colors.border, flexWrap: "wrap", justifyContent: "center", maxWidth: "94%" },
+  selfNotice: { position: "absolute", left: 16, right: 16, zIndex: 20, flexDirection: "row", alignItems: "center", gap: 12, padding: 14, borderRadius: 18, backgroundColor: "rgba(40,24,12,0.94)", borderWidth: 1, borderColor: "rgba(255,200,140,0.35)", maxWidth: 560, alignSelf: "center" },
+  selfTitle: { fontFamily: fonts.text, fontSize: 14, color: "#FFE9CF", fontWeight: "700" },
+  selfSub: { fontFamily: fonts.text, fontSize: 12, color: "#E8C9A5", marginTop: 2 },
   statusPill: { position: "absolute", alignSelf: "center", backgroundColor: colors.surfaceSecondary, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, borderRadius: radius.pill },
   warning: { position: "absolute", left: spacing.lg, right: spacing.lg, backgroundColor: colors.error, borderRadius: radius.md, padding: spacing.lg, paddingRight: 48, gap: 4, maxWidth: 560, alignSelf: "center" },
   warningTitle: { fontFamily: fonts.display, fontSize: 20, color: colors.onError, letterSpacing: 1.5 },

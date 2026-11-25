@@ -5,8 +5,11 @@ import { Modal, StyleSheet, Text, useWindowDimensions, View } from "react-native
 
 import { api, saveParticipantKey } from "@/src/api";
 import { Screen } from "@/src/components/Screen";
-import { Badge, Body, Button, Card, Heading, Icon, Label, Loading, useToast } from "@/src/components/ui";
-import { ChipRow, EventRow, Invite, InvitePanel, Participant, ParticipantRow, SecEvent, Settings, SettingsPanel } from "@/src/components/host-panels";
+import { HostHero, HostTabs, ProtectedNote } from "@/src/components/HostHero";
+import { Body, Button, Card, Heading, Icon, Label, Loading, useToast } from "@/src/components/ui";
+import { useLang } from "@/src/i18n";
+import { useShield } from "@/src/privacy/useShield";
+import { EventRow, Invite, InvitePanel, Participant, ParticipantRow, SecEvent, Settings, SettingsPanel } from "@/src/components/host-panels";
 import { deviceInfo } from "@/src/device";
 import { EVENT_LABEL } from "@/src/privacy/labels";
 import { useRoomSocket } from "@/src/realtime";
@@ -23,6 +26,7 @@ export default function HostDashboard() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const toast = useToast();
+  const { t } = useLang();
   const { width } = useWindowDimensions();
   // Three columns only when each panel can remain readable without horizontal overflow.
   const wide = width >= 1320;
@@ -42,17 +46,23 @@ export default function HostDashboard() {
   }, [id, q.data?.room.status, keyReady]);
 
   const live = useRoomSocket(id, keyReady, (m) => {
-    if (m.type === "security_event") toast(`${EVENT_LABEL[m.event.event_type] ?? "Privacy warning"} — ${m.event.username}`, "error");
-    if (m.type === "join_request" && m.status === "pending") toast(`${m.name} is requesting to join`, "info");
+    if (m.type === "security_event") toast(`${EVENT_LABEL[m.event.event_type] ?? "!"} — ${m.event.username}`, "error");
+    if (m.type === "join_request" && m.status === "pending") toast(t("host.joinReq", { name: m.name }), "info");
     q.refetch();
   });
 
-  if (q.isLoading) return <Loading label="Loading security dashboard" />;
+  // This screen lists emails and devices: protect it like the call and tell the host on-device when a capture happens.
+  const shield = useShield({ active: !!q.data });
+  useEffect(() => {
+    if (shield.hits > 0) toast(t("call.captureSelf"), "error");
+  }, [shield.hits]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (q.isLoading) return <Loading label={t("host.loading")} />;
   if (q.isError || !q.data)
     return (
       <Screen back title="Dashboard">
         <Card style={{ gap: spacing.md }}>
-          <Body>Connection to security server interrupted.</Body>
+          <Body>{t("host.lost")}</Body>
           <Button testID="dashboard-retry-button" label="Retry" variant="secondary" onPress={() => q.refetch()} />
         </Card>
       </Screen>
@@ -76,17 +86,17 @@ export default function HostDashboard() {
   };
 
   const TABS = [
-    { key: "people" as Tab, label: `Participants · ${people.length}` },
-    { key: "waiting" as Tab, label: `Waiting · ${waiting.length}` },
-    { key: "alerts" as Tab, label: `Alerts · ${alerts}` },
-    { key: "invites" as Tab, label: "Invitations" },
-    { key: "settings" as Tab, label: "Settings" },
+    { key: "people" as Tab, label: t("host.people"), icon: "users" as const, count: people.length },
+    { key: "waiting" as Tab, label: t("host.waiting"), icon: "armchair" as const, count: waiting.length, hot: waiting.length > 0 },
+    { key: "alerts" as Tab, label: t("host.alerts"), icon: "shield-alert" as const, count: alerts, hot: alerts > 0 },
+    { key: "invites" as Tab, label: t("host.invites"), icon: "mail-plus" as const },
+    { key: "settings" as Tab, label: t("host.settings"), icon: "settings-2" as const },
   ];
 
-  const panel = (t: Tab) => {
-    if (t === "people")
+  const panel = (tb: Tab) => {
+    if (tb === "people")
       return people.length + others.length === 0 ? (
-        <Card style={styles.empty}><Icon name="shield" size={32} color={colors.muted} /><Body style={{ color: colors.muted }}>Room is empty. Waiting for guests.</Body></Card>
+        <Card style={styles.empty}><Icon name="shield" size={32} color={colors.muted} /><Body style={{ color: colors.muted }}>{t("host.empty")}</Body></Card>
       ) : (
         <View style={{ gap: spacing.md }}>
           {people.map((p) => <ParticipantRow key={p.id} p={p} roomId={id} onDone={() => q.refetch()} />)}
@@ -101,74 +111,52 @@ export default function HostDashboard() {
           ))}
         </View>
       );
-    if (t === "waiting")
+    if (tb === "waiting")
       return waiting.length === 0 ? (
-        <Card style={styles.empty} testID="waiting-empty"><Icon name="armchair" size={32} color={colors.muted} /><Body style={{ color: colors.muted }}>No one is waiting.</Body></Card>
+        <Card style={styles.empty} testID="waiting-empty"><Icon name="armchair" size={32} color={colors.muted} /><Body style={{ color: colors.muted }}>{t("host.noWaiting")}</Body></Card>
       ) : (
         <View style={{ gap: spacing.md }}>{waiting.map((p) => <ParticipantRow key={p.id} waiting p={p} roomId={id} onDone={() => q.refetch()} />)}</View>
       );
-    if (t === "alerts")
+    if (tb === "alerts")
       return (
         <Card style={{ paddingVertical: spacing.sm }} testID="alerts-timeline">
           {d.events.length === 0 ? (
-            <Body style={{ color: colors.muted, paddingVertical: spacing.lg }}>No capture events reported. Detection is only available on participants using the iOS or Android app.</Body>
+            <Body style={{ color: colors.muted, paddingVertical: spacing.lg }}>{t("host.noAlerts")}</Body>
           ) : d.events.map((e) => <EventRow key={e.id} e={e} />)}
         </Card>
       );
-    if (t === "invites") return <InvitePanel roomId={id} invites={d.invites} onDone={() => q.refetch()} />;
+    if (tb === "invites") return <InvitePanel roomId={id} invites={d.invites} onDone={() => q.refetch()} />;
     return <SettingsPanel roomId={id} settings={d.room.settings} onDone={() => q.refetch()} />;
   };
 
   return (
     <Screen back title={d.room.title} testID="host-dashboard" maxWidth={1480} contentStyle={styles.dashboardContent}>
-      <View testID="crown-room-banner" style={styles.crownBar}>
-        <View style={styles.crownMark}>
-          <Icon name="crown" color="#6ED0FF" size={23} />
-        </View>
-        <View style={styles.crownCopy}>
-          <Label style={styles.crownEyebrow}>FX CALL · PRIVATE CONTROL</Label>
-          <Body style={styles.crownSubtitle}>Manage access, invitations and room security</Body>
-        </View>
-      </View>
-      <View style={styles.statusRow}>
-        <Badge testID="room-status-badge" label={active ? "Live" : "Ended"} tone={active ? "success" : "neutral"} />
-        <Badge testID="room-lock-badge" label={d.room.locked ? "Locked" : "Open to invitations"} tone={d.room.locked ? "warning" : "brand"} icon={d.room.locked ? "lock" : "lock-open"} />
-        <Badge label={live ? "Realtime connected" : "Realtime reconnecting"} tone={live ? "success" : "warning"} icon="radio" testID="realtime-badge" />
-        <Badge label="Screen sharing disabled" tone="neutral" icon="monitor-off" />
-      </View>
+      <HostHero title={d.room.title} active={active} locked={d.room.locked} realtime={live} entering={!keyReady}
+        onEnter={() => router.push(`/call/${id}`)} onLock={setLock} onEnd={() => setConfirmEnd(true)} />
+      <ProtectedNote text={t("host.protectedNote")} />
       {!d.video_configured ? (
         <Card style={{ borderColor: colors.warning }} testID="video-not-configured"><Body>Video service is not configured yet — add LiveKit credentials to enable calls.</Body></Card>
       ) : null}
-      {active ? (
-        <View style={styles.controls}>
-          <Button testID="enter-call-button" label="Enter call" icon="video" style={narrow ? styles.mobileAction : styles.desktopAction} onPress={() => router.push(`/call/${id}`)} disabled={!keyReady} />
-          <Button testID="lock-room-button" label={d.room.locked ? "Unlock room" : "Lock room"} icon={d.room.locked ? "lock-open" : "lock"} variant="secondary" style={narrow ? styles.mobileAction : styles.desktopAction} onPress={setLock} />
-          <Button testID="end-call-all-button" label="End for everyone" icon="phone-off" variant="danger" style={narrow ? styles.mobileAction : styles.desktopAction} onPress={() => setConfirmEnd(true)} />
-        </View>
-      ) : (
-        <Body style={{ color: colors.muted }}>This meeting has ended. The security timeline remains available for 30 days.</Body>
-      )}
-
       {wide ? (
         <View style={styles.desktopGrid}>
           <View style={[styles.dashboardColumn, { flex: 1.15 }]}>
-            <Heading size={18}>Waiting room</Heading>
+            <Heading size={18}>{t("host.waiting")}</Heading>
             {panel("waiting")}
-            <Heading size={18}>Participants</Heading>
+            <Heading size={18}>{t("host.people")}</Heading>
             {panel("people")}
           </View>
           <View style={[styles.dashboardColumn, { flex: 0.9 }]}>
-            <Heading size={18}>Security timeline</Heading>
+            <Heading size={18}>{t("host.alerts")}</Heading>
             {panel("alerts")}
           </View>
           <View style={[styles.dashboardColumn, { flex: 1.05 }]}>
-            <ChipRow options={TABS.filter((t) => t.key === "invites" || t.key === "settings")} value={tab === "settings" ? "settings" : "invites"} onChange={setTab} testPrefix="dashboard-tab" />
+            <HostTabs tabs={TABS.filter((x) => x.key === "invites" || x.key === "settings")} value={tab === "settings" ? "settings" : "invites"} onChange={setTab} />
             {panel(tab === "settings" ? "settings" : "invites")}
           </View>
         </View>
       ) : (
         <>
-          <ChipRow options={TABS} value={tab} onChange={setTab} testPrefix="dashboard-tab" />
+          <HostTabs tabs={TABS} value={tab} onChange={setTab} />
           {panel(tab)}
         </>
       )}
@@ -176,10 +164,10 @@ export default function HostDashboard() {
       <Modal visible={confirmEnd} transparent animationType="fade" onRequestClose={() => setConfirmEnd(false)}>
         <View style={styles.modalBg}>
           <Card style={styles.modal} testID="end-confirm-modal">
-            <Text style={styles.modalTitle}>End for everyone?</Text>
-            <Body>All participants are disconnected and every invitation stops working.</Body>
-            <Button testID="end-confirm-button" label="End meeting" variant="danger" onPress={endAll} />
-            <Button testID="end-cancel-button" label="Cancel" variant="ghost" onPress={() => setConfirmEnd(false)} />
+            <Text style={styles.modalTitle}>{t("host.endTitle")}</Text>
+            <Body>{t("host.endBody")}</Body>
+            <Button testID="end-confirm-button" label={t("host.endConfirm")} variant="danger" onPress={endAll} />
+            <Button testID="end-cancel-button" label={t("host.cancel")} variant="ghost" onPress={() => setConfirmEnd(false)} />
           </Card>
         </View>
       </Modal>

@@ -1,7 +1,10 @@
+import { getLang, translate } from "@/src/i18n";
+
+// Language-aware: resolves at read time so a language switch applies immediately.
 export const EVENT_LABEL: Record<string, string> = {
-  screenshot: "ꜱᴄʀᴇᴇɴꜱʜᴏᴛ ᴅᴇᴛᴇᴄᴛᴇᴅ",
-  recording_started: "ʀᴇᴄᴏʀᴅɪɴɢ ᴀʟᴇʀᴛ",
-  recording_stopped: "ʀᴇᴄᴏʀᴅɪɴɢ ᴇɴᴅᴇᴅ",
+  get screenshot() { return translate(getLang(), "privacy.captureLabel"); },
+  get recording_started() { return translate(getLang(), "privacy.recLabel"); },
+  get recording_stopped() { return getLang() === "es" ? "Grabación terminada" : "Recording ended"; },
 };
 
 export const PRIVACY_WARNING = "ᴘʀɪᴠᴀᴄʏ ᴡᴀʀɴɪɴɢ";
