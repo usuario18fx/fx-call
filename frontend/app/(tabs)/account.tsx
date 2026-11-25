@@ -13,6 +13,7 @@ import { deviceInfo } from "@/src/device";
 import { platformLabel, timeAgo } from "@/src/privacy/labels";
 import { getCaptureCapabilities } from "@/src/privacy/shield";
 import { colors, spacing } from "@/src/theme";
+import { nova } from "@/src/nova/designTokens";
 
 type Session = { id: string; platform: string; os: string; device_name: string; created_at: string; last_used_at: string; current: boolean };
 type Section = "email" | "password" | "twofa" | "devices" | "privacy";
@@ -189,13 +190,7 @@ export default function Account() {
 
   return (
     <Screen title="Profile" testID="account-screen" maxWidth={760}>
-      <Button
-        testID="crown-preview-entry"
-        label="Try Crown Edition"
-        icon="crown"
-        variant="secondary"
-        onPress={() => router.push("/crown-preview")}
-      />
+      <Label style={{ color: nova.color.mint }}>NOVA / ACCOUNT CONTROL</Label>
 
       <Card style={styles.profileCard} testID="profile-card">
         <View style={styles.profileHeader}>
@@ -448,16 +443,16 @@ function CapRow({ label, on, offText = "Unavailable" }: { label: string; on: boo
 }
 
 const styles = StyleSheet.create({
-  profileCard: { gap: spacing.md },
+  profileCard: { gap: spacing.md, backgroundColor: nova.color.surfaceRaised, borderColor: nova.color.lineStrong },
   profileHeader: { flexDirection: "row", alignItems: "center", gap: spacing.md },
-  avatar: { width: 48, height: 48, borderRadius: 6, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.brandTertiary, alignItems: "center", justifyContent: "center" },
-  avatarText: { fontSize: 21, fontWeight: "700", color: colors.onBrandTertiary },
+  avatar: { width: 48, height: 48, borderRadius: 6, borderWidth: 1, borderColor: nova.color.mint, backgroundColor: nova.color.mintSoft, alignItems: "center", justifyContent: "center" },
+  avatarText: { fontSize: 21, fontWeight: "700", color: nova.color.mint },
   avatarImage: { width: 46, height: 46, borderRadius: 5 },
   avatarEditIcon: { position: "absolute", right: -5, bottom: -5, backgroundColor: colors.brandPrimary, padding: 3, borderRadius: 5, borderWidth: 1, borderColor: colors.surface },
   photoPanel: { padding: spacing.md, gap: spacing.md, backgroundColor: colors.surfaceTertiary, borderWidth: 1, borderColor: colors.borderStrong, borderRadius: 6 },
   avatarPreviewCrop: { width: 128, height: 128, alignSelf: "center", overflow: "hidden", alignItems: "center", justifyContent: "center", borderRadius: 6, backgroundColor: colors.surface },
   avatarEditorActions: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: spacing.sm },
-  passwordInput: { backgroundColor: "#17232D", color: "#F1F6FA" },
+  passwordInput: { backgroundColor: "#14272B", color: nova.color.ink },
   currentEmailText: { color: colors.onSurfaceSecondary, fontSize: 20, flexShrink: 1, letterSpacing: 0.1 },
   verifiedEmailRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, flexWrap: "wrap" },
   switchRow: { flexDirection: "row", alignItems: "center", gap: spacing.xs },
@@ -466,12 +461,12 @@ const styles = StyleSheet.create({
   confirmRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, flexWrap: "wrap" },
   sectionHeading: { marginBottom: spacing.xs },
   menuRow: { minHeight: 72, paddingVertical: spacing.md, flexDirection: "row", alignItems: "center", gap: spacing.md, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
-  menuRowPressed: { backgroundColor: colors.surfaceTertiary },
-  menuIcon: { width: 38, height: 38, borderRadius: 6, backgroundColor: colors.surfaceTertiary, alignItems: "center", justifyContent: "center" },
+  menuRowPressed: { backgroundColor: nova.color.mintSoft },
+  menuIcon: { width: 38, height: 38, borderRadius: 6, backgroundColor: nova.color.mintSoft, alignItems: "center", justifyContent: "center" },
   menuCopy: { flex: 1, gap: spacing.xs },
   menuTitle: { fontSize: 15, fontWeight: "600", color: colors.onSurfaceSecondary },
   menuSubtitle: { fontSize: 12 },
-  panel: { padding: spacing.md, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.surfaceTertiary, borderRadius: 6, gap: spacing.md, marginBottom: spacing.sm },
+  panel: { padding: spacing.md, borderWidth: 1, borderColor: nova.color.lineStrong, backgroundColor: nova.color.stage, borderRadius: 6, gap: spacing.md, marginBottom: spacing.sm },
   panelTitle: { fontSize: 16, fontWeight: "600", color: colors.onSurfaceSecondary },
   inlineStatus: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: spacing.md },
   rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: spacing.md },
