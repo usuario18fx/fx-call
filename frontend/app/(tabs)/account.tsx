@@ -204,6 +204,7 @@ export default function Account() {
               setEditingAvatar((value) => !value);
               setAvatarDraft(null);
               setEditingName(false);
+              setSection(null);
               setErr(null);
             }}
             style={styles.avatar}
@@ -231,6 +232,7 @@ export default function Account() {
                   setEditingName((value) => !value);
                   setEditingAvatar(false);
                   setAvatarDraft(null);
+                  setSection(null);
                   setErr(null);
                 }}
                 style={styles.nameEditButton}
@@ -238,9 +240,30 @@ export default function Account() {
                 <Body style={styles.editEmoji}>✏️</Body>
               </Pressable>
             </View>
-            <Label style={{ textTransform: "none" }}>{user?.email}</Label>
+            <View style={styles.profileEmailRow}>
+              <Body style={styles.profileEmail} numberOfLines={1} selectable>{user?.email || "Email unavailable"}</Body>
+              {user?.verified ? (
+                <Icon name="badge-check" size={18} color={nova.color.mint} />
+              ) : (
+                <Icon name="circle-alert" size={18} color={nova.color.warning} />
+              )}
+              <Pressable
+                testID="edit-profile-email"
+                accessibilityRole="button"
+                accessibilityLabel="Edit email address"
+                accessibilityState={{ expanded: section === "email" }}
+                onPress={() => {
+                  setEditingName(false);
+                  setEditingAvatar(false);
+                  setAvatarDraft(null);
+                  toggle("email");
+                }}
+                style={styles.nameEditButton}
+              >
+                <Body style={styles.editEmoji}>✏️</Body>
+              </Pressable>
+            </View>
           </View>
-          <Badge label={user?.verified ? "Verified" : "Unverified"} tone={user?.verified ? "success" : "warning"} />
         </View>
 
         {editingName ? (
@@ -387,34 +410,18 @@ export default function Account() {
             )}
           </View>
         ) : null}
-      </Card>
 
-      <Card style={{ gap: spacing.xs }} testID="account-settings-card">
-        <Heading size={18} style={styles.sectionHeading}>Account & Security</Heading>
-        <Body style={{ color: colors.muted, marginBottom: spacing.sm }}>Manage your login details and privacy settings.</Body>
-
-        <MenuRow testID="settings-email" icon="mail" title="Email address" subtitle={user?.email || "Not available"} expanded={section === "email"} onPress={() => toggle("email")} />
         {section === "email" ? (
-          <View style={styles.panel} testID="email-settings-panel">
-            <View style={styles.inlineStatus}>
-              <Label>Current email</Label>
-              <Badge label={user?.verified ? "Verified" : "Not verified"} tone={user?.verified ? "success" : "warning"} />
-            </View>
-            <View style={styles.verifiedEmailRow}>
-              <Body style={styles.currentEmailText}>{user?.email}</Body>
-              {user?.verified ? <Icon name="badge-check" size={24} color="#4AAE83" /> : null}
-            </View>
-            <Divider />
+          <View style={styles.emailInlinePanel} testID="email-settings-panel">
             {emailStep === "request" ? (
               <>
-                <Body style={styles.panelTitle}>Change email address</Body>
                 <Label>We will send a six-digit confirmation code to your new address.</Label>
                 <Field testID="new-email-input" label="New email" value={newEmail} onChangeText={setNewEmail} autoCapitalize="none" autoComplete="email" keyboardType="email-address" />
                 <Field testID="email-change-password" label="Current password" value={emailPassword} onChangeText={setEmailPassword} secureTextEntry autoCapitalize="none" />
                 {user?.totp_enabled ? (
                   <Field testID="email-change-totp" label="Authenticator code" value={emailTotp} onChangeText={(v) => setEmailTotp(v.replace(/\D/g, "").slice(0, 6))} keyboardType="number-pad" />
                 ) : null}
-                <Button testID="email-change-request" label={busy ? "Sending..." : "Send verification code"} disabled={busy} icon="mail-check" onPress={requestEmailChange} />
+                <Button testID="email-change-request" label={busy ? "Sending..." : "Get code"} disabled={busy} icon="mail-check" onPress={requestEmailChange} />
               </>
             ) : (
               <>
@@ -425,9 +432,23 @@ export default function Account() {
                 <Button testID="email-change-back" compact label="Change the new address" variant="ghost" onPress={() => { setEmailStep("request"); setEmailCode(""); }} />
               </>
             )}
+            <ErrorText testID="account-error">{err}</ErrorText>
+            <Pressable
+              testID="email-edit-cancel"
+              accessibilityRole="button"
+              accessibilityLabel="Close email editing"
+              onPress={() => { setSection(null); setErr(null); }}
+              style={styles.emailClose}
+            >
+              <Icon name="x" size={18} color={nova.color.muted} />
+            </Pressable>
           </View>
         ) : null}
 
+      </Card>
+
+      <Card style={{ gap: spacing.xs }} testID="account-settings-card">
+        <Heading size={18} style={styles.sectionHeading}>Account & Security</Heading>
         <MenuRow testID="settings-password" icon="lock-keyhole" title="Password" subtitle="Update your sign-in password" expanded={section === "password"} onPress={() => toggle("password")} />
         {section === "password" ? (
           <View style={styles.panel} testID="password-settings-panel">
@@ -561,7 +582,7 @@ export default function Account() {
             <Label>No app can detect another device filming the screen.{Platform.OS === "web" ? " Browsers cannot reliably detect screenshots or recordings." : ""}</Label>
           </View>
         ) : null}
-        <ErrorText testID="account-error">{err}</ErrorText>
+        {section !== "email" ? <ErrorText testID="account-error">{err}</ErrorText> : null}
       </Card>
 
       <Card style={{ gap: spacing.sm }} testID="sign-out-card">
@@ -587,6 +608,10 @@ const styles = StyleSheet.create({
   profileHeader: { flexDirection: "row", alignItems: "center", gap: spacing.md, flexWrap: "wrap" },
   profileIdentity: { flex: 1, minWidth: 150, gap: spacing.xs },
   profileNameRow: { flexDirection: "row", alignItems: "center", gap: spacing.xs },
+  profileEmailRow: { flexDirection: "row", alignItems: "center", gap: spacing.xs, minWidth: 0 },
+  profileEmail: { fontSize: 14, color: nova.color.ink, flexShrink: 1 },
+  emailInlinePanel: { padding: spacing.md, gap: spacing.md, backgroundColor: nova.color.stage, borderWidth: 1, borderColor: nova.color.lineStrong, borderRadius: 6 },
+  emailClose: { position: "absolute", top: 8, right: 8, width: 36, height: 36, justifyContent: "center", alignItems: "center" },
   nameEditButton: { width: 36, height: 36, alignItems: "center", justifyContent: "center", borderRadius: 6 },
   editEmoji: { fontSize: 15, lineHeight: 21 },
   avatar: { width: 54, height: 54, borderRadius: 6, borderWidth: 1, borderColor: nova.color.mint, backgroundColor: nova.color.mintSoft, alignItems: "center", justifyContent: "center" },
@@ -605,14 +630,12 @@ const styles = StyleSheet.create({
   photoPreviewControls: { flex: 1, minWidth: 180, gap: spacing.sm },
   avatarPreviewCrop: { width: 96, height: 96, overflow: "hidden", alignItems: "center", justifyContent: "center", borderRadius: 6, backgroundColor: nova.color.surface },
   passwordInput: { backgroundColor: "#14272B", color: nova.color.ink },
-  currentEmailText: { color: colors.onSurfaceSecondary, fontSize: 20, flexShrink: 1, letterSpacing: 0.1 },
-  verifiedEmailRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, flexWrap: "wrap" },
   switchRow: { flexDirection: "row", alignItems: "center", gap: spacing.xs },
   smallSwitch: { transform: [{ scaleX: 0.78 }, { scaleY: 0.78 }] },
   revokeIcon: { width: 38, height: 38, borderRadius: 6, backgroundColor: colors.surfaceSecondary, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: colors.borderStrong },
   confirmRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, flexWrap: "wrap" },
   sectionHeading: { marginBottom: spacing.xs },
-  menuRow: { minHeight: 72, paddingVertical: spacing.md, flexDirection: "row", alignItems: "center", gap: spacing.md, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
+  menuRow: { minHeight: 60, paddingVertical: spacing.sm, flexDirection: "row", alignItems: "center", gap: spacing.md, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
   menuRowPressed: { backgroundColor: nova.color.mintSoft },
   menuIcon: { width: 38, height: 38, borderRadius: 6, backgroundColor: nova.color.mintSoft, alignItems: "center", justifyContent: "center" },
   menuCopy: { flex: 1, gap: spacing.xs },
@@ -620,7 +643,6 @@ const styles = StyleSheet.create({
   menuSubtitle: { fontSize: 12 },
   panel: { padding: spacing.md, borderWidth: 1, borderColor: nova.color.lineStrong, backgroundColor: nova.color.stage, borderRadius: 6, gap: spacing.md, marginBottom: spacing.sm },
   panelTitle: { fontSize: 16, fontWeight: "600", color: colors.onSurfaceSecondary },
-  inlineStatus: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: spacing.md },
   rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: spacing.md },
   qr: { width: 200, height: 200, alignSelf: "center", backgroundColor: "#FFFFFF", borderRadius: 6 },
   session: { flexDirection: "row", alignItems: "center", gap: spacing.md, paddingVertical: spacing.sm },
