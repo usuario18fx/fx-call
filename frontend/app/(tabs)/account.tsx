@@ -1,11 +1,14 @@
 import { LanguageSwitch } from "@/src/components/LanguageSwitch";
+import { Crumbs, H, HubRow, HubSearch, HubTile, hubStyles, type Tone } from "@/src/components/SettingsHub";
 import { useLang } from "@/src/i18n";
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import { LinearGradient } from "expo-linear-gradient";
+import React, { useEffect, useState } from "react";
 import * as ImagePicker from "expo-image-picker";
-import { Platform, Pressable, StyleSheet, Switch, View } from "react-native";
+import { BackHandler, Platform, Pressable, StyleSheet, Switch, Text, View } from "react-native";
+import Animated, { FadeIn, SlideInRight } from "react-native-reanimated";
 
 import { api } from "@/src/api";
 import { useAuth } from "@/src/auth";
@@ -44,7 +47,7 @@ export default function Account() {
   const { user, setUser, refreshUser, logout } = useAuth();
   const router = useRouter();
   const toast = useToast();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [section, setSection] = useState<Section | null>(null);
   const [busy, setBusy] = useState(false);
   const [name, setName] = useState(user?.display_name ?? "");
@@ -190,16 +193,7 @@ export default function Account() {
     toast("Profile photo removed", "info");
   });
 
-  return (
-    <Screen title="Profile" testID="account-screen" maxWidth={760}>
-      <Button
-        testID="crown-preview-entry"
-        label="Try Crown Edition"
-        icon="crown"
-        variant="secondary"
-        onPress={() => router.push("/crown-preview")}
-      />
-
+  const PROFILE = (
       <Card style={styles.profileCard} testID="profile-card">
         <View style={styles.profileHeader}>
           <Pressable
@@ -256,13 +250,9 @@ export default function Account() {
           toast("Profile saved", "success");
         })} />
       </Card>
+  );
 
-      <Card style={{ gap: spacing.xs }} testID="account-settings-card">
-        <Heading size={18} style={styles.sectionHeading}>Account & Security</Heading>
-        <Body style={{ color: colors.muted, marginBottom: spacing.sm }}>Manage your login details and privacy settings.</Body>
-
-        <MenuRow testID="settings-email" icon="mail" title="Email address" subtitle={user?.email || "Not available"} expanded={section === "email"} onPress={() => toggle("email")} />
-        {section === "email" ? (
+  const P_EMAIL = (
           <View style={styles.panel} testID="email-settings-panel">
             <View style={styles.inlineStatus}>
               <Label>Current email</Label>
@@ -294,10 +284,9 @@ export default function Account() {
               </>
             )}
           </View>
-        ) : null}
+  );
 
-        <MenuRow testID="settings-password" icon="lock-keyhole" title="Password" subtitle="Update your sign-in password" expanded={section === "password"} onPress={() => toggle("password")} />
-        {section === "password" ? (
+  const P_PASSWORD = (
           <View style={styles.panel} testID="password-settings-panel">
             <Body style={styles.panelTitle}>Change password</Body>
             <Label>A six-digit code will be sent to your verified email. Codes expire in 15 minutes.</Label>
@@ -315,10 +304,9 @@ export default function Account() {
               </>
             ) : null}
           </View>
-        ) : null}
+  );
 
-        <MenuRow testID="settings-2fa" icon="shield-check" title="Two-factor authentication" subtitle={user?.totp_enabled ? "Enabled" : "Add an extra sign-in step"} expanded={section === "twofa"} onPress={() => toggle("twofa")} />
-        {section === "twofa" ? (
+  const P_TWOFA = (
           <View style={styles.panel} testID="twofa-card">
             <View style={styles.rowBetween}>
               <Body style={styles.panelTitle}>Authenticator app</Body>
@@ -375,10 +363,9 @@ export default function Account() {
               </View>
             ) : null}
           </View>
-        ) : null}
+  );
 
-        <MenuRow testID="settings-devices" icon="smartphone" title="Devices & sessions" subtitle="Review and sign out devices" expanded={section === "devices"} onPress={() => toggle("devices")} />
-        {section === "devices" ? (
+  const P_DEVICES = (
           <View style={styles.panel} testID="sessions-card">
             <Body style={styles.panelTitle}>Active sessions</Body>
             {(sessions.data ?? []).map((s) => (
@@ -416,15 +403,9 @@ export default function Account() {
             {sessions.isLoading ? <Label>Loading sessions...</Label> : null}
             {sessions.isError ? <Label>Could not load sessions. Please try again.</Label> : null}
           </View>
-        ) : null}
+  );
 
-        <View style={{ gap: spacing.sm, paddingVertical: spacing.sm }} testID="language-switch-row">
-          <Label>{t("lang.title")} · {t("lang.subtitle")}</Label>
-          <LanguageSwitch />
-        </View>
-
-        <MenuRow testID="settings-privacy" icon="shield" title="Privacy Shield" subtitle="Security capabilities on this device" expanded={section === "privacy"} onPress={() => toggle("privacy")} />
-        {section === "privacy" ? (
+  const P_PRIVACY = (
           <View style={styles.panel} testID="capability-report-card">
             <Label>{dev.os} · {dev.model}</Label>
             <CapRow label="Screenshot detection" on={caps.screenshot} />
@@ -433,15 +414,113 @@ export default function Account() {
             <Label>{caps.note || `Engine: ${caps.engine}`}</Label>
             <Label>No app can detect another device filming the screen.{Platform.OS === "web" ? " Browsers cannot reliably detect screenshots or recordings." : ""}</Label>
           </View>
-        ) : null}
-        <ErrorText testID="account-error">{err}</ErrorText>
-      </Card>
+  );
 
-      <Card style={{ gap: spacing.sm }} testID="sign-out-card">
-        <Heading size={18}>Sessions</Heading>
-        <Button testID="logout-button" label="Sign out" variant="secondary" icon="log-out" onPress={() => signOut(false)} />
-        <Button testID="logout-all-button" label="Sign out of all devices" variant="danger" icon="shield-off" onPress={() => signOut(true)} />
-      </Card>
+  // ───────── hub navigation: Home → Category → Subcategory ─────────
+  type Sub = { key: string; title: string; icon: IconName; meta?: string; node: React.ReactNode; danger?: boolean };
+  type Cat = { key: string; title: string; icon: IconName; tone: Tone; subs: Sub[] };
+  const [catKey, setCatKey] = useState<string | null>(null);
+  const [subKey, setSubKey] = useState<string | null>(null);
+  const [q, setQ] = useState("");
+
+  const cats: Cat[] = [
+    { key: "profile", title: t("cat.profile"), icon: "user-round", tone: "mint", subs: [
+      { key: "photo", title: t("cat.profile.photo"), icon: "camera", meta: user?.display_name, node: PROFILE },
+      { key: "email", title: t("cat.profile.email"), icon: "mail", meta: user?.email, node: P_EMAIL },
+    ] },
+    { key: "security", title: t("cat.security"), icon: "shield-check", tone: "blue", subs: [
+      { key: "password", title: t("cat.security.password"), icon: "lock-keyhole", node: P_PASSWORD },
+      { key: "twofa", title: t("cat.security.twofa"), icon: "key-round", meta: user?.totp_enabled ? "ON" : "OFF", node: P_TWOFA },
+      { key: "devices", title: t("cat.security.devices"), icon: "smartphone", meta: sessions.data ? String(sessions.data.length) : undefined, node: P_DEVICES },
+    ] },
+    { key: "privacy", title: t("cat.privacy"), icon: "eye-off", tone: "amber", subs: [
+      { key: "shield", title: t("cat.privacy.shield"), icon: "scan-eye", meta: caps.screenshot ? "ON" : "—", node: P_PRIVACY },
+    ] },
+    { key: "settings", title: t("cat.settings"), icon: "settings-2", tone: "mint", subs: [
+      { key: "language", title: t("cat.settings.language"), icon: "languages", meta: lang === "es" ? "Español · MX" : "English · CA", node: (
+        <View style={styles.panel} testID="language-switch-row">
+          <Body style={styles.panelTitle}>{t("lang.title")}</Body>
+          <Label>{t("lang.hint")}</Label>
+          <LanguageSwitch />
+        </View>
+      ) },
+      { key: "design", title: t("cat.settings.design"), icon: "crown", node: (
+        <View style={styles.panel}>
+          <Button testID="crown-preview-entry" label="Try Crown Edition" icon="crown" variant="secondary" onPress={() => router.push("/crown-preview")} />
+        </View>
+      ) },
+      { key: "session", title: t("cat.settings.session"), icon: "log-out", danger: true, node: (
+        <View style={styles.panel} testID="sign-out-card">
+          <Button testID="logout-button" label="Sign out" variant="secondary" icon="log-out" onPress={() => signOut(false)} />
+          <Button testID="logout-all-button" label="Sign out of all devices" variant="danger" icon="shield-off" onPress={() => signOut(true)} />
+        </View>
+      ) },
+    ] },
+  ];
+
+  const cat = cats.find((c) => c.key === catKey) ?? null;
+  const sub = cat?.subs.find((x) => x.key === subKey) ?? null;
+  const go = (c: string | null, sKey: string | null = null) => { setErr(null); setCatKey(c); setSubKey(sKey); setQ(""); };
+  const back = () => { if (sub) go(catKey, null); else go(null, null); };
+
+  useEffect(() => {
+    if (!cat) return;
+    const h = BackHandler.addEventListener("hardwareBackPress", () => { back(); return true; });
+    return () => h.remove();
+  }, [catKey, subKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const term = q.trim().toLowerCase();
+  const hits = term ? cats.flatMap((c) => c.subs.filter((x) => (x.title + " " + c.title).toLowerCase().includes(term)).map((x) => ({ c, x }))) : [];
+
+  return (
+    <Screen testID="account-screen" maxWidth={760} contentStyle={{ gap: spacing.lg }}>
+      {!cat ? (
+        <Animated.View entering={FadeIn} style={{ gap: spacing.lg }}>
+          <View style={styles.hubHero}>
+            <LinearGradient colors={["rgba(111,227,193,0.18)", "rgba(125,183,255,0.05)", "rgba(18,21,26,0)"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
+            <View style={styles.hubAvatar}>
+              {user?.avatar_data_url ? <Image source={{ uri: user.avatar_data_url }} style={{ width: 62, height: 62, borderRadius: 22 }} contentFit="cover" /> : <Text style={styles.hubAvatarText}>{(user?.display_name || "F").charAt(0).toUpperCase()}</Text>}
+            </View>
+            <View style={{ flex: 1, gap: 2 }}>
+              <Text style={styles.hubName} numberOfLines={1}>{user?.display_name || "FX CALL"}</Text>
+              <Text style={styles.hubMail} numberOfLines={1}>{user?.email}</Text>
+              <Text style={styles.hubTag}>{t("hub.tag")}</Text>
+            </View>
+            <Badge label={user?.verified ? "✓" : "!"} tone={user?.verified ? "success" : "warning"} />
+          </View>
+
+          <HubSearch value={q} onChange={setQ} placeholder={t("hub.search")} />
+
+          {term ? (
+            <View style={hubStyles.group}>
+              {hits.length === 0 ? <Body style={{ padding: spacing.lg, color: H.dim }}>{t("hub.noResults")}</Body> : hits.map(({ c, x }) => (
+                <HubRow key={c.key + x.key} testID={`hit-${c.key}-${x.key}`} icon={x.icon} title={x.title} meta={c.title} tone={c.tone} onPress={() => go(c.key, x.key)} />
+              ))}
+            </View>
+          ) : (
+            <View style={styles.bento}>
+              {cats.map((c, i) => (
+                <HubTile key={c.key} testID={`cat-${c.key}`} icon={c.icon} title={c.title} tone={c.tone} big={i === 0}
+                  meta={t("hub.items", { n: c.subs.length })} onPress={() => go(c.key)} />
+              ))}
+            </View>
+          )}
+        </Animated.View>
+      ) : (
+        <Animated.View key={catKey + String(subKey)} entering={SlideInRight.duration(220)} style={{ gap: spacing.lg }}>
+          <Crumbs trail={sub ? [cat.title, sub.title] : [cat.title]} onBack={back} onRoot={() => go(null)} />
+          {sub ? (
+            <>
+              {sub.node}
+              <ErrorText testID="account-error">{err}</ErrorText>
+            </>
+          ) : (
+            <View style={hubStyles.group}>
+              {cat.subs.map((x) => <HubRow key={x.key} testID={`sub-${cat.key}-${x.key}`} icon={x.icon} title={x.title} meta={x.meta} tone={cat.tone} danger={x.danger} onPress={() => go(cat.key, x.key)} />)}
+            </View>
+          )}
+        </Animated.View>
+      )}
     </Screen>
   );
 }
@@ -456,6 +535,13 @@ function CapRow({ label, on, offText = "Unavailable" }: { label: string; on: boo
 }
 
 const styles = StyleSheet.create({
+  hubHero: { flexDirection: "row", alignItems: "center", gap: 14, padding: 18, borderRadius: 26, borderWidth: 1, borderColor: H.line, backgroundColor: H.card, overflow: "hidden" },
+  hubAvatar: { width: 62, height: 62, borderRadius: 22, backgroundColor: "rgba(111,227,193,0.14)", borderWidth: 1, borderColor: "rgba(111,227,193,0.35)", alignItems: "center", justifyContent: "center", overflow: "hidden" },
+  hubAvatarText: { fontSize: 26, fontWeight: "800", color: H.mint },
+  hubName: { fontSize: 20, fontWeight: "800", color: H.text },
+  hubMail: { fontSize: 12.5, color: H.dim },
+  hubTag: { fontSize: 12, color: H.mint, marginTop: 4, fontWeight: "600" },
+  bento: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
   profileCard: { gap: spacing.md },
   profileHeader: { flexDirection: "row", alignItems: "center", gap: spacing.md },
   avatar: { width: 48, height: 48, borderRadius: 6, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.brandTertiary, alignItems: "center", justifyContent: "center" },

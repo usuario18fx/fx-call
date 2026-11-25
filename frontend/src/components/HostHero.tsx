@@ -5,7 +5,6 @@ import React from "react";
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { Icon, IconName } from "@/src/components/ui";
-import { LanguageSwitch } from "@/src/components/LanguageSwitch";
 import { useLang } from "@/src/i18n";
 import { fonts } from "@/src/theme";
 
@@ -51,7 +50,6 @@ export function HostHero(p: HostHeroProps) {
           <Text style={s.eyebrow}>{t("host.eyebrow").toUpperCase()}</Text>
           <Text style={s.title} numberOfLines={1}>{p.title}</Text>
         </View>
-        <LanguageSwitch compact />
       </View>
       <View style={s.pills}>
         <Pill icon="radio" label={p.active ? t("host.heroLive") : t("host.heroEnded")} tone={p.active ? "mint" : "dim"} />

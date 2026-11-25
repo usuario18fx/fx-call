@@ -1,11 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Modal, StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { api, saveParticipantKey } from "@/src/api";
-import { Screen } from "@/src/components/Screen";
-import { HostHero, HostTabs, ProtectedNote } from "@/src/components/HostHero";
+import { HostSheet, type SheetView } from "@/src/components/HostSheet";
+import { HubTile } from "@/src/components/SettingsHub";
+import { HostHero, ProtectedNote } from "@/src/components/HostHero";
 import { Body, Button, Card, Heading, Icon, Label, Loading, useToast } from "@/src/components/ui";
 import { useLang } from "@/src/i18n";
 import { useShield } from "@/src/privacy/useShield";
@@ -27,11 +29,6 @@ export default function HostDashboard() {
   const router = useRouter();
   const toast = useToast();
   const { t } = useLang();
-  const { width } = useWindowDimensions();
-  // Three columns only when each panel can remain readable without horizontal overflow.
-  const wide = width >= 1320;
-  const narrow = width < 620;
-  const [tab, setTab] = useState<Tab>("people");
   const [keyReady, setKeyReady] = useState(false);
   const [confirmEnd, setConfirmEnd] = useState(false);
   const q = useQuery({ queryKey: ["dashboard", id], queryFn: () => api<Dashboard>(`/rooms/${id}/dashboard`), refetchInterval: 5000 });
@@ -51,6 +48,11 @@ export default function HostDashboard() {
     q.refetch();
   });
 
+  const [sheet, setSheet] = useState<"people" | "waiting" | "security" | "access" | "room" | null>(null);
+  const [subKey, setSubKey] = useState<string | null>(null);
+  const openSheet = (k: typeof sheet) => { setSubKey(null); setSheet(k); };
+  const insets = useSafeAreaInsets();
+
   // This screen lists emails and devices: protect it like the call and tell the host on-device when a capture happens.
   const shield = useShield({ active: !!q.data });
   useEffect(() => {
@@ -60,12 +62,12 @@ export default function HostDashboard() {
   if (q.isLoading) return <Loading label={t("host.loading")} />;
   if (q.isError || !q.data)
     return (
-      <Screen back title="Dashboard">
+      <View style={[styles.page, { padding: 16, paddingTop: 64, gap: 16 }]}>
         <Card style={{ gap: spacing.md }}>
           <Body>{t("host.lost")}</Body>
           <Button testID="dashboard-retry-button" label="Retry" variant="secondary" onPress={() => q.refetch()} />
         </Card>
-      </Screen>
+      </View>
     );
 
   const d = q.data;
@@ -85,31 +87,12 @@ export default function HostDashboard() {
     q.refetch();
   };
 
-  const TABS = [
-    { key: "people" as Tab, label: t("host.people"), icon: "users" as const, count: people.length },
-    { key: "waiting" as Tab, label: t("host.waiting"), icon: "armchair" as const, count: waiting.length, hot: waiting.length > 0 },
-    { key: "alerts" as Tab, label: t("host.alerts"), icon: "shield-alert" as const, count: alerts, hot: alerts > 0 },
-    { key: "invites" as Tab, label: t("host.invites"), icon: "mail-plus" as const },
-    { key: "settings" as Tab, label: t("host.settings"), icon: "settings-2" as const },
-  ];
-
   const panel = (tb: Tab) => {
     if (tb === "people")
-      return people.length + others.length === 0 ? (
+      return people.length === 0 ? (
         <Card style={styles.empty}><Icon name="shield" size={32} color={colors.muted} /><Body style={{ color: colors.muted }}>{t("host.empty")}</Body></Card>
       ) : (
-        <View style={{ gap: spacing.md }}>
-          {people.map((p) => <ParticipantRow key={p.id} p={p} roomId={id} onDone={() => q.refetch()} />)}
-          {others.length ? <Label>Removed, blocked & rejected</Label> : null}
-          {others.map((p) => <ParticipantRow key={p.id} p={p} roomId={id} onDone={() => q.refetch()} />)}
-          {d.blocks.length ? <Label>Blocked people</Label> : null}
-          {d.blocks.map((b) => (
-            <Card key={b.id} style={styles.blockRow} testID={`block-row-${b.id}`}>
-              <Body style={{ flex: 1 }}>{b.display_name} · {b.email}</Body>
-              <Button testID={`unblock-${b.id}`} compact variant="ghost" label="Unblock" onPress={async () => { await api(`/blocks/${b.id}`, { method: "DELETE" }); q.refetch(); }} />
-            </Card>
-          ))}
-        </View>
+        <View style={{ gap: spacing.md }}>{people.map((p) => <ParticipantRow key={p.id} p={p} roomId={id} onDone={() => q.refetch()} />)}</View>
       );
     if (tb === "waiting")
       return waiting.length === 0 ? (
@@ -129,37 +112,68 @@ export default function HostDashboard() {
     return <SettingsPanel roomId={id} settings={d.room.settings} onDone={() => q.refetch()} />;
   };
 
+  const blockedPanel = d.blocks.length === 0 ? (
+    <Card style={styles.empty}><Icon name="ban" size={30} color={colors.muted} /><Body style={{ color: colors.muted }}>—</Body></Card>
+  ) : (
+    <View style={{ gap: spacing.md }}>
+      {d.blocks.map((b) => (
+        <Card key={b.id} style={styles.blockRow} testID={`block-row-${b.id}`}>
+          <Body style={{ flex: 1 }}>{b.display_name} · {b.email}</Body>
+          <Button testID={`unblock-${b.id}`} compact variant="ghost" label="Unblock" onPress={async () => { await api(`/blocks/${b.id}`, { method: "DELETE" }); q.refetch(); }} />
+        </Card>
+      ))}
+    </View>
+  );
+  const removedPanel = others.length === 0 ? (
+    <Card style={styles.empty}><Icon name="user-x" size={30} color={colors.muted} /><Body style={{ color: colors.muted }}>—</Body></Card>
+  ) : (
+    <View style={{ gap: spacing.md }}>{others.map((p) => <ParticipantRow key={p.id} p={p} roomId={id} onDone={() => q.refetch()} />)}</View>
+  );
+
+
+  const views: Record<NonNullable<typeof sheet>, SheetView> = {
+    people: { title: t("host.people"), tone: "mint", node: panel("people") },
+    waiting: { title: t("host.waiting"), tone: "amber", node: panel("waiting") },
+    security: { title: t("hc.security"), tone: "red", subs: [
+      { key: "alerts", title: t("hc.alerts"), icon: "shield-alert", meta: String(alerts), node: panel("alerts") },
+      { key: "rules", title: t("hc.rules"), icon: "settings-2", node: panel("settings") },
+    ] },
+    access: { title: t("hc.access"), tone: "blue", subs: [
+      { key: "invites", title: t("hc.invites"), icon: "mail-plus", meta: String(d.invites.length), node: panel("invites") },
+      { key: "blocked", title: t("hc.blocked"), icon: "ban", meta: String(d.blocks.length), node: blockedPanel },
+    ] },
+    room: { title: t("hc.room"), tone: "mint", subs: [
+      { key: "removed", title: t("hc.removed"), icon: "user-x", meta: String(others.length), node: removedPanel },
+    ] },
+  };
+
   return (
-    <Screen back title={d.room.title} testID="host-dashboard" maxWidth={1480} contentStyle={styles.dashboardContent}>
-      <HostHero title={d.room.title} active={active} locked={d.room.locked} realtime={live} entering={!keyReady}
-        onEnter={() => router.push(`/call/${id}`)} onLock={setLock} onEnd={() => setConfirmEnd(true)} />
-      <ProtectedNote text={t("host.protectedNote")} />
-      {!d.video_configured ? (
-        <Card style={{ borderColor: colors.warning }} testID="video-not-configured"><Body>Video service is not configured yet — add LiveKit credentials to enable calls.</Body></Card>
-      ) : null}
-      {wide ? (
-        <View style={styles.desktopGrid}>
-          <View style={[styles.dashboardColumn, { flex: 1.15 }]}>
-            <Heading size={18}>{t("host.waiting")}</Heading>
-            {panel("waiting")}
-            <Heading size={18}>{t("host.people")}</Heading>
-            {panel("people")}
-          </View>
-          <View style={[styles.dashboardColumn, { flex: 0.9 }]}>
-            <Heading size={18}>{t("host.alerts")}</Heading>
-            {panel("alerts")}
-          </View>
-          <View style={[styles.dashboardColumn, { flex: 1.05 }]}>
-            <HostTabs tabs={TABS.filter((x) => x.key === "invites" || x.key === "settings")} value={tab === "settings" ? "settings" : "invites"} onChange={setTab} />
-            {panel(tab === "settings" ? "settings" : "invites")}
-          </View>
-        </View>
-      ) : (
-        <>
-          <HostTabs tabs={TABS} value={tab} onChange={setTab} />
-          {panel(tab)}
-        </>
-      )}
+    <View style={styles.page} testID="host-dashboard">
+      <View style={[styles.top, { paddingTop: insets.top + 8 }]}>
+        <Pressable testID="header-back-button" accessibilityLabel="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))} style={styles.backBtn} hitSlop={8}>
+          <Icon name="chevron-left" size={22} color="#F3F5F8" />
+        </Pressable>
+        <View style={{ flex: 1 }} />
+        <TopBtn testID="open-people" icon="users" label={t("host.people")} count={people.length} onPress={() => openSheet("people")} />
+        <TopBtn testID="open-waiting" icon="armchair" label={t("host.waiting")} count={waiting.length} hot={waiting.length > 0} onPress={() => openSheet("waiting")} />
+      </View>
+
+      <View style={styles.center}>
+        {!d.video_configured ? (
+          <Card style={{ borderColor: colors.warning, marginBottom: 14 }} testID="video-not-configured"><Body>Video service is not configured yet — add LiveKit credentials to enable calls.</Body></Card>
+        ) : null}
+        <HostHero title={d.room.title} active={active} locked={d.room.locked} realtime={live} entering={!keyReady}
+          onEnter={() => router.push(`/call/${id}`)} onLock={setLock} onEnd={() => setConfirmEnd(true)} />
+        <ProtectedNote text={t("host.protectedNote")} />
+      </View>
+
+      <View style={[styles.cats, { paddingBottom: insets.bottom + 14 }]}>
+        <HubTile testID="cat-security" icon="shield-alert" title={t("hc.security")} tone="red" badge={alerts} onPress={() => openSheet("security")} />
+        <HubTile testID="cat-access" icon="key-round" title={t("hc.access")} tone="blue" onPress={() => openSheet("access")} />
+        <HubTile testID="cat-room" icon="layout-grid" title={t("hc.room")} tone="mint" onPress={() => openSheet("room")} />
+      </View>
+
+      <HostSheet view={sheet ? views[sheet] : null} subKey={subKey} onSub={setSubKey} onClose={() => setSheet(null)} />
 
       <Modal visible={confirmEnd} transparent animationType="fade" onRequestClose={() => setConfirmEnd(false)}>
         <View style={styles.modalBg}>
@@ -171,11 +185,30 @@ export default function HostDashboard() {
           </Card>
         </View>
       </Modal>
-    </Screen>
+    </View>
+  );
+}
+
+function TopBtn({ icon, label, count, hot, onPress, testID }: { icon: any; label: string; count: number; hot?: boolean; onPress: () => void; testID: string }) {
+  return (
+    <Pressable testID={testID} accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.topBtn, pressed && { opacity: 0.7 }]}>
+      <Icon name={icon} size={16} color="#F3F5F8" />
+      <Text style={styles.topBtnText}>{label}</Text>
+      <View style={[styles.topCount, hot && { backgroundColor: "#E5484D" }]}><Text style={styles.topCountText}>{count}</Text></View>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
+  page: { flex: 1, backgroundColor: "#0B0C0E" },
+  top: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 16, paddingBottom: 8 },
+  backBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.07)", alignItems: "center", justifyContent: "center" },
+  topBtn: { flexDirection: "row", alignItems: "center", gap: 7, height: 40, paddingHorizontal: 12, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.07)", borderWidth: 1, borderColor: "rgba(255,255,255,0.08)" },
+  topBtnText: { fontSize: 13, fontWeight: "700", color: "#F3F5F8" },
+  topCount: { minWidth: 20, height: 20, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.14)", alignItems: "center", justifyContent: "center", paddingHorizontal: 6 },
+  topCountText: { fontSize: 11, fontWeight: "800", color: "#F3F5F8" },
+  center: { flex: 1, justifyContent: "center", paddingHorizontal: 16, gap: 12, maxWidth: 560, width: "100%", alignSelf: "center" },
+  cats: { flexDirection: "row", gap: 10, paddingHorizontal: 16, maxWidth: 560, width: "100%", alignSelf: "center" },
   dashboardContent: { minWidth: 0, width: "100%", paddingHorizontal: spacing.lg },
   crownBar: {
     flexDirection: "row", alignItems: "center", gap: spacing.md, minWidth: 0,
