@@ -6,7 +6,8 @@ import { Pressable, RefreshControl, StyleSheet, useWindowDimensions, View } from
 import { api } from "@/src/api";
 import { useAuth } from "@/src/auth";
 import { Screen } from "@/src/components/Screen";
-import { Badge, Body, Button, Card, ErrorText, Field, Heading, Icon, Label, Logo, useToast } from "@/src/components/ui";
+import { Badge, Body, Button, Card, ErrorText, Field, Heading, Icon, Label, useToast } from "@/src/components/ui";
+import { nova } from "@/src/nova/designTokens";
 import { timeAgo } from "@/src/privacy/labels";
 import { colors, radius, spacing } from "@/src/theme";
 
@@ -53,15 +54,15 @@ export default function Meetings() {
   };
 
   const actions = (
-    <View style={{ gap: spacing.lg, flex: wide ? 1 : undefined }}>
-      <Card style={{ gap: spacing.md }} testID="start-call-card">
+    <View style={{ gap: spacing.lg, flex: wide ? 1 : undefined, minWidth: 0, width: wide ? undefined : "100%" }}>
+      <Card style={styles.actionCard} testID="start-call-card">
         <Icon name="shield-check" size={26} color={colors.onBrandTertiary} />
         <Heading size={20}>Start a secure room</Heading>
         <Body style={{ color: colors.muted }}>You are the host. Guests enter only through your private invitations and your approval.</Body>
         <Field testID="new-room-title-input" label="Meeting name" value={title} onChangeText={setTitle} placeholder="Board review" maxLength={80} />
         <Button testID="start-call-button" label="Start call" icon="video" loading={busy} onPress={create} />
       </Card>
-      <Card style={{ gap: spacing.md }} testID="join-call-card">
+      <Card style={styles.actionCard} testID="join-call-card">
         <Icon name="link" size={24} color={colors.onSurface} />
         <Heading size={20}>Join with a link</Heading>
         <Field testID="join-link-input" label="Invitation link" value={link} onChangeText={setLink} autoCapitalize="none" placeholder="https://…/room/…" onSubmitEditing={join} />
@@ -72,8 +73,8 @@ export default function Meetings() {
   );
 
   const list = (
-    <View style={{ gap: spacing.md, flex: wide ? 1.2 : undefined }}>
-      <Label>Your rooms</Label>
+    <View style={{ gap: spacing.md, flex: wide ? 1.2 : undefined, minWidth: 0, width: wide ? undefined : "100%" }}>
+      <Label style={{ color: nova.color.mint }}>02 / YOUR ROOMS</Label>
       {rooms.isLoading ? (
         [0, 1, 2].map((i) => <View key={i} style={styles.skeleton} />)
       ) : rooms.isError ? (
@@ -93,7 +94,7 @@ export default function Meetings() {
               <Body style={{ color: colors.onSurfaceSecondary, fontSize: 16 }} numberOfLines={1}>{r.title}</Body>
               <Label>{timeAgo(r.created_at)}</Label>
               <View style={{ flexDirection: "row", gap: spacing.xs, flexWrap: "wrap" }}>
-                <Badge label={r.status === "active" ? "Live" : "Ended"} tone={r.status === "active" ? "success" : "neutral"} />
+                <Badge label={r.status === "active" ? "Open" : "Ended"} tone={r.status === "active" ? "success" : "neutral"} />
                 {r.locked ? <Badge label="Locked" tone="warning" icon="lock" /> : null}
                 {r.pending_count ? <Badge label={`${r.pending_count} waiting`} tone="brand" /> : null}
                 {r.alert_count ? <Badge label={`${r.alert_count} alerts`} tone="error" icon="triangle-alert" /> : null}
@@ -112,14 +113,15 @@ export default function Meetings() {
       refreshControl={<RefreshControl refreshing={rooms.isRefetching} onRefresh={() => { void rooms.refetch(); }} tintColor={colors.onSurface} />}
     >
       <View style={styles.top}>
-        <Logo size={48} />
+        <View style={styles.novaMark}><Body style={styles.novaMarkText}>N</Body></View>
         <View style={{ flex: 1 }}>
-          <Heading size={26}>FX Call</Heading>
+          <Label style={{ color: nova.color.mint }}>NOVA / FX CALL</Label>
+          <Heading size={26}>Meetings</Heading>
           <Label>Welcome, {user?.display_name}</Label>
         </View>
         <Badge label="No screen sharing" icon="monitor-off" tone="brand" testID="no-screenshare-badge" />
       </View>
-      <View style={{ flexDirection: wide ? "row" : "column", gap: spacing.lg, alignItems: "flex-start" }}>
+      <View style={{ flexDirection: wide ? "row" : "column", gap: spacing.lg, alignItems: "stretch", width: "100%" }}>
         {actions}
         {list}
       </View>
@@ -128,7 +130,10 @@ export default function Meetings() {
 }
 
 const styles = StyleSheet.create({
-  top: { flexDirection: "row", alignItems: "center", gap: spacing.md },
-  row: { flexDirection: "row", alignItems: "center", gap: spacing.md, padding: spacing.lg, borderRadius: radius.lg, backgroundColor: colors.surfaceSecondary, borderWidth: 1, borderColor: colors.border, width: "100%" },
+  top: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: spacing.md, paddingVertical: spacing.md },
+  novaMark: { width: 48, height: 48, backgroundColor: nova.color.mint, borderRadius: 6, alignItems: "center", justifyContent: "center" },
+  novaMarkText: { fontSize: 22, fontWeight: "800", color: nova.color.mintInk },
+  actionCard: { gap: spacing.md, borderColor: nova.color.lineStrong, backgroundColor: nova.color.surfaceRaised },
+  row: { flexDirection: "row", alignItems: "center", gap: spacing.md, padding: spacing.lg, borderRadius: radius.lg, backgroundColor: nova.color.surfaceRaised, borderWidth: 1, borderColor: nova.color.lineStrong, width: "100%" },
   skeleton: { height: 92, borderRadius: radius.lg, backgroundColor: colors.surfaceTertiary, width: "100%" },
 });
