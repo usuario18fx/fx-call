@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Modal, StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import { Modal, Pressable, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 
 import { api, saveParticipantKey } from "@/src/api";
 import { Screen } from "@/src/components/Screen";
@@ -9,6 +9,7 @@ import { Badge, Body, Button, Card, Heading, Icon, Label, Loading, useToast } fr
 import { ChipRow, EventRow, Invite, InvitePanel, Participant, ParticipantRow, SecEvent, Settings, SettingsPanel } from "@/src/components/host-panels";
 import { deviceInfo } from "@/src/device";
 import { EVENT_LABEL } from "@/src/privacy/labels";
+import { nova } from "@/src/nova/designTokens";
 import { useRoomSocket } from "@/src/realtime";
 import { colors, fonts, spacing } from "@/src/theme";
 
@@ -20,14 +21,14 @@ type Dashboard = {
 type Tab = "people" | "waiting" | "alerts" | "invites" | "settings";
 
 export default function HostDashboard() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, tab: initialTab } = useLocalSearchParams<{ id: string; tab?: string }>();
   const router = useRouter();
   const toast = useToast();
   const { width } = useWindowDimensions();
   // Three columns only when each panel can remain readable without horizontal overflow.
   const wide = width >= 1320;
   const narrow = width < 620;
-  const [tab, setTab] = useState<Tab>("people");
+  const [tab, setTab] = useState<Tab>(initialTab === "settings" || initialTab === "invites" ? initialTab : "people");
   const [keyReady, setKeyReady] = useState(false);
   const [confirmEnd, setConfirmEnd] = useState(false);
   const q = useQuery({ queryKey: ["dashboard", id], queryFn: () => api<Dashboard>(`/rooms/${id}/dashboard`), refetchInterval: 5000 });
@@ -121,17 +122,39 @@ export default function HostDashboard() {
 
   return (
     <Screen back title={d.room.title} testID="host-dashboard" maxWidth={1480} contentStyle={styles.dashboardContent}>
-      <View testID="crown-room-banner" style={styles.crownBar}>
-        <View style={styles.crownMark}>
-          <Icon name="crown" color="#6ED0FF" size={23} />
+      <View style={styles.roomBreadcrumb} testID="room-breadcrumb">
+        <Pressable testID="breadcrumb-meetings" accessibilityRole="button" accessibilityLabel="Back to Meetings" onPress={() => router.replace("/meetings")} style={styles.crumb}>
+          <Icon name="arrow-left" size={18} color={nova.color.mint} />
+          <Body style={styles.crumbLabel}>Meetings</Body>
+        </Pressable>
+        <Icon name="chevron-right" size={16} color={nova.color.muted} />
+        <Pressable testID="breadcrumb-room" accessibilityRole="button" accessibilityLabel="Return to room dashboard" onPress={() => setTab("people")} style={styles.crumb}>
+          <Body style={styles.crumbLabel} numberOfLines={1}>{d.room.title}</Body>
+        </Pressable>
+        {tab !== "people" ? (
+          <>
+            <Icon name="chevron-right" size={16} color={nova.color.muted} />
+            <Body style={{ color: nova.color.ink }}>{TABS.find((t) => t.key === tab)?.label}</Body>
+          </>
+        ) : null}
+      </View>
+      <View testID="nova-room-banner" style={styles.novaBar}>
+        <View style={styles.novaMark}>
+          <Icon name="shield-check" color={nova.color.mint} size={23} />
         </View>
-        <View style={styles.crownCopy}>
-          <Label style={styles.crownEyebrow}>FX CALL · PRIVATE CONTROL</Label>
-          <Body style={styles.crownSubtitle}>Manage access, invitations and room security</Body>
+        <View style={styles.novaCopy}>
+          <Label style={styles.novaEyebrow}>FX CALL / NOVA CONTROL</Label>
+          <Body style={styles.novaSubtitle}>Manage access, invitations and room security</Body>
         </View>
+        <Pressable testID="room-settings-gear" accessibilityRole="button" accessibilityLabel="Open room settings" onPress={() => setTab("settings")} style={styles.novaTool}>
+          <Icon name="settings-2" color={nova.color.mint} size={21} />
+        </Pressable>
+        <Pressable testID="room-invites-link" accessibilityRole="button" accessibilityLabel="Manage invitation links" onPress={() => setTab("invites")} style={styles.novaTool}>
+          <Icon name="link-2" color={nova.color.ink} size={20} />
+        </Pressable>
       </View>
       <View style={styles.statusRow}>
-        <Badge testID="room-status-badge" label={active ? "Live" : "Ended"} tone={active ? "success" : "neutral"} />
+        <Badge testID="room-status-badge" label={active ? "Open" : "Ended"} tone={active ? "success" : "neutral"} />
         <Badge testID="room-lock-badge" label={d.room.locked ? "Locked" : "Open to invitations"} tone={d.room.locked ? "warning" : "brand"} icon={d.room.locked ? "lock" : "lock-open"} />
         <Badge label={live ? "Realtime connected" : "Realtime reconnecting"} tone={live ? "success" : "warning"} icon="radio" testID="realtime-badge" />
         <Badge label="Screen sharing disabled" tone="neutral" icon="monitor-off" />
@@ -189,19 +212,25 @@ export default function HostDashboard() {
 
 const styles = StyleSheet.create({
   dashboardContent: { minWidth: 0, width: "100%", paddingHorizontal: spacing.lg },
-  crownBar: {
-    flexDirection: "row", alignItems: "center", gap: spacing.md, minWidth: 0,
-    backgroundColor: "#0D1A29", borderColor: "#205477", borderWidth: 1,
+  roomBreadcrumb: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: spacing.sm, paddingVertical: spacing.sm },
+  crumb: { flexDirection: "row", alignItems: "center", gap: spacing.xs, minHeight: 44, maxWidth: 240 },
+  crumbLabel: { color: nova.color.muted, fontSize: 14 },
+  novaBar: {
+    flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: spacing.md, minWidth: 0,
+    backgroundColor: nova.color.surfaceRaised, borderColor: nova.color.lineStrong, borderWidth: 1,
     borderRadius: 6, padding: spacing.md,
   },
-  crownMark: {
-    width: 44, height: 44, borderRadius: 6, borderWidth: 1,
-    borderColor: "#2779A8", backgroundColor: "#081625",
-    alignItems: "center", justifyContent: "center",
-  },
-  crownCopy: { flex: 1, minWidth: 0, gap: spacing.xs },
-  crownEyebrow: { color: "#92D4F7", letterSpacing: 1.6, fontSize: 11 },
-  crownSubtitle: { color: colors.onSurfaceSecondary, fontSize: 12 },
+  novaMark: { width: 44, height: 44, borderRadius: 6, borderWidth: 1, borderColor: nova.color.mintSoft, backgroundColor: nova.color.stage, alignItems: "center", justifyContent: "center" },
+  novaCopy: { flex: 1, minWidth: 150, gap: spacing.xs },
+  novaEyebrow: { color: nova.color.mint, letterSpacing: 1.6, fontSize: 11 },
+  novaSubtitle: { color: colors.onSurfaceSecondary, fontSize: 12 },
+  novaTool: { width: 42, height: 42, borderRadius: 6, borderColor: nova.color.lineStrong, borderWidth: 1, justifyContent: "center", alignItems: "center" },
+  statusRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, minWidth: 0 },
+  controls: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, width: "100%" },
+  mobileAction: { width: "100%" },
+  desktopAction: { minWidth: 190, flexGrow: 0, flexShrink: 1 },
+  empty: { alignItems: "center", gap: spacing.md, paddingVertical: spacing.xxl },
+  blockRow: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", padding: spacing.md, gap: spacing.md, minWidth: 0 },
   desktopGrid: { flexDirection: "row", alignItems: "flex-start", gap: spacing.lg, width: "100%" },
   dashboardColumn: { minWidth: 0, gap: spacing.lg, flexShrink: 1 },
   statusRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, minWidth: 0 },
