@@ -679,7 +679,7 @@ export default function Account() {
             <Label>No app can detect another device filming the screen.{Platform.OS === "web" ? " Browsers cannot reliably detect screenshots or recordings." : ""}</Label>
           </View>
         ) : null}
-        {section !== "email" ? <ErrorText testID="account-error">{err}</ErrorText> : null}
+        <ErrorText testID="account-error">{err}</ErrorText>
       </Card>
       ) : null}
 
