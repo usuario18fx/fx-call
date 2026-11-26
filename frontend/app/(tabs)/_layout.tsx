@@ -31,12 +31,22 @@ export default function TabsLayout() {
         headerShown: false,
         tabBarActiveTintColor: colors.brandPrimary,
         tabBarInactiveTintColor: colors.muted,
-        tabBarStyle: { backgroundColor: "rgba(5,9,12,0.98)", borderTopColor: colors.borderStrong, borderTopWidth: 1, ...(Platform.OS === "web" ? { height: 64 } : {}) },
+        tabBarStyle: {
+          backgroundColor: "rgba(9,12,16,0.98)",
+          borderColor: colors.borderStrong,
+          borderWidth: 1,
+          borderRadius: 40,
+          ...(Platform.OS === "ios"
+            ? { position: "absolute" as const, bottom: 22, marginHorizontal: 25, height: 72, paddingBottom: 5, paddingTop: 5 }
+            : Platform.OS === "web"
+              ? { height: 64 }
+              : { height: 64 }),
+        },
         tabBarItemStyle: { alignSelf: "center" },
         tabBarLabelStyle: { fontFamily: fonts.text, fontSize: 11, letterSpacing: 1, textTransform: "uppercase" },
       }}
     >
-      <Tabs.Screen name="studio" options={{ title: "Studio", tabBarIcon: ({ color }) => <Icon name="video" size={22} color={color} /> }} />
+      <Tabs.Screen name="studio" options={{ title: "Studio", tabBarButtonTestID: "tab-studio", tabBarIcon: ({ color }) => <Icon name="camera" size={22} color={color} /> }} />
       <Tabs.Screen name="meetings" options={{ title: "Meetings", tabBarButtonTestID: "tab-meetings", tabBarIcon: ({ color }) => <Icon name="video" size={22} color={color} /> }} />
       <Tabs.Screen name="account" options={{ title: "Account", tabBarButtonTestID: "tab-account", tabBarIcon: ({ color }) => <Icon name="circle-user-round" size={22} color={color} /> }} />
     </Tabs>
