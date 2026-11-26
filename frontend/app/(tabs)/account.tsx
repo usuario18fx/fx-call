@@ -1,5 +1,6 @@
 import { LanguageSwitch } from "@/src/components/LanguageSwitch";
-import { Crumbs, H, HubRow, HubSearch, HubTile, hubStyles, type Tone } from "@/src/components/SettingsHub";
+import { IndexList } from "@/src/components/IndexList";
+import { Crumbs, H, HubRow, HubSearch, hubStyles, type Tone } from "@/src/components/SettingsHub";
 import { useLang } from "@/src/i18n";
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
@@ -476,34 +477,23 @@ export default function Account() {
     <Screen testID="account-screen" maxWidth={760} contentStyle={{ gap: spacing.lg }}>
       {!cat ? (
         <Animated.View entering={FadeIn} style={{ gap: spacing.lg }}>
-          <View style={styles.hubHero}>
-            <LinearGradient colors={["rgba(111,227,193,0.18)", "rgba(125,183,255,0.05)", "rgba(18,21,26,0)"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
-            <View style={styles.hubAvatar}>
-              {user?.avatar_data_url ? <Image source={{ uri: user.avatar_data_url }} style={{ width: 62, height: 62, borderRadius: 22 }} contentFit="cover" /> : <Text style={styles.hubAvatarText}>{(user?.display_name || "F").charAt(0).toUpperCase()}</Text>}
-            </View>
-            <View style={{ flex: 1, gap: 2 }}>
-              <Text style={styles.hubName} numberOfLines={1}>{user?.display_name || "FX CALL"}</Text>
-              <Text style={styles.hubMail} numberOfLines={1}>{user?.email}</Text>
-              <Text style={styles.hubTag}>{t("hub.tag")}</Text>
-            </View>
-            <Badge label={user?.verified ? "✓" : "!"} tone={user?.verified ? "success" : "warning"} />
+          <View style={styles.idHead}>
+            <Text style={styles.idName} numberOfLines={1}>{user?.display_name || "FX CALL"}</Text>
+            <Text style={styles.idMail} numberOfLines={1}>{user?.email}{user?.verified ? "  ·  ✓" : ""}</Text>
           </View>
-
           <HubSearch value={q} onChange={setQ} placeholder={t("hub.search")} />
-
           {term ? (
-            <View style={hubStyles.group}>
-              {hits.length === 0 ? <Body style={{ padding: spacing.lg, color: H.dim }}>{t("hub.noResults")}</Body> : hits.map(({ c, x }) => (
+            <View>
+              {hits.length === 0 ? <Body style={{ paddingVertical: spacing.lg, color: H.dim }}>{t("hub.noResults")}</Body> : hits.map(({ c, x }) => (
                 <HubRow key={c.key + x.key} testID={`hit-${c.key}-${x.key}`} icon={x.icon} title={x.title} meta={c.title} tone={c.tone} onPress={() => go(c.key, x.key)} />
               ))}
             </View>
           ) : (
-            <View style={styles.bento}>
-              {cats.map((c, i) => (
-                <HubTile key={c.key} testID={`cat-${c.key}`} icon={c.icon} title={c.title} tone={c.tone} big={i === 0}
-                  meta={t("hub.items", { n: c.subs.length })} onPress={() => go(c.key)} />
-              ))}
-            </View>
+            <IndexList
+              initialOpen="settings"
+              onOpen={(c, k) => go(c, k)}
+              sections={cats.map((c) => ({ key: c.key, title: c.title, tone: c.tone, subs: c.subs.map((x) => ({ key: x.key, title: x.title, meta: x.meta, danger: x.danger })) }))}
+            />
           )}
         </Animated.View>
       ) : (
@@ -541,6 +531,14 @@ const styles = StyleSheet.create({
   hubName: { fontSize: 20, fontWeight: "800", color: H.text },
   hubMail: { fontSize: 12.5, color: H.dim },
   hubTag: { fontSize: 12, color: H.mint, marginTop: 4, fontWeight: "600" },
+  idHead: { gap: 4, paddingTop: 8 },
+  idName: { fontSize: 34, fontWeight: "800", color: H.text, letterSpacing: -0.8 },
+  idMail: { fontSize: 13, color: H.dim },
+  orbName: { fontSize: 13, fontWeight: "800", color: H.text },
+  orbHint: { textAlign: "center", fontSize: 13, color: H.mint, fontWeight: "600" },
+  chips: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 10 },
+  chip: { flexDirection: "row", alignItems: "center", gap: 8, height: 44, paddingHorizontal: 16, borderRadius: 22, backgroundColor: "rgba(255,255,255,0.06)", borderWidth: 1, borderColor: "rgba(111,227,193,0.35)" },
+  chipText: { fontSize: 14, fontWeight: "700", color: H.text },
   bento: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
   profileCard: { gap: spacing.md },
   profileHeader: { flexDirection: "row", alignItems: "center", gap: spacing.md },

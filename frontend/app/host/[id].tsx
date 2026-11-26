@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { api, saveParticipantKey } from "@/src/api";
 import { HostSheet, type SheetView } from "@/src/components/HostSheet";
-import { HubTile } from "@/src/components/SettingsHub";
+import { IndexList } from "@/src/components/IndexList";
 import { HostHero, ProtectedNote } from "@/src/components/HostHero";
 import { Body, Button, Card, Heading, Icon, Label, Loading, useToast } from "@/src/components/ui";
 import { useLang } from "@/src/i18n";
@@ -50,7 +50,8 @@ export default function HostDashboard() {
 
   const [sheet, setSheet] = useState<"people" | "waiting" | "security" | "access" | "room" | null>(null);
   const [subKey, setSubKey] = useState<string | null>(null);
-  const openSheet = (k: typeof sheet) => { setSubKey(null); setSheet(k); };
+  const [direct, setDirect] = useState(false);
+  const openSheet = (k: typeof sheet) => { setDirect(false); setSubKey(null); setSheet(k); };
   const insets = useSafeAreaInsets();
 
   // This screen lists emails and devices: protect it like the call and tell the host on-device when a capture happens.
@@ -167,13 +168,16 @@ export default function HostDashboard() {
         <ProtectedNote text={t("host.protectedNote")} />
       </View>
 
-      <View style={[styles.cats, { paddingBottom: insets.bottom + 14 }]}>
-        <HubTile testID="cat-security" icon="shield-alert" title={t("hc.security")} tone="red" badge={alerts} onPress={() => openSheet("security")} />
-        <HubTile testID="cat-access" icon="key-round" title={t("hc.access")} tone="blue" onPress={() => openSheet("access")} />
-        <HubTile testID="cat-room" icon="layout-grid" title={t("hc.room")} tone="mint" onPress={() => openSheet("room")} />
+      <View style={[styles.index, { paddingBottom: insets.bottom + 8 }]}>
+        <IndexList onOpen={(c, k) => { setSheet(c as typeof sheet); setSubKey(k); setDirect(true); }}
+          sections={[
+            { key: "security", title: t("hc.security"), tone: "red", badge: alerts, subs: [{ key: "alerts", title: t("hc.alerts"), meta: String(alerts) }, { key: "rules", title: t("hc.rules") }] },
+            { key: "access", title: t("hc.access"), tone: "blue", subs: [{ key: "invites", title: t("hc.invites"), meta: String(d.invites.length) }, { key: "blocked", title: t("hc.blocked"), meta: String(d.blocks.length) }] },
+            { key: "room", title: t("hc.room"), tone: "mint", subs: [{ key: "removed", title: t("hc.removed"), meta: String(others.length) }] },
+          ]} />
       </View>
 
-      <HostSheet view={sheet ? views[sheet] : null} subKey={subKey} onSub={setSubKey} onClose={() => setSheet(null)} />
+      <HostSheet view={sheet ? views[sheet] : null} subKey={subKey} onSub={setSubKey} direct={direct} onClose={() => setSheet(null)} />
 
       <Modal visible={confirmEnd} transparent animationType="fade" onRequestClose={() => setConfirmEnd(false)}>
         <View style={styles.modalBg}>
@@ -207,7 +211,8 @@ const styles = StyleSheet.create({
   topBtnText: { fontSize: 13, fontWeight: "700", color: "#F3F5F8" },
   topCount: { minWidth: 20, height: 20, borderRadius: 10, backgroundColor: "rgba(255,255,255,0.14)", alignItems: "center", justifyContent: "center", paddingHorizontal: 6 },
   topCountText: { fontSize: 11, fontWeight: "800", color: "#F3F5F8" },
-  center: { flex: 1, justifyContent: "center", paddingHorizontal: 16, gap: 12, maxWidth: 560, width: "100%", alignSelf: "center" },
+  center: { flex: 1, justifyContent: "center", paddingBottom: 12, paddingHorizontal: 16,  gap: 12, maxWidth: 560, width: "100%", alignSelf: "center" },
+  index: { paddingHorizontal: 20, maxWidth: 560, width: "100%", alignSelf: "center" },
   cats: { flexDirection: "row", gap: 10, paddingHorizontal: 16, maxWidth: 560, width: "100%", alignSelf: "center" },
   dashboardContent: { minWidth: 0, width: "100%", paddingHorizontal: spacing.lg },
   crownBar: {

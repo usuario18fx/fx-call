@@ -11,7 +11,7 @@ export type SheetSub = { key: string; title: string; icon: IconName; meta?: stri
 export type SheetView = { title: string; tone: Tone; subs?: SheetSub[]; node?: React.ReactNode };
 
 /** Bottom sheet with one level of subcategories. `view.node` = single panel, `view.subs` = list → panel. */
-export function HostSheet({ view, subKey, onSub, onClose }: { view: SheetView | null; subKey: string | null; onSub: (k: string | null) => void; onClose: () => void }) {
+export function HostSheet({ view, subKey, onSub, onClose, direct }: { view: SheetView | null; subKey: string | null; onSub: (k: string | null) => void; onClose: () => void; direct?: boolean }) {
   const insets = useSafeAreaInsets();
   const sub = view?.subs?.find((x) => x.key === subKey) ?? null;
   const body = !view ? null : view.node ? view.node : sub ? sub.node : (
@@ -27,7 +27,7 @@ export function HostSheet({ view, subKey, onSub, onClose }: { view: SheetView | 
             <View style={s.grab} />
             {view ? (
               <View style={s.head}>
-                {sub ? <Crumbs trail={[view.title, sub.title]} onBack={() => onSub(null)} /> : <Text style={s.title}>{view.title}</Text>}
+                {sub && direct ? <Text style={s.title}>{sub.title}</Text> : sub ? <Crumbs trail={[view.title, sub.title]} onBack={() => onSub(null)} /> : <Text style={s.title}>{view.title}</Text>}
                 <Pressable testID="host-sheet-close" accessibilityLabel="Close" onPress={onClose} hitSlop={10} style={s.close}><Text style={s.closeX}>✕</Text></Pressable>
               </View>
             ) : null}
