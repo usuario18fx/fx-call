@@ -16,6 +16,7 @@ files = (
     'frontend/app/(tabs)/meetings.tsx',
     'frontend/app/host/[id].tsx',
     'frontend/src/components/host-panels.tsx',
+    'frontend/src/nova/designTokens.ts',
     'backend/room_routes.py',
 )
 
@@ -32,7 +33,8 @@ print('FETCHING VERIFIED NOVA BRANCH', flush=True)
 cmd('git', 'fetch', 'origin', branch)
 payload = {}
 for file in files:
-    if not (root / file).is_file():
+    # Design tokens are a new dependency and may not exist in older Emergent workspaces.
+    if not (root / file).is_file() and file != 'frontend/src/nova/designTokens.ts':
         raise SystemExit(f'STOPPED: Missing local file: {file}. No files modified.')
     payload[file] = cmd('git', 'show', f'FETCH_HEAD:{file}', capture=True).stdout
 
@@ -41,6 +43,7 @@ checks = {
     'frontend/app/(tabs)/meetings.tsx': b'new-room-settings-gear',
     'frontend/app/host/[id].tsx': b'breadcrumb-meetings',
     'frontend/src/components/host-panels.tsx': b'invite-custom-expiry',
+    'frontend/src/nova/designTokens.ts': b'export const nova =',
     'backend/room_routes.py': b'async def rename_room(',
 }
 for file, marker in checks.items():
@@ -49,16 +52,20 @@ for file, marker in checks.items():
 
 backup = root / ('FXCALL-NOVA-NAV-BACKUP-' + datetime.now().strftime('%Y%m%d-%H%M%S'))
 backup.mkdir(parents=True, exist_ok=False)
+existed = {file: (root / file).is_file() for file in files}
 for file in files:
-    saved = backup / file
-    saved.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(root / file, saved)
+    if existed[file]:
+        saved = backup / file
+        saved.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(root / file, saved)
 print('BACKUP:', backup, flush=True)
 
 services_restarted = False
 try:
     for file, data in payload.items():
-        (root / file).write_bytes(data)
+        target = root / file
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(data)
         print('UPDATED:', file, flush=True)
 
     print('CHECK: PYTHON...', flush=True)
@@ -79,7 +86,10 @@ try:
 except BaseException:
     print('FAILED: RESTORING ORIGINAL FILES...', flush=True)
     for file in files:
-        shutil.copy2(backup / file, root / file)
+        if existed[file]:
+            shutil.copy2(backup / file, root / file)
+        else:
+            (root / file).unlink(missing_ok=True)
     print('ROLLBACK COMPLETED', flush=True)
     if services_restarted:
         for service in ('backend', 'expo'):
