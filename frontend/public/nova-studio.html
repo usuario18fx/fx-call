@@ -3563,5 +3563,200 @@
   post('ready');
 })();
 </script>
+<script id="fxnova-public-local-preview">
+(function () {
+  "use strict";
+
+  const modal = document.getElementById("launch-live");
+  const camera = document.getElementById("fxPublicVideo");
+  const placeholder = document.getElementById("fxPublicPlaceholder");
+  const status = document.getElementById("fxPublicStatus");
+  if (!modal || !camera || !placeholder || !status) return;
+
+  let open = false;
+  let cameraStream = null;
+  let micStream = null;
+  let cameraRequest = 0;
+  let micRequest = 0;
+  let facingMode = "user";
+  let filter = "natural";
+
+  const filters = {
+    natural: "none",
+    studio: "brightness(1.06) contrast(1.10) saturate(1.08)",
+    mono: "grayscale(1) contrast(1.13)",
+    warm: "sepia(.18) contrast(1.03) saturate(1.15)"
+  };
+  const controls = (name) => modal.querySelector('[data-public-control="' + name + '"]');
+  const running = () => !!cameraStream && cameraStream.getVideoTracks().some(
+    (track) => track.readyState === "live"
+  );
+
+  function message(text) {
+    status.textContent = text;
+  }
+  function sync() {
+    const activeCamera = running();
+    camera.style.display = activeCamera ? "block" : "none";
+    placeholder.style.display = activeCamera ? "none" : "flex";
+    placeholder.setAttribute("aria-hidden", String(activeCamera));
+    const camButton = controls("cam");
+    const micButton = controls("mic");
+    camButton.setAttribute("aria-pressed", String(activeCamera));
+    camButton.setAttribute("aria-label", activeCamera ? "Turn off local camera" : "Enable local camera preview");
+    micButton.setAttribute("aria-pressed", String(!!micStream));
+    micButton.setAttribute("aria-label", micStream ? "Turn off local microphone test" : "Enable local microphone test");
+    camera.style.transform = facingMode === "user" ? "scaleX(-1)" : "none";
+    camera.style.filter = filters[filter] || "none";
+  }
+  function disposeCamera() {
+    if (cameraStream) cameraStream.getTracks().forEach((track) => track.stop());
+    cameraStream = null;
+    camera.pause();
+    camera.srcObject = null;
+    sync();
+  }
+  function disposeMic() {
+    if (micStream) micStream.getTracks().forEach((track) => track.stop());
+    micStream = null;
+    sync();
+  }
+  function disposeAll() {
+    cameraRequest++;
+    micRequest++;
+    disposeCamera();
+    disposeMic();
+  }
+  function explainError(error, medium) {
+    const reason = error && error.name === "NotAllowedError"
+      ? "Permission was denied or blocked in this viewer."
+      : error && error.name === "NotFoundError"
+        ? "No compatible device was found."
+        : error && error.name === "NotReadableError"
+          ? "This device may already be in use."
+          : error && error.message
+            ? error.message
+            : "The device is unavailable.";
+    message(medium + ": " + reason + " Try Safari or the installed FX CALL app.");
+  }
+  async function enableCamera(nextFacing) {
+    const request = ++cameraRequest;
+    disposeCamera();
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      message("Camera preview requires HTTPS and a browser with camera permissions.");
+      return;
+    }
+    window.dispatchEvent(new Event("fxnova:public-camera-request"));
+    message("Requesting camera permission…");
+    try {
+      const next = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: nextFacing }, width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: false
+      });
+      if (!open || request !== cameraRequest) {
+        next.getTracks().forEach((track) => track.stop());
+        return;
+      }
+      cameraStream = next;
+      facingMode = nextFacing;
+      camera.srcObject = next;
+      try { await camera.play(); } catch (_) {
+        message("Camera connected. Tap the preview if autoplay was blocked.");
+      }
+      if (open && request === cameraRequest) {
+        message("Local camera enabled. OFF AIR — no video is sent.");
+      }
+    } catch (error) {
+      if (open && request === cameraRequest) explainError(error, "Camera");
+    } finally {
+      sync();
+    }
+  }
+  async function enableMic() {
+    const request = ++micRequest;
+    disposeMic();
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      message("Microphone test requires HTTPS and microphone permission.");
+      return;
+    }
+    message("Requesting microphone permission…");
+    try {
+      const next = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      if (!open || request !== micRequest) {
+        next.getTracks().forEach((track) => track.stop());
+        return;
+      }
+      micStream = next;
+      message("Microphone test enabled locally. No audio is sent.");
+    } catch (error) {
+      if (open && request === micRequest) explainError(error, "Microphone");
+    } finally {
+      sync();
+    }
+  }
+  modal.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-public-control], [data-public-filter]");
+    if (!button || !modal.contains(button)) return;
+    const action = button.getAttribute("data-public-control");
+    if (action === "cam") {
+      if (running()) {
+        cameraRequest++;
+        disposeCamera();
+        message("Camera off. OFF AIR.");
+      } else {
+        void enableCamera(facingMode);
+      }
+    } else if (action === "mic") {
+      if (micStream) {
+        micRequest++;
+        disposeMic();
+        message("Microphone off. Nothing was transmitted.");
+      } else {
+        void enableMic();
+      }
+    } else if (action === "flip") {
+      const nextFacing = facingMode === "user" ? "environment" : "user";
+      if (running()) void enableCamera(nextFacing);
+      else {
+        facingMode = nextFacing;
+        message((facingMode === "user" ? "Front" : "Rear") + " camera selected. Tap CAMERA to preview.");
+        sync();
+      }
+    } else if (action === "stop") {
+      disposeAll();
+      message("Local camera and microphone stopped.");
+    }
+    const nextFilter = button.getAttribute("data-public-filter");
+    if (nextFilter && Object.prototype.hasOwnProperty.call(filters, nextFilter)) {
+      filter = nextFilter;
+      modal.querySelectorAll("[data-public-filter]").forEach((item) => {
+        const selected = item === button;
+        item.classList.toggle("selected", selected);
+        item.setAttribute("aria-pressed", String(selected));
+      });
+      sync();
+      message("Preview filter: " + button.textContent.trim() + ". The filter is local only.");
+    }
+  });
+  window.addEventListener("fxnova:public-open", () => {
+    open = true;
+    message("Camera and microphone are off. Enable the local preview when ready.");
+    sync();
+  });
+  window.addEventListener("fxnova:public-close", () => {
+    open = false;
+    disposeAll();
+    message("Local preview closed. Camera and microphone are off.");
+  });
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      disposeAll();
+      message("Camera and microphone stopped while the app is in the background.");
+    }
+  });
+  window.addEventListener("pagehide", disposeAll);
+  sync();
+})();
+</script>
 </body>
 </html>
