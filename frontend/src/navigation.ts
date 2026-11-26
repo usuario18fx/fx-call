@@ -8,7 +8,7 @@ import { Platform } from "react-native";
  * first screen is a WebView when tested through the Expo Go host. The actual
  * installed build can continue using Liquid Glass NativeTabs.
  */
-const insideExpoGo = Constants.executionEnvironment === "storeClient";
+const insideExpoGo = String(Constants.executionEnvironment) === "storeClient";
 export const usesNativeTabs =
   Platform.OS === "ios" &&
   Number.parseInt(String(Platform.Version), 10) >= 26 &&
