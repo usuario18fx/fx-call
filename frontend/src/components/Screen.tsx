@@ -49,7 +49,7 @@ export function Screen({ title, back, right, children, scroll = true, maxWidth =
     <View style={styles.root} testID={testID}>
       <LinearGradient
         pointerEvents="none"
-        colors={["#14252B", "#0A1217", nova.color.canvas]}
+        colors={["#101B25", "#090F16", nova.color.canvas]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFill}
