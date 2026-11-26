@@ -2,10 +2,12 @@ import { useRouter } from "expo-router";
 import React from "react";
 import { Platform, Pressable, ScrollView, StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
+import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Heading, Icon } from "@/src/components/ui";
 import { colors, spacing } from "@/src/theme";
+import { nova } from "@/src/nova/designTokens";
 
 type Props = {
   title?: string;
@@ -45,6 +47,13 @@ export function Screen({ title, back, right, children, scroll = true, maxWidth =
   ];
   return (
     <View style={styles.root} testID={testID}>
+      <LinearGradient
+        pointerEvents="none"
+        colors={["#14252B", "#0A1217", nova.color.canvas]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
       {header}
       {scroll ? Platform.OS === "web" ? (
         <ScrollView
@@ -78,7 +87,7 @@ const styles = StyleSheet.create({
   scroller: { flex: 1, minHeight: 0 },
   scrollContent: { flexGrow: 1 },
   fixedContent: { flex: 1, minHeight: 0 },
-  header: { backgroundColor: colors.surface, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.divider, paddingBottom: spacing.md, paddingHorizontal: spacing.lg },
+  header: { backgroundColor: "rgba(5,6,7,0.82)", borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.divider, paddingBottom: spacing.md, paddingHorizontal: spacing.lg },
   headerInner: { width: "100%", alignSelf: "center", flexDirection: "row", alignItems: "center", gap: spacing.sm, minHeight: 44 },
   back: { width: 44, height: 44, alignItems: "center", justifyContent: "center", marginLeft: -spacing.sm },
   content: { width: "100%", alignSelf: "center", paddingHorizontal: spacing.lg, gap: spacing.lg },

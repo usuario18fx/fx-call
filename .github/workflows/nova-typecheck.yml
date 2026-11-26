@@ -1,0 +1,33 @@
+name: NOVA UI typecheck
+
+on:
+  pull_request:
+    branches:
+      - studio-secure
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/nova-typecheck.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  typescript:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: yarn
+          cache-dependency-path: frontend/yarn.lock
+      - name: Install Yarn classic
+        run: npm install --global yarn@1.22.22
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile --non-interactive
+      - name: TypeScript
+        run: ./node_modules/.bin/tsc --noEmit

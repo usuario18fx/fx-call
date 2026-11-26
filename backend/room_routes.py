@@ -110,6 +110,10 @@ class LockIn(BaseModel):
     locked: bool
 
 
+class RoomRenameIn(BaseModel):
+    title: str = Field(min_length=1, max_length=80)
+
+
 class InviteIn(BaseModel):
     name: str = Field(min_length=1, max_length=60)
     require_approval: bool = True
@@ -232,6 +236,23 @@ async def list_rooms(user=Depends(current_user)):
         alerts = await db.security_events.count_documents({"room_id": r["id"]})
         out.append(clean(r) | {"pending_count": pending, "active_count": active, "alert_count": alerts})
     return out
+
+
+@router.patch("/rooms/{room_id}")
+async def rename_room(room_id: str, body: RoomRenameIn, user=Depends(current_user)):
+    # Ownership is checked before any mutation, including ended rooms.
+    room = await host_room(room_id, user)
+    title = body.title.strip()
+    if not title:
+        raise HTTPException(422, "Room name cannot be empty")
+    if title != room["title"]:
+        await db.rooms.update_one(
+            {"id": room_id, "host_id": user["id"]},
+            {"$set": {"title": title}},
+        )
+        await audit(room_id, user["id"], "room_renamed")
+        await notify(room_id, "room_update")
+    return {"id": room_id, "title": title}
 
 
 @router.get("/rooms/{room_id}/dashboard")

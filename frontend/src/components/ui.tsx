@@ -20,7 +20,7 @@ export function Logo({ size = 96 }: { size?: number }) {
 
 export function Heading({ children, size = 24, style, testID }: { children: React.ReactNode; size?: number; style?: StyleProp<TextStyle>; testID?: string }) {
   return (
-    <Text testID={testID} style={[{ fontFamily: fonts.display, fontSize: size, color: colors.onSurfaceSecondary, textTransform: "uppercase", letterSpacing: size * 0.12 }, style]}>
+    <Text testID={testID} style={[{ fontFamily: fonts.display, fontSize: size, fontWeight: "700", color: colors.onSurfaceSecondary, letterSpacing: size >= 22 ? -0.5 : 0.2 }, style]}>
       {children}
     </Text>
   );
@@ -177,14 +177,14 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 export const useToast = () => useContext(ToastCtx);
 
 export const s = StyleSheet.create({
-  label: { fontFamily: fonts.text, fontSize: 11, letterSpacing: 1.6, textTransform: "uppercase" },
+  label: { fontFamily: fonts.text, fontSize: 11, fontWeight: "600", letterSpacing: 1.6, textTransform: "uppercase" },
   body: { fontFamily: fonts.text, fontSize: 14, color: colors.onSurface, lineHeight: 20 },
   btn: { minHeight: 50, borderRadius: radius.pill, paddingHorizontal: spacing.xl, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.sm, borderWidth: 1 },
   btnCompact: { minHeight: 40, paddingHorizontal: spacing.lg },
-  btnText: { fontFamily: fonts.text, fontSize: 14, fontWeight: "600", letterSpacing: 1.2, textTransform: "uppercase" },
+  btnText: { fontFamily: fonts.text, fontSize: 14, fontWeight: "700", letterSpacing: 1.2, textTransform: "uppercase" },
   input: { minHeight: 50, borderRadius: radius.md, borderWidth: 1, backgroundColor: colors.surfaceTertiary, color: colors.onSurfaceSecondary, paddingHorizontal: spacing.lg, fontFamily: fonts.text, fontSize: 15 },
   error: { fontFamily: fonts.text, fontSize: 13, color: colors.onError },
-  card: { backgroundColor: colors.surfaceSecondary, borderRadius: radius.lg, padding: spacing.lg, borderWidth: 1, borderColor: colors.border },
+  card: { backgroundColor: colors.surfaceSecondary, borderRadius: radius.lg, padding: spacing.xl, borderWidth: 1, borderColor: colors.border },
   badge: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: spacing.sm, height: 24, borderRadius: radius.pill, alignSelf: "flex-start", flexShrink: 0 },
   badgeText: { fontFamily: fonts.text, fontSize: 11, fontWeight: "600", letterSpacing: 0.8, textTransform: "uppercase" },
   center: { flex: 1, alignItems: "center", justifyContent: "center", padding: spacing.xl, backgroundColor: colors.surface },
