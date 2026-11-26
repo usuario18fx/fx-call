@@ -216,7 +216,7 @@ export default function Account() {
   });
 
   return (
-    <Screen testID="account-screen" maxWidth={760}>
+    <Screen testID="account-screen" maxWidth={900}>
       {section !== null || accountView === "settings" ? (
         <View style={styles.accountBreadcrumb} testID="account-breadcrumb">
           <Pressable
@@ -244,7 +244,7 @@ export default function Account() {
         <View style={styles.accountTitleRow}>
           <View style={{ gap: spacing.xs }}>
             <Label style={{ color: nova.color.mint }}>FX CALL / NOVA</Label>
-            <Heading size={28}>Profile</Heading>
+            <Heading size={28} style={styles.displayHeading}>Profile</Heading>
           </View>
           <Pressable
             testID="account-open-settings"
@@ -259,6 +259,7 @@ export default function Account() {
       )}
 
       {accountView === "profile" && section === null ? (
+      <>
       <Card style={styles.profileCard} testID="profile-card">
         <View style={styles.profileHeader}>
           <Pressable
@@ -478,6 +479,29 @@ export default function Account() {
         ) : null}
 
       </Card>
+      <View style={styles.profileQuickActions} testID="profile-quick-actions">
+        <Pressable testID="profile-quick-email" accessibilityRole="button" onPress={() => toggle("email")} style={styles.quickAction}>
+          <Icon name="mail" size={18} color={nova.color.mint} />
+          <Body style={styles.quickActionTitle}>Email</Body>
+          <Icon name="chevron-right" size={15} color={nova.color.muted} />
+        </Pressable>
+        <Pressable testID="profile-quick-password" accessibilityRole="button" onPress={() => { setAccountView("settings"); toggle("password"); }} style={styles.quickAction}>
+          <Icon name="key-round" size={18} color={nova.color.mint} />
+          <Body style={styles.quickActionTitle}>Password</Body>
+          <Icon name="chevron-right" size={15} color={nova.color.muted} />
+        </Pressable>
+        <Pressable testID="profile-quick-twofa" accessibilityRole="button" onPress={() => { setAccountView("settings"); toggle("twofa"); }} style={styles.quickAction}>
+          <Icon name="shield-check" size={18} color={nova.color.mint} />
+          <Body style={styles.quickActionTitle}>Two-factor</Body>
+          <Icon name="chevron-right" size={15} color={nova.color.muted} />
+        </Pressable>
+        <Pressable testID="profile-quick-devices" accessibilityRole="button" onPress={() => { setAccountView("settings"); toggle("devices"); }} style={styles.quickAction}>
+          <Icon name="smartphone" size={18} color={nova.color.mint} />
+          <Body style={styles.quickActionTitle}>Devices</Body>
+          <Icon name="chevron-right" size={15} color={nova.color.muted} />
+        </Pressable>
+      </View>
+      </>
       ) : null}
 
       {section === "email" ? (
@@ -528,7 +552,7 @@ export default function Account() {
       ) : null}
 
       {accountView === "settings" && section !== "email" ? (
-      <Card style={{ gap: spacing.xs }} testID="account-settings-card">
+      <Card style={styles.settingsCard} testID="account-settings-card">
         {section === null ? (
           <>
             <Label style={{ color: nova.color.mint }}>FX CALL / SETTINGS</Label>
@@ -684,7 +708,7 @@ export default function Account() {
       ) : null}
 
       {accountView === "settings" && section === null ? (
-      <Card style={{ gap: spacing.sm }} testID="sign-out-card">
+      <Card style={styles.settingsCard} testID="sign-out-card">
         <Heading size={18}>Sessions</Heading>
         <Button testID="logout-button" label="Sign out" variant="secondary" icon="log-out" onPress={() => signOut(false)} />
         <Button testID="logout-all-button" label="Sign out of all devices" variant="danger" icon="shield-off" onPress={() => signOut(true)} />
@@ -715,7 +739,12 @@ const styles = StyleSheet.create({
   emailCurrentValue: { fontSize: 20, flexShrink: 1, color: nova.color.ink },
   settingsQuickLink: { flexDirection: "row", alignItems: "center", gap: spacing.md, paddingVertical: spacing.md, minHeight: 54, borderTopColor: nova.color.line, borderTopWidth: 1 },
 
-  profileCard: { gap: spacing.md, backgroundColor: nova.color.surfaceRaised, borderColor: nova.color.lineStrong },
+  profileCard: { gap: spacing.md, backgroundColor: nova.color.surfaceRaised, borderColor: nova.color.lineStrong, borderRadius: 10, padding: spacing.lg },
+  displayHeading: { letterSpacing: 2.2, fontFamily: "Georgia", fontWeight: "400" },
+  settingsCard: { padding: spacing.lg, gap: spacing.xs, borderColor: nova.color.lineStrong, backgroundColor: nova.color.surfaceRaised, borderRadius: 10 },
+  profileQuickActions: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, marginTop: -spacing.sm },
+  quickAction: { minHeight: 52, flexGrow: 1, flexBasis: "46%", flexDirection: "row", alignItems: "center", gap: spacing.md, paddingHorizontal: spacing.md, borderWidth: 1, borderColor: nova.color.lineStrong, borderRadius: 9, backgroundColor: nova.color.stage },
+  quickActionTitle: { flex: 1, color: nova.color.ink, fontWeight: "600", fontSize: 13 },
   profileHeader: { flexDirection: "row", alignItems: "center", gap: spacing.md, flexWrap: "wrap" },
   profileIdentity: { flex: 1, minWidth: 150, gap: spacing.xs },
   profileNameRow: { flexDirection: "row", alignItems: "center", gap: spacing.xs },
@@ -741,19 +770,19 @@ const styles = StyleSheet.create({
   photoPreviewRow: { flexDirection: "row", alignItems: "center", gap: spacing.md, flexWrap: "wrap" },
   photoPreviewControls: { flex: 1, minWidth: 180, gap: spacing.sm },
   avatarPreviewCrop: { width: 96, height: 96, overflow: "hidden", alignItems: "center", justifyContent: "center", borderRadius: 6, backgroundColor: nova.color.surface },
-  passwordInput: { backgroundColor: "#14272B", color: nova.color.ink },
+  passwordInput: { backgroundColor: "#10232D", color: nova.color.ink, borderColor: "#376778" },
   switchRow: { flexDirection: "row", alignItems: "center", gap: spacing.xs },
   smallSwitch: { transform: [{ scaleX: 0.78 }, { scaleY: 0.78 }] },
   revokeIcon: { width: 38, height: 38, borderRadius: 6, backgroundColor: colors.surfaceSecondary, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: colors.borderStrong },
   confirmRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, flexWrap: "wrap" },
-  sectionHeading: { marginBottom: spacing.xs },
-  menuRow: { minHeight: 60, paddingVertical: spacing.sm, flexDirection: "row", alignItems: "center", gap: spacing.md, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
+  sectionHeading: { marginBottom: spacing.xs, letterSpacing: 2, fontFamily: "Georgia", fontWeight: "400", color: nova.color.ink },
+  menuRow: { minHeight: 56, paddingVertical: spacing.sm, flexDirection: "row", alignItems: "center", gap: spacing.md, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: nova.color.lineStrong },
   menuRowPressed: { backgroundColor: nova.color.mintSoft },
-  menuIcon: { width: 38, height: 38, borderRadius: 6, backgroundColor: nova.color.mintSoft, alignItems: "center", justifyContent: "center" },
+  menuIcon: { width: 38, height: 38, borderRadius: 8, backgroundColor: "#142A30", borderWidth: 1, borderColor: nova.color.lineStrong, alignItems: "center", justifyContent: "center" },
   menuCopy: { flex: 1, gap: spacing.xs },
-  menuTitle: { fontSize: 15, fontWeight: "600", color: colors.onSurfaceSecondary },
+  menuTitle: { fontSize: 15, fontWeight: "600", color: nova.color.ink },
   menuSubtitle: { fontSize: 12 },
-  panel: { padding: spacing.md, borderWidth: 1, borderColor: nova.color.lineStrong, backgroundColor: nova.color.stage, borderRadius: 6, gap: spacing.md, marginBottom: spacing.sm },
+  panel: { padding: spacing.lg, borderWidth: 1, borderColor: nova.color.lineStrong, backgroundColor: nova.color.stage, borderRadius: 9, gap: spacing.md, marginBottom: spacing.sm },
   panelTitle: { fontSize: 16, fontWeight: "600", color: colors.onSurfaceSecondary },
   rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: spacing.md },
   qr: { width: 200, height: 200, alignSelf: "center", backgroundColor: "#FFFFFF", borderRadius: 6 },
