@@ -106,7 +106,7 @@ node <<'NODE'
 const fs = require('fs');
 const vm = require('vm');
 const html = fs.readFileSync('/app/frontend/public/nova-studio.html', 'utf8');
-const source = [...html.matchAll(/<script\\b[^>]*>([\\s\\S]*?)<\\/script>/gi)];
+const source = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)];
 if (source.length < 2 || !html.includes("id: 'general'") || !html.includes("post('open-general')")) {
   throw new Error('NOVA General bridge or expected scripts missing');
 }
