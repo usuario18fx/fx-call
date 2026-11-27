@@ -5,7 +5,7 @@ cd /app || exit 1
 SOURCE_BRANCH="feature/fxcall-general-room-20261127"
 BACKUP_BRANCH="backup/fxcall-ui-20261127-003212"
 
-echo "=== FX CALL / NOVA THREE MODES - NATIVE SOURCE FIX V4 ==="
+echo "=== FX CALL / NOVA THREE MODES + SCREENSHOT GUARD V5 ==="
 ORIGIN="$(git remote get-url origin)"
 case "${ORIGIN,,}" in
   *usuario18fx/fx-call*) ;;
@@ -14,6 +14,8 @@ esac
 
 EXISTING=(
   'backend/server.py'
+  'frontend/app/_layout.tsx'
+  'frontend/app/call/[id].tsx'
   'frontend/public/nova-studio.html'
   'frontend/app/(tabs)/studio.web.tsx'
   'frontend/app/(tabs)/studio.tsx'
@@ -136,6 +138,15 @@ NODE
 echo "CHECKING TYPESCRIPT..."
 (cd /app/frontend && ./node_modules/.bin/tsc --noEmit)
 echo "TYPESCRIPT PASS"
+if ! grep -Fq 'usePreventScreenCapture("fxcall-app")' 'frontend/app/_layout.tsx'; then
+  echo "STOPPED: Global screenshot-protection hook was not installed."
+  exit 1
+fi
+if grep -Fq 'setCaptureProtection(true)' 'frontend/app/call/[id].tsx'; then
+  echo "STOPPED: Legacy call-level screenshot guard still exists."
+  exit 1
+fi
+echo "IOS CAPTURE GUARD PRESENT — one root hook"
 python3 -m py_compile /app/backend/server.py
 echo "BACKEND PYTHON SYNTAX PASS"
 
@@ -179,7 +190,8 @@ fi
 echo "BACKEND SERVES CURRENT GENERAL / PRIVATE / PUBLIC NOVA HTML"
 trap - ERR
 
-echo "FX CALL NOVA THREE MODES READY — VERIFIED NATIVE SOURCE V4"
+echo "FX CALL NOVA THREE MODES READY — NATIVE SCREEN PROTECTION V5"
 echo "LOCAL BACKUP: $SNAP"
 echo "Public camera is LOCAL preview only; group rooms are invitation-only."
+echo "Capture blocking enabled app-wide for iOS/Android; requires actual device verification."
 echo "LiveKit, Resend, backend and deployment remain unchanged."
