@@ -2414,6 +2414,287 @@
       .param-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
+    /* FX CALL MOBILE V8: BEGIN
+       Mobile-only layout layer. Keep the desktop Command Center untouched.
+       One document serves Safari, the Expo WebView and the web preview. */
+    @media screen and (max-width: 899px) {
+      #screen-command {
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+        overflow: hidden;
+        padding: max(12px, env(safe-area-inset-top, 0px)) 14px max(12px, env(safe-area-inset-bottom, 0px));
+      }
+      #screen-command.active {
+        display: flex;
+        flex-direction: column;
+      }
+      .command-head {
+        flex: 0 0 auto;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-rows: auto auto auto;
+        align-items: center;
+        gap: 9px;
+        margin: 0;
+        padding: 0 0 12px;
+        border-bottom: 1px solid rgba(116, 158, 170, .18);
+      }
+      .command-head .back-btn {
+        grid-area: 1 / 1;
+        justify-self: start;
+        min-height: 36px;
+        padding: 8px 12px;
+        border-radius: 9px;
+        font-size: 10px;
+      }
+      .command-head > .text-action {
+        grid-area: 1 / 2;
+        justify-self: end;
+        min-height: 36px;
+        padding: 8px 11px;
+        border-radius: 9px;
+      }
+      .command-head .command-title {
+        grid-area: 2 / 1 / auto / -1;
+        min-width: 0;
+        overflow: visible;
+      }
+      .command-head .command-title h2 {
+        margin: 3px 0 3px;
+        font-size: clamp(27px, 8vw, 34px);
+        line-height: 1.08;
+        letter-spacing: -.055em;
+        overflow-wrap: anywhere;
+      }
+      .command-head .command-title .micro {
+        display: block;
+        font-size: 9px;
+        letter-spacing: .07em;
+        line-height: 1.4;
+        overflow-wrap: anywhere;
+      }
+      .command-head .search-box {
+        grid-area: 3 / 1 / auto / -1;
+        order: initial;
+        flex: none;
+        width: 100%;
+        max-width: none;
+        min-width: 0;
+        min-height: 43px;
+        padding: 9px 12px;
+        border-radius: 10px;
+      }
+      .command-head .search-box input {
+        min-width: 0;
+        font-size: 16px; /* Avoid iOS Safari zoom on focus */
+      }
+      .command-body {
+        flex: 1 1 auto;
+        min-width: 0;
+        min-height: 0;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto minmax(0, 1fr);
+        gap: 0;
+        padding: 10px 0 0;
+        overflow: hidden;
+      }
+      .command-rail {
+        display: flex;
+        flex-direction: row;
+        align-items: stretch;
+        gap: 7px;
+        max-width: 100%;
+        min-width: 0;
+        min-height: 0;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 0 0 10px;
+        border-right: 0;
+        border-bottom: 1px solid rgba(116, 158, 170, .18);
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-x;
+        scroll-snap-type: x proximity;
+        scrollbar-width: none;
+      }
+      .command-rail::-webkit-scrollbar { display: none; }
+      .command-rail .rail-cat {
+        flex: 0 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        gap: 4px;
+        width: auto;
+        min-width: 108px;
+        max-width: 155px;
+        min-height: 54px;
+        margin: 0;
+        padding: 9px 12px;
+        border: 1px solid rgba(116, 158, 170, .17);
+        border-radius: 10px;
+        background: #10191f;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        text-align: left;
+        font-size: 11px;
+        line-height: 1.15;
+        scroll-snap-align: start;
+      }
+      .command-rail .rail-cat.active {
+        border-color: rgba(46, 211, 183, .6);
+        color: #e0faf5;
+        background: rgba(46, 211, 183, .12);
+        box-shadow: none;
+      }
+      .command-main {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 auto;
+        min-height: 0;
+        min-width: 0;
+        overflow: hidden;
+        padding: 12px 0 0;
+      }
+      .command-main-head {
+        display: flex;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: space-between;
+        gap: 9px;
+        min-width: 0;
+        padding: 0 1px 10px;
+      }
+      .command-main-head > div { min-width: 0; }
+      .command-main-head h3 {
+        font-size: clamp(20px, 6vw, 27px);
+        line-height: 1.15;
+        overflow-wrap: anywhere;
+      }
+      .command-main-head .reset-btn {
+        flex: 0 0 auto;
+        min-height: 34px;
+        padding: 8px 10px;
+        border-radius: 9px;
+        font-size: 9px;
+      }
+      .param-grid {
+        display: grid;
+        flex: 1 1 auto;
+        min-height: 0;
+        min-width: 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+        grid-template-columns: minmax(0, 1fr);
+        align-content: start;
+        gap: 9px;
+        padding: 0 2px max(24px, env(safe-area-inset-bottom, 0px)) 0;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+        touch-action: pan-y;
+      }
+      .param {
+        width: 100%;
+        min-width: 0;
+        min-height: 104px;
+        padding: 14px;
+        gap: 14px;
+        border: 1px solid rgba(116, 158, 170, .20);
+        border-radius: 11px;
+        clip-path: none;
+      }
+      .param-copy strong { font-size: 13px; line-height: 1.35; overflow-wrap: anywhere; }
+      .param-copy small { font-size: 11px; line-height: 1.45; overflow-wrap: anywhere; }
+      .param-value { min-width: 0; overflow-wrap: anywhere; }
+      .param-value .chev { flex: none; }
+
+      /* Studio: all three real choices visible above the separate Expo tabs. */
+      .mode-dial {
+        z-index: 40;
+        left: 50%;
+        bottom: max(10px, env(safe-area-inset-bottom, 0px));
+        width: calc(100% - 20px);
+        height: auto;
+        min-height: 0;
+        padding: 8px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-rows: minmax(59px, auto) 50px;
+        gap: 6px;
+        border-radius: 16px;
+        background: rgba(6, 12, 16, .97);
+      }
+      .mode-dial > .mode-node {
+        grid-row: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 3px;
+        min-width: 0;
+        min-height: 59px;
+        padding: 7px 2px;
+        text-align: center;
+        border-radius: 10px;
+      }
+      .mode-dial > .mode-node.live { grid-column: 1; }
+      .mode-dial > .mode-node.private { grid-column: 2; }
+      .mode-dial > .mode-node.general { grid-column: 3; }
+      .mode-dial .mode-name { font-size: clamp(10px, 2.7vw, 12px); white-space: nowrap; }
+      .mode-dial .mode-meta { display: block; font-size: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .mode-dial .mode-index { display: block; }
+      .mode-dial > .core-launch {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        justify-self: stretch;
+        align-self: stretch;
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        height: 50px;
+        min-height: 50px;
+        padding: 6px;
+        border-radius: 10px;
+        box-shadow: none;
+      }
+      .mode-dial > .core-launch .core-kicker { font-size: 11px; }
+      .mode-dial > .core-launch .core-title { font-size: 11px; max-width: none; }
+      .mode-dial > .core-launch .core-arrow { margin: 0; }
+      .mode-hint { display: none !important; }
+      .recent-orbit { bottom: 203px; }
+      .camera-bottom-caption { bottom: 215px; max-width: 60%; }
+      .launch-panel {
+        width: min(100%, 520px);
+        max-height: calc(100% - 22px);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+      }
+    }
+    @media screen and (max-width: 380px) {
+      #screen-command { padding-left: 10px; padding-right: 10px; }
+      .command-head .command-title h2 { font-size: 25px; }
+      .command-rail .rail-cat { min-width: 98px; max-width: 137px; padding: 8px 9px; }
+      .param { padding: 12px; }
+      .mode-dial .mode-name { font-size: 10px; }
+      .mode-dial .mode-meta { font-size: 8px; }
+    }
+    @media screen and (max-height: 600px) and (max-width: 899px) {
+      .command-head { gap: 6px; padding-bottom: 8px; }
+      .command-head .command-title h2 { font-size: 23px; }
+      .command-head .command-title .micro:last-child { display: none; }
+      .command-head .search-box { min-height: 38px; padding: 6px 10px; }
+      .command-rail .rail-cat { min-height: 45px; }
+      .command-main { padding-top: 8px; }
+      .param { min-height: 88px; }
+      .camera-bottom-caption { display: none; }
+      .recent-orbit { bottom: 174px; }
+    }
+    /* FX CALL MOBILE V8: END */
+
   </style>
 </head>
 <body>
