@@ -31,7 +31,7 @@ export default function NovaStudioWeb() {
       <iframe
         ref={frame}
         title="FX CALL — NOVA Studio"
-        src="/nova-studio.html"
+        src="/nova-studio.html?fxbuild=general-room-v3-20261127"
         allow="camera; microphone"
         style={{ display: "block", width: "100%", height: "100%", border: 0, background: "#050607" }}
       />
