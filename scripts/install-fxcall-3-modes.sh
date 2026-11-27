@@ -5,7 +5,7 @@ cd /app || exit 1
 SOURCE_BRANCH="feature/fxcall-general-room-20261127"
 BACKUP_BRANCH="backup/fxcall-ui-20261127-003212"
 
-echo "=== FX CALL / NOVA THREE MODES - RECOVERY V3 ==="
+echo "=== FX CALL / NOVA THREE MODES - NATIVE SOURCE FIX V4 ==="
 ORIGIN="$(git remote get-url origin)"
 case "${ORIGIN,,}" in
   *usuario18fx/fx-call*) ;;
@@ -13,6 +13,7 @@ case "${ORIGIN,,}" in
 esac
 
 EXISTING=(
+  'backend/server.py'
   'frontend/public/nova-studio.html'
   'frontend/app/(tabs)/studio.web.tsx'
   'frontend/app/(tabs)/studio.tsx'
@@ -83,6 +84,7 @@ restore() {
       rm -f "$file" || failures=$((failures+1))
     fi
   done
+  supervisorctl restart backend >/dev/null 2>&1 || true
   supervisorctl restart expo >/dev/null 2>&1 || true
   echo "ROLLBACK COMPLETED WITH $failures FILE ERRORS"
   echo "ORIGINAL SNAPSHOT: $SNAP"
@@ -134,16 +136,50 @@ NODE
 echo "CHECKING TYPESCRIPT..."
 (cd /app/frontend && ./node_modules/.bin/tsc --noEmit)
 echo "TYPESCRIPT PASS"
+python3 -m py_compile /app/backend/server.py
+echo "BACKEND PYTHON SYNTAX PASS"
 
 echo "=== CACHE-BUSTED STUDIO ROUTES ==="
 grep -n -m1 "fxbuild=general-room-v3-20261127" 'frontend/app/(tabs)/studio.web.tsx'
-grep -n -m1 "fxbuild=general-room-v3-20261127" 'frontend/app/(tabs)/studio.tsx'
+grep -n -m1 "fxbuild=general-room-v4-20261127" 'frontend/app/(tabs)/studio.tsx'
+grep -n -m1 "/api/studio/nova.html" backend/server.py
 
+echo "RESTARTING BACKEND AND EXPO..."
+supervisorctl restart backend
 supervisorctl restart expo
-supervisorctl status expo
+supervisorctl status backend expo
+
+echo "VERIFYING NOVA HTML FROM THE BACKEND..."
+BACKEND_URL="$(node <<'NODE'
+const fs = require('fs');
+const files = ['frontend/.env.local', 'frontend/.env', '.env'];
+let url = process.env.EXPO_PUBLIC_BACKEND_URL || '';
+for (const file of files) {
+  if (url || !fs.existsSync(file)) continue;
+  const data = fs.readFileSync(file, 'utf8');
+  const match = data.match(/^EXPO_PUBLIC_BACKEND_URL\s*=\s*([^\r\n#]+)/m);
+  if (match) url = match[1].trim().replace(/^['"]|['"]$/g, '');
+}
+console.log(url.replace(/\/$/, ''));
+NODE
+)"
+if [[ "$BACKEND_URL" != https://* ]]; then
+  echo "STOPPED: HTTPS EXPO_PUBLIC_BACKEND_URL is not available; cannot verify native Studio."
+  exit 1
+fi
+RESPONSE="/tmp/fxcall-nova-v4-$(date +%s).html"
+curl --fail --location --silent --show-error --retry 3 --retry-delay 2 --max-time 20 \
+  "$BACKEND_URL/api/studio/nova.html?fxbuild=general-room-v4-20261127" -o "$RESPONSE"
+if ! grep -q 'data-mode="general"' "$RESPONSE" ||
+   ! grep -q 'id="launch-general"' "$RESPONSE" ||
+   ! grep -q 'id="fxPublicVideo"' "$RESPONSE"; then
+  echo "STOPPED: Server returned old or incomplete NOVA HTML; rolling back."
+  exit 1
+fi
+echo "BACKEND SERVES CURRENT GENERAL / PRIVATE / PUBLIC NOVA HTML"
 trap - ERR
 
-echo "FX CALL NOVA THREE MODES READY"
+echo "FX CALL NOVA THREE MODES READY — VERIFIED NATIVE SOURCE V4"
 echo "LOCAL BACKUP: $SNAP"
 echo "Public camera is LOCAL preview only; group rooms are invitation-only."
 echo "LiveKit, Resend, backend and deployment remain unchanged."
