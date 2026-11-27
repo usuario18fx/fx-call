@@ -1320,6 +1320,102 @@
     .gen-info strong {color:#81B5D6;font-size:9px}
     @media(max-width:850px){.gen-launch{display:flex;flex-direction:column;max-height:calc(100dvh - 18px);gap:18px;padding:17px}.gen-stage-preview{min-height:145px}.gen-launch .launch-intro h2{font-size:38px}}
     @media(max-width:600px){.mode-dial{width:calc(100% - 12px);height:82px;grid-template-columns:minmax(0,1fr) 74px minmax(0,1fr) minmax(0,1fr);padding:3px}.mode-node{flex-direction:column;justify-content:center;gap:2px;text-align:center;padding:6px 3px}.mode-node .mode-name{font-size:9px}.mode-node .mode-meta{font-size:8px;max-width:100%;overflow:hidden;text-overflow:ellipsis}.core-launch{width:66px;height:66px}.core-title{font-size:8px}}
+    /* NOVA PUBLIC STUDIO / isolated local video preview */
+    .fx-public-panel {
+      grid-template-columns: minmax(280px, 1.04fr) minmax(310px, .96fr);
+      gap: 28px;
+      padding: 30px;
+      background: radial-gradient(ellipse at 0 45%, rgba(27,51,68,.34), transparent 62%), rgba(8,11,15,.97);
+      border: 1px solid rgba(101,132,157,.26);
+      border-radius: 20px;
+    }
+    .fx-public-intro { gap: 18px; }
+    .fx-public-intro h2 { font-size: clamp(40px, 5.4vw, 76px); line-height: .89; margin-top: 10px; }
+    .fx-public-intro p { margin-top: 12px; max-width: 370px; }
+    .fx-public-stage {
+      min-width: 0; padding: 10px;
+      border: 1px solid rgba(93,123,150,.29);
+      border-radius: 14px; background: linear-gradient(140deg,#121c27,#070d14);
+    }
+    .fx-public-frame {
+      position: relative; isolation: isolate; aspect-ratio: 4 / 3; overflow: hidden;
+      background: radial-gradient(ellipse at 50% 35%, #273947,#070e17 72%);
+      border: 1px solid rgba(99,136,165,.3); border-radius: 10px; min-height: 210px;
+    }
+    #fxPublicVideo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: none; }
+    .fx-public-placeholder {
+      position: absolute; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 10px; text-align: center;
+      color: #a5b8c8; padding: 38px 16px;
+    }
+    .fx-public-placeholder .ico { width: 55px; height: 55px; color: #80a9c5; opacity: .74; }
+    .fx-public-placeholder strong { font-size: 12px; letter-spacing: .11em; color: #e6f3fb; }
+    .fx-public-placeholder small { color: #8ba1af; font-size: 11px; line-height: 1.6; }
+    .fx-public-hud { position: absolute; top: 12px; left: 12px; right: 12px;
+      display: flex; justify-content: space-between; gap: 7px; pointer-events: none;
+      font: 700 9px ui-monospace,monospace; color: #aabdc9; letter-spacing: .1em; }
+    .fx-public-indicator { color: #ff8d95; background: #190e15e3; padding: 5px 7px; border-radius: 30px; }
+    .fx-public-bottom-tag {
+      position: absolute; bottom: 10px; left: 12px; right: 12px;
+      pointer-events: none; text-align: left; font: 700 9px ui-monospace,monospace;
+      color: #cad6e2; letter-spacing: .09em; text-shadow: 0 1px 8px #000;
+    }
+    .fx-public-controls { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 7px; margin-top: 10px; }
+    .fx-public-controls button {
+      min-width: 0; min-height: 51px; background: #101a25; border: 1px solid #344a5c;
+      border-radius: 9px; color: #acbed0; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 4px;
+    }
+    .fx-public-controls button .ico { width: 19px; height: 19px; }
+    .fx-public-controls button span { font: 700 9px ui-monospace,monospace; letter-spacing: .07em; }
+    .fx-public-controls button[aria-pressed="true"] { border-color: #2ed3b7; color: #2ed3b7; background: #12302f; }
+    .fx-public-controls button:focus-visible,.fx-public-filters button:focus-visible { outline: 2px solid #69bfe7; outline-offset: 2px; }
+    .fx-public-filters { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 11px; }
+    .fx-public-filters>span { color: #8ea6b7; font: 800 9px ui-monospace,monospace; letter-spacing: .13em; margin-right: 3px; }
+    .fx-public-filters button {
+      border: 1px solid #344755; background: #0e1721; border-radius: 20px;
+      color: #acb7c7; font-size: 10px; padding: 7px 10px;
+    }
+    .fx-public-filters button.selected { border-color: #669bc6; background: #1c3550; color: #eff9ff; }
+    .fx-public-status { color: #8ba5b4; font-size: 10px; line-height: 1.55; margin-top: 10px; min-height: 16px; }
+    .fx-public-settings { padding-top: 8px; gap: 18px; }
+    .fx-public-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    .fx-public-stats>div {
+      padding: 12px 14px; border: 1px solid #304150; border-radius: 10px;
+      background: #101720; display: flex; flex-direction: column; gap: 5px;
+    }
+    .fx-public-stats span,.fx-public-stats small { color: #8ca2b4; font: 800 9px ui-monospace,monospace; letter-spacing: .1em; }
+    .fx-public-stats strong { font-size: 22px; letter-spacing: -.05em; }
+    .fx-public-section-title { color: #8ca2b4; font: 800 9px ui-monospace,monospace; letter-spacing: .15em; }
+    .fx-public-setting { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid #24323f; padding-bottom: 12px; }
+    .fx-public-setting>div { min-width: 0; }
+    .fx-public-setting strong { display: block; font-size: 12px; color: #d8e5ee; }
+    .fx-public-setting small { display: block; margin-top: 5px; font-size: 10px; color: #859aab; }
+    .fx-public-locked { color: #bb8e95; font: 700 8px ui-monospace,monospace; white-space: nowrap; }
+    .fx-public-warning { border-color: rgba(255,96,112,.25); background: rgba(255,96,112,.06); color: #e3acb2; }
+    .fx-public-warning .ico { color: #ff7e8b; }
+    .fx-public-disabled {
+      width: 100%; border: 1px solid rgba(255,96,112,.28); border-radius: 11px;
+      padding: 13px 17px; background: #2b171e; color: #bb7e88; cursor: not-allowed;
+      font: 800 10px ui-monospace,monospace; letter-spacing: .11em;
+    }
+    .fx-public-panel .launch-action { margin-top: 0; border-radius: 11px; }
+    @media (max-width: 850px) {
+      .fx-public-panel { display: flex; flex-direction: column; gap: 20px; max-height: calc(100dvh - 22px); padding: 22px 15px; border-radius: 15px; }
+      .fx-public-intro h2 { font-size: 44px; }
+      .fx-public-intro p { font-size: 11px; }
+      .fx-public-frame { min-height: 190px; }
+      .fx-public-intro { gap: 13px; }
+      .fx-public-settings { gap: 15px; }
+    }
+    @media (max-width: 420px) {
+      .fx-public-panel { padding: 18px 12px; }
+      .fx-public-frame { aspect-ratio: 16 / 11; min-height: 165px; }
+      .fx-public-controls button { min-height: 43px; }
+      .fx-public-controls button span { font-size: 8px; }
+      .fx-public-hud { font-size: 8px; }
+    }
+
     /* ============================================================
        COMMAND CENTER
     ============================================================ */
@@ -2416,68 +2512,105 @@
     </section>
 
     <!-- ============================================================
-         LAUNCH: LIVE
+         NOVA / PUBLIC LIVE CAMERA PREVIEW
+         Browser-local media only. Public streaming is NOT enabled.
     ============================================================ -->
     <div class="launch" id="launch-live" aria-hidden="true">
       <div class="launch-scrim" onclick="closeLaunch()"></div>
 
-      <div class="launch-panel" role="dialog" aria-modal="true" aria-labelledby="liveLaunchTitle">
-        <button class="launch-close" type="button" onclick="closeLaunch()" aria-label="Cerrar">
+      <div class="launch-panel fx-public-panel" role="dialog" aria-modal="true" aria-labelledby="liveLaunchTitle">
+        <button class="launch-close" type="button" onclick="closeLaunch()" aria-label="Close public preview">
           <svg class="ico"><use href="#i-close"></use></svg>
         </button>
 
-        <div class="launch-intro">
+        <div class="launch-intro fx-public-intro">
           <div>
-            <span class="seq-label">SEQ / 01 — BROADCAST</span>
-            <h2 id="liveLaunchTitle">EN<br><span>VIVO</span></h2>
-            <p>Configura la señal antes de abrir la puerta. Tu cámara no será visible hasta que confirmes la emisión.</p>
+            <span class="seq-label">SEQ / 01 — PUBLIC STUDIO</span>
+            <h2 id="liveLaunchTitle">PUBLIC<br><span>LIVE</span></h2>
+            <p>Set up your camera before inviting anyone. This is a local preview — nothing is being broadcast or recorded.</p>
           </div>
 
-          <span class="launch-stamp">● LISTO PARA SALIR</span>
+          <div class="fx-public-stage" aria-label="Local camera preview">
+            <div class="fx-public-frame">
+              <video id="fxPublicVideo" autoplay muted playsinline aria-label="Your local video preview"></video>
+              <div class="fx-public-placeholder" id="fxPublicPlaceholder" aria-hidden="false">
+                <svg class="ico" aria-hidden="true"><use href="#i-camera"></use></svg>
+                <strong>CAMERA OFF</strong>
+                <small>Tap CAMERA to turn on your preview.</small>
+              </div>
+              <div class="fx-public-hud">
+                <span class="fx-public-indicator">● OFF AIR</span>
+                <span>CAM / LOCAL</span>
+              </div>
+              <span class="fx-public-bottom-tag">PREVIEW ONLY · NOT STREAMING</span>
+            </div>
+
+            <div class="fx-public-controls" aria-label="Local camera controls">
+              <button type="button" data-public-control="cam" aria-label="Enable camera preview" aria-pressed="false">
+                <svg class="ico"><use href="#i-camera"></use></svg><span>CAMERA</span>
+              </button>
+              <button type="button" data-public-control="mic" aria-label="Enable local microphone test" aria-pressed="false">
+                <svg class="ico"><use href="#i-mic"></use></svg><span>MIC</span>
+              </button>
+              <button type="button" data-public-control="flip" aria-label="Switch camera">
+                <svg class="ico"><use href="#i-flip"></use></svg><span>FLIP</span>
+              </button>
+              <button type="button" data-public-control="stop" aria-label="Stop local camera and microphone">
+                <svg class="ico"><use href="#i-end"></use></svg><span>STOP</span>
+              </button>
+            </div>
+            <div class="fx-public-filters" aria-label="Camera filters">
+              <span>FILTER</span>
+              <button type="button" data-public-filter="natural" class="selected" aria-pressed="true">Natural</button>
+              <button type="button" data-public-filter="studio" aria-pressed="false">Studio</button>
+              <button type="button" data-public-filter="mono" aria-pressed="false">Mono</button>
+              <button type="button" data-public-filter="warm" aria-pressed="false">Warm</button>
+            </div>
+            <div id="fxPublicStatus" class="fx-public-status" aria-live="polite">Camera and microphone are off.</div>
+          </div>
+          <span class="launch-stamp">● LOCAL STUDIO · OFF AIR</span>
         </div>
 
-        <div class="launch-form">
+        <div class="launch-form fx-public-settings">
+          <span class="seq-label">NOVA / LIVE CONFIGURATION</span>
           <label class="field">
-            NOMBRE DE LA EMISIÓN
-            <input id="liveTitleInput" type="text" value="Mi sala en vivo" />
+            SESSION TITLE
+            <input id="liveTitleInput" type="text" value="My Live Room" maxlength="80" />
           </label>
-
           <div class="field">
-            AUDIENCIA
+            VISIBILITY
             <div class="choice-row" id="audienceChoices">
-              <button class="choice" type="button" disabled title="La emisión pública aún no está activada">Público · no disponible</button>
-              <button class="choice" type="button" disabled title="La emisión a seguidores aún no está activada">Seguidores · no disponible</button>
-              <button class="choice active" type="button" onclick="selectChoice(this)">Solo invitados</button>
-              <button class="choice" type="button" onclick="selectChoice(this)">Enlace privado</button>
+              <button class="choice" type="button" disabled title="Public streaming requires a broadcasting backend">Public · unavailable</button>
+              <button class="choice" type="button" disabled title="Follower broadcasting requires a broadcasting backend">Followers · unavailable</button>
+              <button class="choice active" type="button" onclick="selectChoice(this)">Invite only</button>
+              <button class="choice" type="button" onclick="selectChoice(this)">Private link</button>
             </div>
           </div>
-
-          <div class="field">
-            CALIDAD DE SEÑAL
-            <div class="choice-row">
-              <button class="choice active" type="button" onclick="selectChoice(this)">Automática</button>
-              <button class="choice" type="button" onclick="selectChoice(this)">1080p</button>
-              <button class="choice" type="button" onclick="selectChoice(this)">720p</button>
-            </div>
+          <div class="fx-public-stats" aria-label="Stream status">
+            <div><span>VIEWERS</span><strong>0</strong><small>OFF AIR</small></div>
+            <div><span>DURATION</span><strong>00:00</strong><small>NO BROADCAST</small></div>
           </div>
 
-          <div class="field">
-            DURANTE LA EMISIÓN
-            <div class="toggle-pills">
-              <button class="toggle-pill on" type="button" onclick="togglePill(this)">Chat abierto</button>
-              <button class="toggle-pill on" type="button" onclick="togglePill(this)">Notificar seguidores</button>
-              <button class="toggle-pill" type="button" onclick="togglePill(this)">Grabar en local</button>
-              <button class="toggle-pill" type="button" onclick="togglePill(this)">Moderación</button>
-            </div>
+          <div class="fx-public-section-title">AUDIENCE &amp; MODERATION</div>
+          <div class="fx-public-setting">
+            <div><strong>Public chat</strong><small>Available after broadcast integration</small></div>
+            <span class="fx-public-locked">UNAVAILABLE</span>
           </div>
-
-          <div class="launch-note">
+          <div class="fx-public-setting">
+            <div><strong>Moderation queue</strong><small>Review viewer messages before display</small></div>
+            <span class="fx-public-locked">UNAVAILABLE</span>
+          </div>
+          <div class="fx-public-setting">
+            <div><strong>Viewer notifications</strong><small>Notify subscribers when going live</small></div>
+            <span class="fx-public-locked">UNAVAILABLE</span>
+          </div>
+          <div class="launch-note fx-public-warning">
             <svg class="ico"><use href="#i-lock"></use></svg>
-            Se abre una sala real de FX CALL con invitaciones. La emisión pública aún no está configurada.
+            PUBLIC LIVE is a camera preview only. No streaming server is connected. You can still create a real, host-approved invite-only room.
           </div>
-
+          <button type="button" class="fx-public-disabled" disabled aria-disabled="true">● GO LIVE · NOT CONNECTED</button>
           <button class="launch-action" type="button" onclick="startLive()">
-            INICIAR SEÑAL
+            CREATE INVITE-ONLY ROOM
             <span>↗</span>
           </button>
         </div>
@@ -2903,6 +3036,7 @@
       if (!launch) return;
       launch.classList.add('open');
       launch.setAttribute('aria-hidden', 'false');
+      if (type === 'live') window.dispatchEvent(new Event('fxnova:public-open'));
 
       const focusTarget = type === 'general' ? document.getElementById('generalTitleInput')
         : type === 'live' ? document.getElementById('liveTitleInput') : document.getElementById('contactInput');
@@ -2916,10 +3050,12 @@
     }
 
     function closeLaunch() {
+      const liveWasOpen = document.getElementById('launch-live').classList.contains('open');
       document.querySelectorAll('.launch.open').forEach(function (launch) {
         launch.classList.remove('open');
         launch.setAttribute('aria-hidden', 'true');
       });
+      if (liveWasOpen) window.dispatchEvent(new Event('fxnova:public-close'));
     }
 
     function openPrivateWith(name) {
@@ -3381,6 +3517,12 @@
       hasCamera=true;app.classList.remove('camera-off');previewStatus('Vista previa local · sin transmitir');
     }catch(e){notify('Acceso a la cámara denegado o no disponible. Revisa los permisos.');}
   }
+  window.addEventListener('fxnova:public-camera-request', function() {
+    if (hasCamera) {
+      stopCamera();
+      document.querySelectorAll('[data-action="cam"]').forEach(function(button) { button.classList.add('off'); });
+    }
+  });
   // The WebView/iframe preview is separate from the real LiveKit call. Real call controls remain in /call/:id.
   document.addEventListener('click',function(event){
     var control=event.target.closest('[data-action]');if(!control)return;
@@ -3440,6 +3582,201 @@
   selectMode('private');
   renderCommand();
   post('ready');
+})();
+</script>
+<script id="fxnova-public-local-preview">
+(function () {
+  "use strict";
+
+  const modal = document.getElementById("launch-live");
+  const camera = document.getElementById("fxPublicVideo");
+  const placeholder = document.getElementById("fxPublicPlaceholder");
+  const status = document.getElementById("fxPublicStatus");
+  if (!modal || !camera || !placeholder || !status) return;
+
+  let open = false;
+  let cameraStream = null;
+  let micStream = null;
+  let cameraRequest = 0;
+  let micRequest = 0;
+  let facingMode = "user";
+  let filter = "natural";
+
+  const filters = {
+    natural: "none",
+    studio: "brightness(1.06) contrast(1.10) saturate(1.08)",
+    mono: "grayscale(1) contrast(1.13)",
+    warm: "sepia(.18) contrast(1.03) saturate(1.15)"
+  };
+  const controls = (name) => modal.querySelector('[data-public-control="' + name + '"]');
+  const running = () => !!cameraStream && cameraStream.getVideoTracks().some(
+    (track) => track.readyState === "live"
+  );
+
+  function message(text) {
+    status.textContent = text;
+  }
+  function sync() {
+    const activeCamera = running();
+    camera.style.display = activeCamera ? "block" : "none";
+    placeholder.style.display = activeCamera ? "none" : "flex";
+    placeholder.setAttribute("aria-hidden", String(activeCamera));
+    const camButton = controls("cam");
+    const micButton = controls("mic");
+    camButton.setAttribute("aria-pressed", String(activeCamera));
+    camButton.setAttribute("aria-label", activeCamera ? "Turn off local camera" : "Enable local camera preview");
+    micButton.setAttribute("aria-pressed", String(!!micStream));
+    micButton.setAttribute("aria-label", micStream ? "Turn off local microphone test" : "Enable local microphone test");
+    camera.style.transform = facingMode === "user" ? "scaleX(-1)" : "none";
+    camera.style.filter = filters[filter] || "none";
+  }
+  function disposeCamera() {
+    if (cameraStream) cameraStream.getTracks().forEach((track) => track.stop());
+    cameraStream = null;
+    camera.pause();
+    camera.srcObject = null;
+    sync();
+  }
+  function disposeMic() {
+    if (micStream) micStream.getTracks().forEach((track) => track.stop());
+    micStream = null;
+    sync();
+  }
+  function disposeAll() {
+    cameraRequest++;
+    micRequest++;
+    disposeCamera();
+    disposeMic();
+  }
+  function explainError(error, medium) {
+    const reason = error && error.name === "NotAllowedError"
+      ? "Permission was denied or blocked in this viewer."
+      : error && error.name === "NotFoundError"
+        ? "No compatible device was found."
+        : error && error.name === "NotReadableError"
+          ? "This device may already be in use."
+          : error && error.message
+            ? error.message
+            : "The device is unavailable.";
+    message(medium + ": " + reason + " Try Safari or the installed FX CALL app.");
+  }
+  async function enableCamera(nextFacing) {
+    const request = ++cameraRequest;
+    disposeCamera();
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      message("Camera preview requires HTTPS and a browser with camera permissions.");
+      return;
+    }
+    window.dispatchEvent(new Event("fxnova:public-camera-request"));
+    message("Requesting camera permission…");
+    try {
+      const next = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: nextFacing }, width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: false
+      });
+      if (!open || request !== cameraRequest) {
+        next.getTracks().forEach((track) => track.stop());
+        return;
+      }
+      cameraStream = next;
+      facingMode = nextFacing;
+      camera.srcObject = next;
+      try { await camera.play(); } catch (_) {
+        message("Camera connected. Tap the preview if autoplay was blocked.");
+      }
+      if (open && request === cameraRequest) {
+        message("Local camera enabled. OFF AIR — no video is sent.");
+      }
+    } catch (error) {
+      if (open && request === cameraRequest) explainError(error, "Camera");
+    } finally {
+      sync();
+    }
+  }
+  async function enableMic() {
+    const request = ++micRequest;
+    disposeMic();
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      message("Microphone test requires HTTPS and microphone permission.");
+      return;
+    }
+    message("Requesting microphone permission…");
+    try {
+      const next = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      if (!open || request !== micRequest) {
+        next.getTracks().forEach((track) => track.stop());
+        return;
+      }
+      micStream = next;
+      message("Microphone test enabled locally. No audio is sent.");
+    } catch (error) {
+      if (open && request === micRequest) explainError(error, "Microphone");
+    } finally {
+      sync();
+    }
+  }
+  modal.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-public-control], [data-public-filter]");
+    if (!button || !modal.contains(button)) return;
+    const action = button.getAttribute("data-public-control");
+    if (action === "cam") {
+      if (running()) {
+        cameraRequest++;
+        disposeCamera();
+        message("Camera off. OFF AIR.");
+      } else {
+        void enableCamera(facingMode);
+      }
+    } else if (action === "mic") {
+      if (micStream) {
+        micRequest++;
+        disposeMic();
+        message("Microphone off. Nothing was transmitted.");
+      } else {
+        void enableMic();
+      }
+    } else if (action === "flip") {
+      const nextFacing = facingMode === "user" ? "environment" : "user";
+      if (running()) void enableCamera(nextFacing);
+      else {
+        facingMode = nextFacing;
+        message((facingMode === "user" ? "Front" : "Rear") + " camera selected. Tap CAMERA to preview.");
+        sync();
+      }
+    } else if (action === "stop") {
+      disposeAll();
+      message("Local camera and microphone stopped.");
+    }
+    const nextFilter = button.getAttribute("data-public-filter");
+    if (nextFilter && Object.prototype.hasOwnProperty.call(filters, nextFilter)) {
+      filter = nextFilter;
+      modal.querySelectorAll("[data-public-filter]").forEach((item) => {
+        const selected = item === button;
+        item.classList.toggle("selected", selected);
+        item.setAttribute("aria-pressed", String(selected));
+      });
+      sync();
+      message("Preview filter: " + button.textContent.trim() + ". The filter is local only.");
+    }
+  });
+  window.addEventListener("fxnova:public-open", () => {
+    open = true;
+    message("Camera and microphone are off. Enable the local preview when ready.");
+    sync();
+  });
+  window.addEventListener("fxnova:public-close", () => {
+    open = false;
+    disposeAll();
+    message("Local preview closed. Camera and microphone are off.");
+  });
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      disposeAll();
+      message("Camera and microphone stopped while the app is in the background.");
+    }
+  });
+  window.addEventListener("pagehide", disposeAll);
+  sync();
 })();
 </script>
 </body>
