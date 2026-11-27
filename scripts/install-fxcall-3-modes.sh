@@ -155,6 +155,10 @@ grep -n -m1 "fxbuild=general-room-v3-20261127" 'frontend/app/(tabs)/studio.web.t
 grep -n -m1 "fxbuild=general-room-v4-20261127" 'frontend/app/(tabs)/studio.tsx'
 grep -n -m1 "/api/studio/nova.html" backend/server.py
 
+echo "CLEARING GENERATED EXPO/METRO BUNDLE CACHE..."
+if [[ -d "/app/frontend/.metro-cache" ]]; then
+  rm -rf -- "/app/frontend/.metro-cache"
+fi
 echo "RESTARTING BACKEND AND EXPO..."
 supervisorctl restart backend
 supervisorctl restart expo
