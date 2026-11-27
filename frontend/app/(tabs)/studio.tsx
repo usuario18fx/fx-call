@@ -35,7 +35,7 @@ export default function NovaStudioNative() {
 
   const backend = (process.env.EXPO_PUBLIC_BACKEND_URL || "").replace(/\/$/, "");
   const novaPath = "/api/studio/nova.html";
-  const novaUrl = `${backend}${novaPath}?fxbuild=general-room-v4-20261127`;
+  const novaUrl = `${backend}${novaPath}?fxbuild=general-room-v6-20261127`;
   if (!backend.startsWith("https://")) return <Loading label="HTTPS preview URL is not configured" />;
 
   return (
