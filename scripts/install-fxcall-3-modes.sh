@@ -5,7 +5,7 @@ cd /app || exit 1
 SOURCE_BRANCH="feature/fxcall-general-room-20261127"
 BACKUP_BRANCH="backup/fxcall-ui-20261127-003212"
 
-echo "=== FX CALL / NOVA THREE MODES ==="
+echo "=== FX CALL / NOVA THREE MODES - SAFE MERGE V2 ==="
 ORIGIN="$(git remote get-url origin)"
 case "${ORIGIN,,}" in
   *usuario18fx/fx-call*) ;;
@@ -14,6 +14,8 @@ esac
 
 EXISTING=(
   'frontend/public/nova-studio.html'
+  'frontend/app/(tabs)/studio.web.tsx'
+  'frontend/app/(tabs)/studio.tsx'
   'frontend/src/nova/useNovaActions.ts'
   'frontend/src/theme.ts'
   'frontend/src/components/SettingsHub.tsx'
@@ -31,14 +33,8 @@ if [[ "$(git branch --show-current)" != "$BACKUP_BRANCH" ]]; then
 fi
 
 for file in "${EXISTING[@]}"; do
-  if [[ ! -f "$file" || -n "$(git status --porcelain -- "$file")" ]]; then
-    echo "STOPPED: Missing file or uncommitted changes: $file"
-    exit 1
-  fi
-done
-for file in "${NEW_FILES[@]}"; do
-  if [[ -e "$file" ]]; then
-    echo "STOPPED: $file already exists locally; refusing to overwrite."
+  if [[ ! -f "$file" ]]; then
+    echo "STOPPED: Missing required file: $file"
     exit 1
   fi
 done
@@ -51,8 +47,8 @@ git fetch origin \
   "refs/heads/$SOURCE_BRANCH:refs/remotes/origin/$SOURCE_BRANCH" \
   "refs/heads/$BACKUP_BRANCH:refs/remotes/origin/$BACKUP_BRANCH"
 
-if [[ "$(git rev-parse HEAD)" != "$(git rev-parse "refs/remotes/origin/$BACKUP_BRANCH")" ]]; then
-  echo "STOPPED: Local backup branch differs from the pushed backup."
+if ! git merge-base --is-ancestor "refs/remotes/origin/$BACKUP_BRANCH" HEAD; then
+  echo "STOPPED: Local branch does not descend from the pushed backup."
   exit 1
 fi
 
@@ -65,25 +61,49 @@ done
 
 SNAP="/app/FXCALL-BEFORE-THREE-MODES-$(date +%Y%m%d-%H%M%S)"
 mkdir -p "$SNAP"
-for file in "${EXISTING[@]}"; do
-  mkdir -p "$SNAP/$(dirname "$file")"
-  cp -p "$file" "$SNAP/$file"
+for file in "${EXISTING[@]}" "${NEW_FILES[@]}"; do
+  if [[ -f "$file" ]]; then
+    mkdir -p "$SNAP/$(dirname "$file")"
+    cp -p "$file" "$SNAP/$file"
+  fi
 done
-echo "BACKUP SAVED: $SNAP"
+git status --short -- "${EXISTING[@]}" "${NEW_FILES[@]}" > "$SNAP/git-status-before.txt"
+echo "BACKUP OF LOCAL MODIFICATIONS SAVED: $SNAP"
 
 restore() {
   echo "CHECK FAILED — RESTORING ORIGINAL FILES"
-  for file in "${EXISTING[@]}"; do cp -p "$SNAP/$file" "$file"; done
-  for file in "${NEW_FILES[@]}"; do rm -f "$file"; done
+  for file in "${EXISTING[@]}" "${NEW_FILES[@]}"; do
+    if [[ -f "$SNAP/$file" ]]; then cp -p "$SNAP/$file" "$file"; else rm -f "$file"; fi
+  done
   supervisorctl restart expo >/dev/null 2>&1 || true
   echo "ROLLBACK COMPLETED"
 }
 trap restore ERR
 
-for file in "${EXISTING[@]}" "${NEW_FILES[@]}"; do
+WORK="$(mktemp -d /tmp/fxcall-nova-merge-XXXXXX)"
+trap 'rm -rf "$WORK"' EXIT
+for file in "${EXISTING[@]}"; do
+  mkdir -p "$WORK/base/$(dirname "$file")" "$WORK/new/$(dirname "$file")"
+  git show "refs/remotes/origin/$BACKUP_BRANCH:$file" > "$WORK/base/$file"
+  git show "refs/remotes/origin/$SOURCE_BRANCH:$file" > "$WORK/new/$file"
+  if cmp -s "$file" "$WORK/base/$file"; then
+    cp "$WORK/new/$file" "$file"
+    echo "APPLIED NEW: $file"
+  elif cmp -s "$file" "$WORK/new/$file"; then
+    echo "ALREADY INSTALLED: $file"
+  elif git merge-file -p "$file" "$WORK/base/$file" "$WORK/new/$file" > "$WORK/candidate" ; then
+    cp "$WORK/candidate" "$file"
+    echo "MERGED LOCAL CHANGES: $file"
+  else
+    cp "$WORK/new/$file" "$file"
+    echo "OVERLAPPING EDITS: $file"
+    echo "Original retained at $SNAP/$file; new NOVA preview version applied."
+  fi
+done
+for file in "${NEW_FILES[@]}"; do
   mkdir -p "$(dirname "$file")"
   git show "refs/remotes/origin/$SOURCE_BRANCH:$file" > "$file"
-  echo "APPLIED: $file"
+  echo "DEPENDENCY INSTALLED: $file"
 done
 
 node <<'NODE'
@@ -102,10 +122,15 @@ echo "CHECKING TYPESCRIPT..."
 (cd /app/frontend && ./node_modules/.bin/tsc --noEmit)
 echo "TYPESCRIPT PASS"
 
+echo "=== CACHE-BUSTED STUDIO ROUTES ==="
+grep -n -m1 "fxbuild=general-room-v3-20261127" 'frontend/app/(tabs)/studio.web.tsx'
+grep -n -m1 "fxbuild=general-room-v3-20261127" 'frontend/app/(tabs)/studio.tsx'
+
 supervisorctl restart expo
 supervisorctl status expo
 trap - ERR
 
 echo "FX CALL NOVA THREE MODES READY"
+echo "LOCAL BACKUP: $SNAP"
 echo "Public camera is LOCAL preview only; group rooms are invitation-only."
 echo "LiveKit, Resend, backend and deployment remain unchanged."
