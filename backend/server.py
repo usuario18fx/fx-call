@@ -96,11 +96,14 @@ async def security_headers(request: Request, call_next):
     if request.url.path == "/api/studio/nova.html":
         # The studio is trusted HTML with inline CSS/JS; its camera preview
         # needs a secure HTTPS top-level origin. No external code or navigation.
+        # NOVA is embedded only inside our own Expo web app.
+        # Keep all other API pages DENY, prevent external framing.
+        response.headers["X-Frame-Options"] = "SAMEORIGIN"
         response.headers["Content-Security-Policy"] = (
             "default-src 'none'; base-uri 'none'; object-src 'none'; "
             "img-src 'self' data: blob:; media-src 'self' blob:; "
             "style-src 'unsafe-inline'; script-src 'unsafe-inline'; "
-            "connect-src 'self'; frame-ancestors 'none'"
+            "connect-src 'self'; frame-ancestors 'self'"
         )
     elif IS_PROD:  # JSON-only API endpoints never execute browser scripts.
         response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
