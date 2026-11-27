@@ -1,7 +1,6 @@
 import { Link, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
-import { Feather } from "@expo/vector-icons";
 
 import { useAuth } from "@/src/auth";
 import { AuthShell } from "@/src/components/AuthShell";
@@ -54,7 +53,7 @@ export default function Login() {
         onPress={submit}
         style={({ pressed }) => [styles.signIn, pressed && styles.pressed, busy && styles.disabled]}
       >
-        {busy ? <ActivityIndicator color="#3689b0" /> : <Feather name="log-in" size={20} color="#3a91bc" />}
+        {busy ? <ActivityIndicator color="#3689b0" /> : <Text style={styles.signInIcon}>→</Text>}
         <Text style={styles.signInText}>SIGN IN</Text>
       </Pressable>
       <View style={{ flexDirection: "row", justifyContent: "space-between", gap: spacing.md, flexWrap: "wrap" }}>
@@ -81,6 +80,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 12,
   },
+  signInIcon: { color: "#3a91bc", fontSize: 25, lineHeight: 27 },
   signInText: {
     color: "#e8edf0",
     fontSize: 16,
