@@ -51,7 +51,7 @@ export function useNovaActions(send: Send) {
         // 'live' in the studio creates an invite-only room, NOT a public broadcast.
         send({ type: "busy" });
         const room = await api<{ id: string }>("/rooms", { body: { title } });
-        toast(packet.payload?.mode === "live" ? "Invite-only LiveKit room created. Public broadcast is not enabled." : "Private room created", "success");
+        toast(packet.payload?.mode === "general" ? "Group room created. Manage invitations and approvals from the host dashboard." : packet.payload?.mode === "live" ? "Invite-only LiveKit room created. Public broadcast is not enabled." : "Private room created", "success");
         router.push(`/host/${room.id}`);
       } else if (packet.action === "open-account") {
         router.push("/(tabs)/account");
