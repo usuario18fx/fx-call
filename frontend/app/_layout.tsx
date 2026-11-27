@@ -1,6 +1,7 @@
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
+import { usePreventScreenCapture } from "expo-screen-capture";
 import { StatusBar } from "expo-status-bar";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useEffect } from "react";
@@ -31,6 +32,10 @@ if (Platform.OS === "web" && typeof navigator !== "undefined" && navigator.media
 }
 
 export default function RootLayout() {
+  // Single app-wide native screen-capture guard.
+  // Avoid concurrent guards with different keys: iOS can black-screen.
+  // This protects Studio, Meetings, Account and active calls.
+  usePreventScreenCapture("fxcall-app");
   const [loaded, fontError] = useFonts({
     Cormorant: require("../assets/fonts/CG.ttf"),
     DMSans: require("../assets/fonts/DMSans.ttf"),
