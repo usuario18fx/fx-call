@@ -89,6 +89,7 @@ fi
 sleep 2
 if ! supervisorctl status expo | grep -q RUNNING; then
   echo "STOP: Expo did not start; restoring routes"
+  restore
   exit 1
 fi
 trap - ERR
