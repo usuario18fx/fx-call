@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -2114,6 +2114,306 @@
       .fx-locked-avatar { max-height: 48%; }
     }
 
+
+    /* FX NOVA V7 — 3 modes always visible + refined mobile controls */
+    .mode-dial {
+      bottom: max(14px, env(safe-area-inset-bottom, 0px));
+      width: min(640px, calc(100% - 28px));
+      height: auto;
+      min-height: 0;
+      padding: 9px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-rows: auto 52px;
+      gap: 7px;
+      border-radius: 20px;
+      border: 1px solid rgba(96, 139, 153, .30);
+      background: rgba(6, 12, 16, .96);
+      box-shadow: 0 18px 64px rgba(0, 0, 0, .62);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+    }
+    .mode-dial > .mode-node {
+      grid-row: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      gap: 3px;
+      min-width: 0;
+      min-height: 58px;
+      padding: 9px 3px;
+      border-radius: 12px;
+      background: #10191f;
+      border: 1px solid rgba(153, 192, 208, .09);
+      color: #a4b0b9;
+    }
+    .mode-dial > .mode-node.live { grid-column: 1; }
+    .mode-dial > .mode-node.private { grid-column: 2; }
+    .mode-dial > .mode-node.general { grid-column: 3; }
+    .mode-dial > .mode-node.selected {
+      color: #edfffa;
+      background: rgba(39, 201, 179, .14);
+      border-color: rgba(46, 211, 183, .64);
+      box-shadow: inset 0 0 0 1px rgba(46, 211, 183, .08);
+    }
+    .mode-dial .mode-index {
+      display: block;
+      font-size: 8px;
+      line-height: 1;
+      letter-spacing: .08em;
+      color: #728690;
+    }
+    .mode-dial .mode-name {
+      font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+      font-size: clamp(10px, 2.7vw, 12px);
+      letter-spacing: .075em;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .mode-dial .mode-meta {
+      display: block;
+      font-size: clamp(8px, 2.1vw, 10px);
+      letter-spacing: 0;
+      color: #7d929d;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+    .mode-dial > .core-launch {
+      grid-column: 1 / -1;
+      grid-row: 2;
+      justify-self: stretch;
+      align-self: stretch;
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      width: 100%;
+      height: 52px;
+      min-height: 52px;
+      border-radius: 12px;
+      background: #2bcdb4;
+      color: #071b1a;
+      box-shadow: none;
+    }
+    .mode-dial > .core-launch .core-kicker {
+      font-size: 12px;
+      font-weight: 800;
+      opacity: 1;
+    }
+    .mode-dial > .core-launch .core-title {
+      max-width: none;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .05em;
+    }
+    .mode-dial > .core-launch .core-arrow {
+      font-size: 16px;
+      margin: 0;
+    }
+    .mode-dial > .core-launch:hover,
+    .mode-dial > .core-launch:active {
+      transform: none;
+      box-shadow: none;
+    }
+    .mode-hint { display: none !important; }
+    .recent-orbit { bottom: 207px; }
+    .camera-bottom-caption { bottom: 213px; }
+    #fxNovaNotice { bottom: 219px; }
+
+    /* Compact, single-column mobile controls; desktop can use two columns. */
+    #screen-command {
+      overflow: hidden;
+      padding: clamp(12px, 2.5vw, 24px);
+      background: #050a0d;
+    }
+    .command-head {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      grid-template-rows: auto auto auto;
+      align-items: center;
+      gap: 13px 8px;
+      padding-bottom: 14px;
+      border-bottom: 0;
+    }
+    .command-head .back-btn {
+      grid-column: 1;
+      grid-row: 1;
+      justify-self: start;
+      border-radius: 8px;
+      font-size: 10px;
+    }
+    .command-head > .text-action {
+      grid-column: 2;
+      grid-row: 1;
+      justify-self: end;
+      border-radius: 8px;
+    }
+    .command-head .command-title {
+      grid-column: 1 / -1;
+      grid-row: 2;
+      min-width: 0;
+    }
+    .command-title h2 {
+      font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+      font-size: clamp(29px, 6.2vw, 40px);
+      line-height: 1.15;
+      font-weight: 700;
+      letter-spacing: -.055em;
+      margin: 3px 0 8px;
+    }
+    .command-title .micro {
+      display: block;
+      max-width: 620px;
+      line-height: 1.5;
+      font-size: 9px;
+      letter-spacing: .10em;
+      color: #8b9aa4;
+    }
+    .command-head .search-box {
+      grid-column: 1 / -1;
+      grid-row: 3;
+      order: initial;
+      width: 100%;
+      max-width: none;
+      min-width: 0;
+      padding: 12px 14px;
+      border: 1px solid rgba(116, 158, 170, .22);
+      border-radius: 11px;
+      background: #10181d;
+    }
+    .command-body {
+      flex: 1;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: 0;
+      padding-top: 0;
+    }
+    .command-rail {
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      min-width: 0;
+      min-height: 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 0 0 13px;
+      border-right: 0;
+      border-bottom: 1px solid rgba(116, 158, 170, .15);
+      scrollbar-width: none;
+    }
+    .command-rail::-webkit-scrollbar { display: none; }
+    .command-rail .rail-cat {
+      display: flex;
+      flex-direction: column;
+      flex: 0 0 auto;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 3px;
+      width: auto;
+      max-width: 150px;
+      min-width: 116px;
+      min-height: 59px;
+      padding: 10px 12px;
+      border: 1px solid rgba(116, 158, 170, .13);
+      border-radius: 10px;
+      background: #10191f;
+      white-space: normal;
+      text-align: left;
+      line-height: 1.15;
+      font-size: 11px;
+      scroll-snap-align: start;
+    }
+    .command-rail .rail-cat.active {
+      color: #dffbf6;
+      background: rgba(39, 201, 179, .12);
+      border-color: rgba(39, 201, 179, .55);
+      box-shadow: none;
+    }
+    .command-main {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      min-width: 0;
+      padding-top: 14px;
+    }
+    .command-main-head {
+      align-items: center;
+      gap: 8px;
+      padding: 0 0 13px;
+    }
+    .command-main-head h3 {
+      font-size: clamp(21px, 5.5vw, 29px);
+      font-weight: 750;
+      line-height: 1.2;
+    }
+    .command-main-head .reset-btn {
+      border-radius: 8px;
+      font-size: 9px;
+      padding: 9px;
+    }
+    .param-grid {
+      grid-template-columns: 1fr;
+      gap: 8px;
+      padding: 0 0 36px;
+      overscroll-behavior: contain;
+    }
+    .param {
+      min-height: 95px;
+      border: 1px solid rgba(116, 158, 170, .16);
+      border-radius: 12px;
+      clip-path: none;
+      padding: 14px;
+      background: #0d151a;
+    }
+    .param-copy strong { font-size: 13px; }
+    .param-copy small { font-size: 10px; line-height: 1.45; }
+    .param-code { font-size: 8px; }
+    @media (max-width: 760px) {
+      .mode-dial {
+        bottom: max(12px, env(safe-area-inset-bottom, 0px));
+        width: calc(100% - 20px);
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-rows: auto 52px;
+      }
+      .mode-dial > .mode-node {
+        min-height: 59px;
+        padding: 8px 2px;
+        gap: 3px;
+      }
+      .mode-dial > .core-launch {
+        width: 100%;
+        height: 52px;
+        border-radius: 12px;
+      }
+      .recent-orbit { bottom: 212px; left: 15px; }
+      .camera-bottom-caption {
+        left: 15px;
+        bottom: 227px;
+        max-width: 64%;
+        font-size: 9px;
+      }
+      #fxNovaNotice { bottom: 225px; left: 15px; }
+      .control-rail { right: 11px; }
+      #screen-command { padding: 13px 15px 18px; }
+      .command-head { flex-wrap: initial; }
+    }
+    @media (max-width: 360px) {
+      .mode-dial .mode-name { font-size: 10px; }
+      .mode-dial .mode-meta { font-size: 8px; }
+      .command-rail .rail-cat { min-width: 101px; }
+    }
+    @media (min-width: 900px) {
+      .command-body { grid-template-columns: 180px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); gap: 18px; padding-top: 10px; }
+      .command-rail { flex-direction: column; overflow-y: auto; overflow-x: hidden; border-right: 1px solid rgba(116,158,170,.15); border-bottom: 0; padding: 0 14px 0 0; }
+      .command-rail .rail-cat { flex-direction: row; min-width: 0; width: 100%; max-width: none; min-height: 44px; align-items: center; }
+      .param-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
   </style>
 </head>
 <body>
@@ -2230,7 +2530,7 @@
           </div>
 
           <button class="text-action" type="button" data-action="settings">
-            AJUSTES <span>↗</span>
+            CONTROLS <span>↗</span>
           </button>
         </div>
 
@@ -2250,50 +2550,50 @@
         </div>
 
         <div class="recent-orbit">
-          <span class="micro">TUS SALAS</span>
+          <span class="micro">YOUR ROOMS</span>
           <div class="recent-avatars" id="fxNovaRecent"><button class="recent-btn add" type="button" onclick="FXNOVA_post('open-meetings')" aria-label="All meetings">+</button></div>
         </div>
 
         <div class="camera-bottom-caption">
           <span class="dot"></span>
-          <span id="fxCaption">Cámara apagada · toca el icono de cámara para activarla</span>
+          <span id="fxCaption">Camera off · tap the camera icon to start a local preview</span>
         </div>
 
         <div class="control-rail">
-          <button class="rail-btn" type="button" data-action="mic" title="Micrófono" aria-label="Micrófono">
+          <button class="rail-btn" type="button" data-action="mic" title="Microphone" aria-label="Microphone">
             <svg class="ico"><use href="#i-mic"></use></svg>
           </button>
 
-          <button class="rail-btn" type="button" data-action="cam" title="Cámara" aria-label="Cámara">
+          <button class="rail-btn" type="button" data-action="cam" title="Camera" aria-label="Camera">
             <svg class="ico"><use href="#i-camera"></use></svg>
           </button>
 
-          <button class="rail-btn" type="button" data-action="flip" title="Cambiar cámara" aria-label="Cambiar cámara">
+          <button class="rail-btn" type="button" data-action="flip" title="Switch camera" aria-label="Switch camera">
             <svg class="ico"><use href="#i-flip"></use></svg>
           </button>
 
-          <button class="rail-btn" type="button" data-action="fx" title="Efectos" aria-label="Efectos">
+          <button class="rail-btn" type="button" data-action="fx" title="Effects" aria-label="Effects">
             <svg class="ico"><use href="#i-sparkle"></use></svg>
           </button>
 
-          <button class="rail-btn" type="button" data-action="settings" title="Command Center" aria-label="Ajustes">
+          <button class="rail-btn" type="button" data-action="settings" title="Studio Controls" aria-label="Studio Controls">
             <svg class="ico"><use href="#i-gear"></use></svg>
           </button>
         </div>
       </div>
 
-      <div class="mode-dial" aria-label="Seleccionar modo">
+      <div class="mode-dial" aria-label="Choose a call mode">
         <button class="mode-node live selected" type="button" data-mode="live" onclick="selectMode('live')">
           <span class="mode-index">01</span>
           <span>
-            <span class="mode-name">EN VIVO</span>
-            <span class="mode-meta">Con invitación</span>
+            <span class="mode-name">LIVE</span>
+            <span class="mode-meta">Invite-only</span>
           </span>
         </button>
 
-        <button class="core-launch" type="button" id="coreLaunch" onclick="launchSelected()" aria-label="Abrir secuencia del modo seleccionado">
-          <span class="core-kicker">ABRIR</span>
-          <span class="core-title" id="coreTitle">EN VIVO</span>
+        <button class="core-launch" type="button" id="coreLaunch" onclick="launchSelected()" aria-label="Open the selected mode">
+          <span class="core-kicker">OPEN</span>
+          <span class="core-title" id="coreTitle">LIVE</span>
           <span class="core-arrow">↗</span>
         </button>
 
@@ -2496,28 +2796,28 @@
         <button class="back-btn" type="button" onclick="closeCommand()">← STUDIO</button>
 
         <div class="command-title">
-          <span class="micro">NOVA / CONTROL</span>
-          <h2>Command Center</h2><span class="micro">Los controles de vista previa son locales · Cuenta abre los ajustes reales</span>
+          <span class="micro">FX CALL / NOVA</span>
+          <h2>Studio Controls</h2><span class="micro">LOCAL PREVIEW CONTROLS · ACCOUNT SETTINGS ARE IN PROFILE</span>
         </div>
 
         <div class="search-box">
           <svg class="ico"><use href="#i-search"></use></svg>
-          <input id="commandSearch" type="search" placeholder="Buscar parámetro, función o módulo…" autocomplete="off" />
+          <input id="commandSearch" type="search" placeholder="Search settings and controls…" autocomplete="off" />
         </div>
 
-        <button class="text-action" type="button" onclick="closeCommand()">ESC · CERRAR</button>
+        <button class="text-action" type="button" onclick="closeCommand()">CLOSE ✕</button>
       </header>
 
       <div class="command-body">
-        <aside class="command-rail" id="categoryRail" aria-label="Categorías de ajustes"></aside>
+        <aside class="command-rail" id="categoryRail" aria-label="Settings categories"></aside>
 
         <main class="command-main">
           <div class="command-main-head">
             <div>
-              <span class="micro" id="catKicker">MÓDULO 01</span>
-              <h3 id="catTitle">Cuenta y perfil</h3>
+              <span class="micro" id="catKicker">SECTION 01</span>
+              <h3 id="catTitle">Account & Profile</h3>
             </div>
-            <button class="reset-btn" type="button" id="resetBtn">RESTABLECER</button>
+            <button class="reset-btn" type="button" id="resetBtn">RESET</button>
           </div>
 
           <div class="param-grid" id="paramGrid"></div>
