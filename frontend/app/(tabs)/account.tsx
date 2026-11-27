@@ -8,14 +8,16 @@ import { Platform, Pressable, StyleSheet, Switch, View } from "react-native";
 import { api } from "@/src/api";
 import { useAuth } from "@/src/auth";
 import { Screen } from "@/src/components/Screen";
-import { Badge, Body, Button, Card, Divider, ErrorText, Field, Heading, Icon, type IconName, Label, useToast } from "@/src/components/ui";
+import { Badge, Body, Button, Card, ErrorText, Field, Heading, Icon, type IconName, Label, useToast } from "@/src/components/ui";
 import { deviceInfo } from "@/src/device";
 import { platformLabel, timeAgo } from "@/src/privacy/labels";
 import { getCaptureCapabilities } from "@/src/privacy/shield";
 import { colors, spacing } from "@/src/theme";
+import { nova } from "@/src/nova/designTokens";
 
 type Session = { id: string; platform: string; os: string; device_name: string; created_at: string; last_used_at: string; current: boolean };
 type Section = "email" | "password" | "twofa" | "devices" | "privacy";
+const SECTION_TITLES: Record<Section, string> = { email: "Email", password: "Password", twofa: "Two-factor authentication", devices: "Devices & sessions", privacy: "Privacy Shield" };
 
 function MenuRow({ icon, title, subtitle, expanded, onPress, testID }: {
   icon: IconName; title: string; subtitle: string; expanded: boolean; onPress: () => void; testID: string;
@@ -43,6 +45,7 @@ export default function Account() {
   const router = useRouter();
   const toast = useToast();
   const [section, setSection] = useState<Section | null>(null);
+  const [accountView, setAccountView] = useState<"profile" | "settings">("profile");
   const [busy, setBusy] = useState(false);
   const [name, setName] = useState(user?.display_name ?? "");
   const [err, setErr] = useState<string | null>(null);
@@ -61,6 +64,7 @@ export default function Account() {
   const [passwordCodeSent, setPasswordCodeSent] = useState(false);
   const [passwordTotp, setPasswordTotp] = useState("");
   const [confirmOtherSessions, setConfirmOtherSessions] = useState(false);
+  const [editingName, setEditingName] = useState(false);
   const [editingAvatar, setEditingAvatar] = useState(false);
   const [avatarDraft, setAvatarDraft] = useState<string | null>(null);
   const [avatarZoom, setAvatarZoom] = useState(1);
@@ -74,7 +78,31 @@ export default function Account() {
 
   const toggle = (next: Section) => {
     setErr(null);
-    setSection((previous) => previous === next ? null : next);
+    setSection(next);
+  };
+
+  const backToProfile = () => {
+    setSection(null);
+    setAccountView("profile");
+    setErr(null);
+    setEmailStep("request");
+    setNewEmail("");
+    setEmailPassword("");
+    setEmailTotp("");
+    setEmailCode("");
+    setOldPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setPasswordCode("");
+  };
+  const backToSettings = () => {
+    setSection(null);
+    setAccountView("settings");
+    setErr(null);
+    setOldPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setPasswordCode("");
   };
 
   const run = async (fn: () => Promise<void>) => {
@@ -188,22 +216,63 @@ export default function Account() {
   });
 
   return (
-    <Screen title="Profile" testID="account-screen" maxWidth={760}>
-      <Button
-        testID="crown-preview-entry"
-        label="Try Crown Edition"
-        icon="crown"
-        variant="secondary"
-        onPress={() => router.push("/crown-preview")}
-      />
+    <Screen testID="account-screen" maxWidth={760}>
+      {section !== null || accountView === "settings" ? (
+        <View style={styles.accountBreadcrumb} testID="account-breadcrumb">
+          <Pressable
+            testID="breadcrumb-profile"
+            accessibilityRole="button"
+            accessibilityLabel="Back to Profile"
+            onPress={backToProfile}
+            style={styles.crumbButton}
+          >
+            <Icon name="arrow-left" size={21} color={nova.color.ink} />
+            <Body style={styles.crumbLink}>Profile</Body>
+          </Pressable>
+          <Icon name="chevron-right" size={18} color={nova.color.muted} />
+          {section !== null && accountView === "settings" ? (
+            <>
+              <Pressable testID="breadcrumb-settings" accessibilityRole="button" accessibilityLabel="Back to Settings" onPress={backToSettings} style={styles.crumbButton}>
+                <Body style={styles.crumbLink}>Settings</Body>
+              </Pressable>
+              <Icon name="chevron-right" size={18} color={nova.color.muted} />
+            </>
+          ) : null}
+          <Heading size={21} style={styles.crumbCurrent}>{section ? SECTION_TITLES[section] : "Settings"}</Heading>
+        </View>
+      ) : (
+        <View style={styles.accountTitleRow}>
+          <View style={{ gap: spacing.xs }}>
+            <Label style={{ color: nova.color.mint }}>FX CALL / NOVA</Label>
+            <Heading size={28}>Profile</Heading>
+          </View>
+          <Pressable
+            testID="account-open-settings"
+            accessibilityRole="button"
+            accessibilityLabel="Open account settings"
+            onPress={() => { setAccountView("settings"); setSection(null); setErr(null); }}
+            style={styles.settingsGear}
+          >
+            <Icon name="settings-2" size={23} color={nova.color.mint} />
+          </Pressable>
+        </View>
+      )}
 
+      {accountView === "profile" && section === null ? (
       <Card style={styles.profileCard} testID="profile-card">
         <View style={styles.profileHeader}>
           <Pressable
             testID="edit-profile-photo"
             accessibilityRole="button"
             accessibilityLabel="Edit profile photo"
-            onPress={() => { setEditingAvatar((v) => !v); setAvatarDraft(null); setErr(null); }}
+            accessibilityState={{ expanded: editingAvatar }}
+            onPress={() => {
+              setEditingAvatar((value) => !value);
+              setAvatarDraft(null);
+              setEditingName(false);
+              setSection(null);
+              setErr(null);
+            }}
             style={styles.avatar}
           >
             {user?.avatar_data_url ? (
@@ -211,89 +280,273 @@ export default function Account() {
             ) : (
               <Body style={styles.avatarText}>{(user?.display_name || "F").charAt(0).toUpperCase()}</Body>
             )}
-            <View style={styles.avatarEditIcon}><Icon name="camera" size={12} color={colors.onSurfaceSecondary} /></View>
-          </Pressable>
-          <View style={{ flex: 1, gap: spacing.xs }}>
-            <Heading size={22}>{user?.display_name || "FX CALL MEMBER"}</Heading>
-            <Label>{user?.email}</Label>
-          </View>
-          <Badge label={user?.verified ? "Verified" : "Unverified"} tone={user?.verified ? "success" : "warning"} />
-        </View>
-        {editingAvatar ? (
-          <View style={styles.photoPanel} testID="profile-photo-editor">
-            <Body style={styles.panelTitle}>Edit profile photo</Body>
-            {avatarDraft ? (
-              <>
-                <View style={styles.avatarPreviewCrop}>
-                  <Image source={{ uri: avatarDraft }} style={{ width: 128, height: 128, transform: [{ scale: avatarZoom }] }} contentFit="cover" />
-                </View>
-                <Label>Crop & zoom</Label>
-                <View style={styles.avatarEditorActions}>
-                  <Button testID="avatar-zoom-out" label="−" variant="secondary" compact disabled={busy || avatarZoom <= 1} onPress={() => setAvatarZoom((z) => Math.max(1, +(z - 0.25).toFixed(2)))} />
-                  <Body>{Math.round(avatarZoom * 100)}%</Body>
-                  <Button testID="avatar-zoom-in" label="+" variant="secondary" compact disabled={busy || avatarZoom >= 2.5} onPress={() => setAvatarZoom((z) => Math.min(2.5, +(z + 0.25).toFixed(2)))} />
-                </View>
-                <Button testID="avatar-save" label="Save photo" icon="check" disabled={busy} onPress={saveAvatar} />
-              </>
-            ) : null}
-            <View style={styles.avatarEditorActions}>
-              <Button testID="avatar-choose" compact label="Choose photo" icon="image" variant="secondary" disabled={busy} onPress={() => pickAvatar(false)} />
-              {Platform.OS !== "web" ? (
-                <Button testID="avatar-camera" compact label="Take photo" icon="camera" variant="secondary" disabled={busy} onPress={() => pickAvatar(true)} />
-              ) : null}
+            <View style={styles.avatarEditIcon}>
+              <Body style={styles.editEmoji}>✏️</Body>
             </View>
-            {user?.avatar_data_url ? <Button testID="avatar-remove" compact label="Remove current photo" icon="trash-2" variant="ghost" disabled={busy} onPress={removeAvatar} /> : null}
-            <Button testID="avatar-cancel" compact label="Close editor" variant="ghost" onPress={() => { setEditingAvatar(false); setAvatarDraft(null); }} />
+          </Pressable>
+
+          <View style={styles.profileIdentity}>
+            <View style={styles.profileNameRow}>
+              <Heading size={22} style={{ flexShrink: 1 }}>{user?.display_name || "FX CALL MEMBER"}</Heading>
+              <Pressable
+                testID="edit-display-name"
+                accessibilityRole="button"
+                accessibilityLabel="Edit display name"
+                accessibilityState={{ expanded: editingName }}
+                onPress={() => {
+                  setName(user?.display_name ?? "");
+                  setEditingName((value) => !value);
+                  setEditingAvatar(false);
+                  setAvatarDraft(null);
+                  setSection(null);
+                  setErr(null);
+                }}
+                style={styles.nameEditButton}
+              >
+                <Body style={styles.editEmoji}>✏️</Body>
+              </Pressable>
+            </View>
+            <View style={styles.profileEmailRow}>
+              <Body style={styles.profileEmail} numberOfLines={1} selectable>{user?.email || "Email unavailable"}</Body>
+              {user?.verified ? (
+                <Icon name="badge-check" size={18} color={nova.color.mint} />
+              ) : (
+                <Icon name="circle-alert" size={18} color={nova.color.warning} />
+              )}
+              <Pressable
+                testID="edit-profile-email"
+                accessibilityRole="button"
+                accessibilityLabel="Edit email address"
+                accessibilityState={{ expanded: section === "email" }}
+                onPress={() => {
+                  setEditingName(false);
+                  setEditingAvatar(false);
+                  setAvatarDraft(null);
+                  toggle("email");
+                }}
+                style={styles.nameEditButton}
+              >
+                <Body style={styles.editEmoji}>✏️</Body>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+
+        {editingName ? (
+          <View style={styles.inlineNameEditor} testID="profile-name-editor">
+            <View style={{ flex: 1, minWidth: 160 }}>
+              <Field testID="profile-name-input" label="Display name" value={name} onChangeText={setName} maxLength={60} autoComplete="name" />
+            </View>
+            <View style={styles.inlineEditorActions}>
+              <Pressable
+                testID="profile-save-button"
+                accessibilityRole="button"
+                accessibilityLabel="Save display name"
+                disabled={busy || !name.trim()}
+                onPress={() => run(async () => {
+                  setUser(await api("/auth/me", { method: "PATCH", body: { display_name: name.trim() } }));
+                  setEditingName(false);
+                  toast("Profile saved", "success");
+                })}
+                style={[styles.iconAction, styles.confirmAction, (busy || !name.trim()) && styles.disabledAction]}
+              >
+                <Icon name="check" size={18} color={nova.color.mintInk} />
+              </Pressable>
+              <Pressable
+                testID="profile-cancel-button"
+                accessibilityRole="button"
+                accessibilityLabel="Cancel editing display name"
+                disabled={busy}
+                onPress={() => { setName(user?.display_name ?? ""); setEditingName(false); }}
+                style={styles.iconAction}
+              >
+                <Icon name="x" size={18} color={nova.color.ink} />
+              </Pressable>
+            </View>
           </View>
         ) : null}
-        <Divider />
-        <Field testID="profile-name-input" label="Display name" value={name} onChangeText={setName} maxLength={60} autoComplete="name" />
-        <Button testID="profile-save-button" compact label="Save display name" variant="secondary" disabled={busy || !name.trim()} onPress={() => run(async () => {
-          setUser(await api("/auth/me", { method: "PATCH", body: { display_name: name.trim() } }));
-          toast("Profile saved", "success");
-        })} />
+
+        {editingAvatar ? (
+          <View style={styles.photoPanel} testID="profile-photo-editor">
+            {avatarDraft ? (
+              <View style={styles.photoPreviewRow}>
+                <View style={styles.avatarPreviewCrop}>
+                  <Image
+                    source={{ uri: avatarDraft }}
+                    style={{ width: 96, height: 96, transform: [{ scale: avatarZoom }] }}
+                    contentFit="cover"
+                  />
+                </View>
+                <View style={styles.photoPreviewControls}>
+                  <Label>ZOOM · {Math.round(avatarZoom * 100)}%</Label>
+                  <View style={styles.inlineEditorActions}>
+                    <Pressable
+                      testID="avatar-zoom-out"
+                      accessibilityRole="button"
+                      accessibilityLabel="Zoom out"
+                      disabled={busy || avatarZoom <= 1}
+                      style={[styles.iconAction, (busy || avatarZoom <= 1) && styles.disabledAction]}
+                      onPress={() => setAvatarZoom((z) => Math.max(1, +(z - 0.25).toFixed(2)))}
+                    >
+                      <Icon name="minus" size={18} color={nova.color.ink} />
+                    </Pressable>
+                    <Pressable
+                      testID="avatar-zoom-in"
+                      accessibilityRole="button"
+                      accessibilityLabel="Zoom in"
+                      disabled={busy || avatarZoom >= 2.5}
+                      style={[styles.iconAction, (busy || avatarZoom >= 2.5) && styles.disabledAction]}
+                      onPress={() => setAvatarZoom((z) => Math.min(2.5, +(z + 0.25).toFixed(2)))}
+                    >
+                      <Icon name="plus" size={18} color={nova.color.ink} />
+                    </Pressable>
+                    <Pressable
+                      testID="avatar-save"
+                      accessibilityRole="button"
+                      accessibilityLabel="Save profile photo"
+                      disabled={busy}
+                      onPress={saveAvatar}
+                      style={[styles.iconAction, styles.confirmAction, busy && styles.disabledAction]}
+                    >
+                      <Icon name="check" size={18} color={nova.color.mintInk} />
+                    </Pressable>
+                    <Pressable
+                      testID="avatar-cancel"
+                      accessibilityRole="button"
+                      accessibilityLabel="Cancel photo editing"
+                      disabled={busy}
+                      onPress={() => { setEditingAvatar(false); setAvatarDraft(null); }}
+                      style={styles.iconAction}
+                    >
+                      <Icon name="x" size={18} color={nova.color.ink} />
+                    </Pressable>
+                  </View>
+                </View>
+              </View>
+            ) : (
+              <View style={styles.photoPickerRow}>
+                <Pressable
+                  testID="avatar-choose"
+                  accessibilityRole="button"
+                  accessibilityLabel="Choose profile photo from gallery"
+                  disabled={busy}
+                  onPress={() => pickAvatar(false)}
+                  style={styles.photoPickerButton}
+                >
+                  <Icon name="image" size={16} color={nova.color.mint} />
+                  <Body>Gallery</Body>
+                </Pressable>
+                {Platform.OS !== "web" ? (
+                  <Pressable
+                    testID="avatar-camera"
+                    accessibilityRole="button"
+                    accessibilityLabel="Take profile photo"
+                    disabled={busy}
+                    onPress={() => pickAvatar(true)}
+                    style={styles.photoPickerButton}
+                  >
+                    <Icon name="camera" size={16} color={nova.color.mint} />
+                    <Body>Camera</Body>
+                  </Pressable>
+                ) : null}
+                {user?.avatar_data_url ? (
+                  <Pressable
+                    testID="avatar-remove"
+                    accessibilityRole="button"
+                    accessibilityLabel="Remove current profile photo"
+                    disabled={busy}
+                    onPress={removeAvatar}
+                    style={styles.photoPickerButton}
+                  >
+                    <Icon name="trash-2" size={16} color="#FF969B" />
+                    <Body>Remove</Body>
+                  </Pressable>
+                ) : null}
+                <Pressable
+                  testID="avatar-cancel"
+                  accessibilityRole="button"
+                  accessibilityLabel="Close photo options"
+                  disabled={busy}
+                  onPress={() => { setEditingAvatar(false); setAvatarDraft(null); }}
+                  style={styles.iconAction}
+                >
+                  <Icon name="x" size={18} color={nova.color.ink} />
+                </Pressable>
+              </View>
+            )}
+          </View>
+        ) : null}
+
       </Card>
+      ) : null}
 
-      <Card style={{ gap: spacing.xs }} testID="account-settings-card">
-        <Heading size={18} style={styles.sectionHeading}>Account & Security</Heading>
-        <Body style={{ color: colors.muted, marginBottom: spacing.sm }}>Manage your login details and privacy settings.</Body>
-
-        <MenuRow testID="settings-email" icon="mail" title="Email address" subtitle={user?.email || "Not available"} expanded={section === "email"} onPress={() => toggle("email")} />
-        {section === "email" ? (
-          <View style={styles.panel} testID="email-settings-panel">
-            <View style={styles.inlineStatus}>
-              <Label>Current email</Label>
-              <Badge label={user?.verified ? "Verified" : "Not verified"} tone={user?.verified ? "success" : "warning"} />
+      {section === "email" ? (
+        <Card style={styles.profileCard} testID="email-detail-card">
+          <View style={styles.emailDetailTop}>
+            <Label>CURRENT EMAIL</Label>
+            <Badge label={user?.verified ? "Verified" : "Not verified"} tone={user?.verified ? "success" : "warning"} />
+          </View>
+          <View style={styles.emailCurrentLine}>
+            <Body selectable style={styles.emailCurrentValue}>{user?.email}</Body>
+            {user?.verified ? <Icon name="badge-check" size={23} color={nova.color.mint} /> : null}
+          </View>
+        <View style={styles.emailInlinePanel} testID="email-settings-panel">
+            <View style={styles.emailPanelHeader}>
+              <Label>{emailStep === "request" ? "CHANGE EMAIL" : "VERIFY EMAIL"}</Label>
+              <Pressable
+                testID="email-edit-cancel"
+                accessibilityRole="button"
+                accessibilityLabel="Close email editing"
+                disabled={busy}
+                onPress={backToProfile}
+                style={styles.emailClose}
+              >
+                <Icon name="x" size={18} color={nova.color.muted} />
+              </Pressable>
             </View>
-            <View style={styles.verifiedEmailRow}>
-              <Body style={styles.currentEmailText}>{user?.email}</Body>
-              {user?.verified ? <Icon name="badge-check" size={24} color="#4AAE83" /> : null}
-            </View>
-            <Divider />
             {emailStep === "request" ? (
               <>
-                <Body style={styles.panelTitle}>Change email address</Body>
                 <Label>We will send a six-digit confirmation code to your new address.</Label>
                 <Field testID="new-email-input" label="New email" value={newEmail} onChangeText={setNewEmail} autoCapitalize="none" autoComplete="email" keyboardType="email-address" />
                 <Field testID="email-change-password" label="Current password" value={emailPassword} onChangeText={setEmailPassword} secureTextEntry autoCapitalize="none" />
                 {user?.totp_enabled ? (
                   <Field testID="email-change-totp" label="Authenticator code" value={emailTotp} onChangeText={(v) => setEmailTotp(v.replace(/\D/g, "").slice(0, 6))} keyboardType="number-pad" />
                 ) : null}
-                <Button testID="email-change-request" label={busy ? "Sending..." : "Send verification code"} disabled={busy} icon="mail-check" onPress={requestEmailChange} />
+                <Button testID="email-change-request" label={busy ? "Sending..." : "Get code"} disabled={busy} icon="mail-check" onPress={requestEmailChange} />
               </>
             ) : (
               <>
-                <Body style={styles.panelTitle}>Verify your new email</Body>
                 <Label>A code was sent to {newEmail}. It expires in 15 minutes.</Label>
                 <Field testID="email-change-code" label="6-digit code" value={emailCode} onChangeText={(v) => setEmailCode(v.replace(/\D/g, "").slice(0, 6))} keyboardType="number-pad" />
                 <Button testID="email-change-confirm" label="Verify & update email" disabled={busy || emailCode.length !== 6} onPress={confirmEmailChange} />
                 <Button testID="email-change-back" compact label="Change the new address" variant="ghost" onPress={() => { setEmailStep("request"); setEmailCode(""); }} />
               </>
             )}
-          </View>
-        ) : null}
+            <ErrorText testID="account-error">{err}</ErrorText>
+        </View>
+        </Card>
+      ) : null}
 
-        <MenuRow testID="settings-password" icon="lock-keyhole" title="Password" subtitle="Update your sign-in password" expanded={section === "password"} onPress={() => toggle("password")} />
+      {accountView === "settings" && section !== "email" ? (
+      <Card style={{ gap: spacing.xs }} testID="account-settings-card">
+        {section === null ? (
+          <>
+            <Label style={{ color: nova.color.mint }}>FX CALL / SETTINGS</Label>
+            <Heading size={22} style={styles.sectionHeading}>Settings</Heading>
+            <Pressable testID="settings-open-studio" accessibilityRole="button" onPress={() => router.push("/studio")} style={styles.settingsQuickLink}>
+              <Icon name="video" size={21} color={nova.color.mint} />
+              <Body style={styles.menuTitle}>Camera & Studio</Body>
+              <Icon name="chevron-right" size={19} color={colors.muted} />
+            </Pressable>
+            <Pressable testID="settings-open-meetings" accessibilityRole="button" onPress={() => router.push("/meetings")} style={styles.settingsQuickLink}>
+              <Icon name="users" size={21} color={nova.color.mint} />
+              <Body style={styles.menuTitle}>Meetings</Body>
+              <Icon name="chevron-right" size={19} color={colors.muted} />
+            </Pressable>
+            <Label>ACCOUNT & SECURITY</Label>
+          </>
+        ) : null}
+        {section === null ? <MenuRow testID="settings-password" icon="lock-keyhole" title="Password" subtitle="Update your sign-in password" expanded={section === "password"} onPress={() => toggle("password")} /> : null}
         {section === "password" ? (
           <View style={styles.panel} testID="password-settings-panel">
             <Body style={styles.panelTitle}>Change password</Body>
@@ -314,7 +567,7 @@ export default function Account() {
           </View>
         ) : null}
 
-        <MenuRow testID="settings-2fa" icon="shield-check" title="Two-factor authentication" subtitle={user?.totp_enabled ? "Enabled" : "Add an extra sign-in step"} expanded={section === "twofa"} onPress={() => toggle("twofa")} />
+        {section === null ? <MenuRow testID="settings-2fa" icon="shield-check" title="Two-factor authentication" subtitle={user?.totp_enabled ? "Enabled" : "Add an extra sign-in step"} expanded={section === "twofa"} onPress={() => toggle("twofa")} /> : null}
         {section === "twofa" ? (
           <View style={styles.panel} testID="twofa-card">
             <View style={styles.rowBetween}>
@@ -374,7 +627,7 @@ export default function Account() {
           </View>
         ) : null}
 
-        <MenuRow testID="settings-devices" icon="smartphone" title="Devices & sessions" subtitle="Review and sign out devices" expanded={section === "devices"} onPress={() => toggle("devices")} />
+        {section === null ? <MenuRow testID="settings-devices" icon="smartphone" title="Devices & sessions" subtitle="Review and sign out devices" expanded={section === "devices"} onPress={() => toggle("devices")} /> : null}
         {section === "devices" ? (
           <View style={styles.panel} testID="sessions-card">
             <Body style={styles.panelTitle}>Active sessions</Body>
@@ -415,7 +668,7 @@ export default function Account() {
           </View>
         ) : null}
 
-        <MenuRow testID="settings-privacy" icon="shield" title="Privacy Shield" subtitle="Security capabilities on this device" expanded={section === "privacy"} onPress={() => toggle("privacy")} />
+        {section === null ? <MenuRow testID="settings-privacy" icon="shield" title="Privacy Shield" subtitle="Security capabilities on this device" expanded={section === "privacy"} onPress={() => toggle("privacy")} /> : null}
         {section === "privacy" ? (
           <View style={styles.panel} testID="capability-report-card">
             <Label>{dev.os} · {dev.model}</Label>
@@ -428,12 +681,15 @@ export default function Account() {
         ) : null}
         <ErrorText testID="account-error">{err}</ErrorText>
       </Card>
+      ) : null}
 
+      {accountView === "settings" && section === null ? (
       <Card style={{ gap: spacing.sm }} testID="sign-out-card">
         <Heading size={18}>Sessions</Heading>
         <Button testID="logout-button" label="Sign out" variant="secondary" icon="log-out" onPress={() => signOut(false)} />
         <Button testID="logout-all-button" label="Sign out of all devices" variant="danger" icon="shield-off" onPress={() => signOut(true)} />
       </Card>
+      ) : null}
     </Screen>
   );
 }
@@ -448,32 +704,57 @@ function CapRow({ label, on, offText = "Unavailable" }: { label: string; on: boo
 }
 
 const styles = StyleSheet.create({
-  profileCard: { gap: spacing.md },
-  profileHeader: { flexDirection: "row", alignItems: "center", gap: spacing.md },
-  avatar: { width: 48, height: 48, borderRadius: 6, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.brandTertiary, alignItems: "center", justifyContent: "center" },
-  avatarText: { fontSize: 21, fontWeight: "700", color: colors.onBrandTertiary },
-  avatarImage: { width: 46, height: 46, borderRadius: 5 },
-  avatarEditIcon: { position: "absolute", right: -5, bottom: -5, backgroundColor: colors.brandPrimary, padding: 3, borderRadius: 5, borderWidth: 1, borderColor: colors.surface },
-  photoPanel: { padding: spacing.md, gap: spacing.md, backgroundColor: colors.surfaceTertiary, borderWidth: 1, borderColor: colors.borderStrong, borderRadius: 6 },
-  avatarPreviewCrop: { width: 128, height: 128, alignSelf: "center", overflow: "hidden", alignItems: "center", justifyContent: "center", borderRadius: 6, backgroundColor: colors.surface },
-  avatarEditorActions: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: spacing.sm },
-  passwordInput: { backgroundColor: "#17232D", color: "#F1F6FA" },
-  currentEmailText: { color: colors.onSurfaceSecondary, fontSize: 20, flexShrink: 1, letterSpacing: 0.1 },
-  verifiedEmailRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, flexWrap: "wrap" },
+  accountTitleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: spacing.md, paddingVertical: spacing.sm },
+  settingsGear: { width: 46, height: 46, borderRadius: 6, borderColor: nova.color.lineStrong, backgroundColor: nova.color.surfaceRaised, borderWidth: 1, alignItems: "center", justifyContent: "center" },
+  accountBreadcrumb: { flexDirection: "row", alignItems: "center", gap: spacing.sm, flexWrap: "wrap", paddingVertical: spacing.sm },
+  crumbButton: { flexDirection: "row", alignItems: "center", gap: spacing.sm, minHeight: 44 },
+  crumbLink: { fontSize: 16, color: nova.color.muted },
+  crumbCurrent: { flexShrink: 1 },
+  emailDetailTop: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: spacing.md },
+  emailCurrentLine: { flexDirection: "row", alignItems: "center", gap: spacing.sm, flexWrap: "wrap" },
+  emailCurrentValue: { fontSize: 20, flexShrink: 1, color: nova.color.ink },
+  settingsQuickLink: { flexDirection: "row", alignItems: "center", gap: spacing.md, paddingVertical: spacing.md, minHeight: 54, borderTopColor: nova.color.line, borderTopWidth: 1 },
+
+  profileCard: { gap: spacing.md, backgroundColor: nova.color.surfaceRaised, borderColor: nova.color.lineStrong },
+  profileHeader: { flexDirection: "row", alignItems: "center", gap: spacing.md, flexWrap: "wrap" },
+  profileIdentity: { flex: 1, minWidth: 150, gap: spacing.xs },
+  profileNameRow: { flexDirection: "row", alignItems: "center", gap: spacing.xs },
+  profileEmailRow: { flexDirection: "row", alignItems: "center", gap: spacing.xs, minWidth: 0 },
+  profileEmail: { fontSize: 14, color: nova.color.ink, flexShrink: 1 },
+  emailInlinePanel: { padding: spacing.md, gap: spacing.md, backgroundColor: nova.color.stage, borderWidth: 1, borderColor: nova.color.lineStrong, borderRadius: 6 },
+  emailPanelHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: spacing.sm },
+  emailClose: { width: 36, height: 36, justifyContent: "center", alignItems: "center" },
+  nameEditButton: { width: 36, height: 36, alignItems: "center", justifyContent: "center", borderRadius: 6 },
+  editEmoji: { fontSize: 15, lineHeight: 21 },
+  avatar: { width: 54, height: 54, borderRadius: 6, borderWidth: 1, borderColor: nova.color.mint, backgroundColor: nova.color.mintSoft, alignItems: "center", justifyContent: "center" },
+  avatarText: { fontSize: 23, fontWeight: "700", color: nova.color.mint },
+  avatarImage: { width: 52, height: 52, borderRadius: 5 },
+  avatarEditIcon: { position: "absolute", right: -6, bottom: -6, backgroundColor: nova.color.mint, width: 24, height: 24, alignItems: "center", justifyContent: "center", borderRadius: 6, borderWidth: 1, borderColor: nova.color.canvas },
+  inlineNameEditor: { flexDirection: "row", alignItems: "flex-end", flexWrap: "wrap", gap: spacing.sm },
+  inlineEditorActions: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: spacing.sm },
+  iconAction: { width: 42, height: 42, borderWidth: 1, borderColor: nova.color.lineStrong, borderRadius: 6, justifyContent: "center", alignItems: "center", backgroundColor: nova.color.surface },
+  confirmAction: { backgroundColor: nova.color.mint, borderColor: nova.color.mint },
+  disabledAction: { opacity: 0.4 },
+  photoPanel: { padding: spacing.sm, backgroundColor: nova.color.stage, borderWidth: 1, borderColor: nova.color.lineStrong, borderRadius: 6 },
+  photoPickerRow: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: spacing.sm },
+  photoPickerButton: { flexDirection: "row", gap: spacing.sm, alignItems: "center", paddingHorizontal: spacing.md, minHeight: 42, backgroundColor: nova.color.surface, borderRadius: 6, borderColor: nova.color.lineStrong, borderWidth: 1 },
+  photoPreviewRow: { flexDirection: "row", alignItems: "center", gap: spacing.md, flexWrap: "wrap" },
+  photoPreviewControls: { flex: 1, minWidth: 180, gap: spacing.sm },
+  avatarPreviewCrop: { width: 96, height: 96, overflow: "hidden", alignItems: "center", justifyContent: "center", borderRadius: 6, backgroundColor: nova.color.surface },
+  passwordInput: { backgroundColor: "#14272B", color: nova.color.ink },
   switchRow: { flexDirection: "row", alignItems: "center", gap: spacing.xs },
   smallSwitch: { transform: [{ scaleX: 0.78 }, { scaleY: 0.78 }] },
   revokeIcon: { width: 38, height: 38, borderRadius: 6, backgroundColor: colors.surfaceSecondary, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: colors.borderStrong },
   confirmRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, flexWrap: "wrap" },
   sectionHeading: { marginBottom: spacing.xs },
-  menuRow: { minHeight: 72, paddingVertical: spacing.md, flexDirection: "row", alignItems: "center", gap: spacing.md, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
-  menuRowPressed: { backgroundColor: colors.surfaceTertiary },
-  menuIcon: { width: 38, height: 38, borderRadius: 6, backgroundColor: colors.surfaceTertiary, alignItems: "center", justifyContent: "center" },
+  menuRow: { minHeight: 60, paddingVertical: spacing.sm, flexDirection: "row", alignItems: "center", gap: spacing.md, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
+  menuRowPressed: { backgroundColor: nova.color.mintSoft },
+  menuIcon: { width: 38, height: 38, borderRadius: 6, backgroundColor: nova.color.mintSoft, alignItems: "center", justifyContent: "center" },
   menuCopy: { flex: 1, gap: spacing.xs },
   menuTitle: { fontSize: 15, fontWeight: "600", color: colors.onSurfaceSecondary },
   menuSubtitle: { fontSize: 12 },
-  panel: { padding: spacing.md, borderWidth: 1, borderColor: colors.borderStrong, backgroundColor: colors.surfaceTertiary, borderRadius: 6, gap: spacing.md, marginBottom: spacing.sm },
+  panel: { padding: spacing.md, borderWidth: 1, borderColor: nova.color.lineStrong, backgroundColor: nova.color.stage, borderRadius: 6, gap: spacing.md, marginBottom: spacing.sm },
   panelTitle: { fontSize: 16, fontWeight: "600", color: colors.onSurfaceSecondary },
-  inlineStatus: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: spacing.md },
   rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: spacing.md },
   qr: { width: 200, height: 200, alignSelf: "center", backgroundColor: "#FFFFFF", borderRadius: 6 },
   session: { flexDirection: "row", alignItems: "center", gap: spacing.md, paddingVertical: spacing.sm },

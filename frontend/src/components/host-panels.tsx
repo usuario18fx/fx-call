@@ -6,6 +6,7 @@ import { api } from "@/src/api";
 import { Badge, Body, Button, Card, Field, Heading, Icon, Label, s, useToast } from "@/src/components/ui";
 import { ACTION_LABEL, EVENT_LABEL, platformIcon, platformLabel, SOURCE_LABEL, timeAgo } from "@/src/privacy/labels";
 import { colors, fonts, radius, spacing } from "@/src/theme";
+import { nova } from "@/src/nova/designTokens";
 
 export type Participant = {
   id: string; display_name: string; role: string; status: string; platform: string; os: string; model?: string;
@@ -43,8 +44,10 @@ function InviteChoices<T extends string>({ options, value, onChange, testPrefix 
   onChange: (v: T) => void;
   testPrefix: string;
 }) {
+  // A discrete, accessible scale: each marked stop maps to an actual server value.
   return (
-    <View style={styles.inviteChoices}>
+    <View style={styles.inviteScale}>
+      <View pointerEvents="none" style={styles.scaleTrack} />
       {options.map((o) => {
         const selected = o.key === value;
         return (
@@ -52,14 +55,15 @@ function InviteChoices<T extends string>({ options, value, onChange, testPrefix 
             key={o.key}
             testID={`${testPrefix}-${o.key}`}
             accessibilityRole="button"
+            accessibilityLabel={o.label}
             accessibilityState={{ selected }}
             onPress={() => onChange(o.key)}
-            style={[styles.inviteChoice, {
-              backgroundColor: selected ? colors.brandPrimary : colors.surfaceTertiary,
-              borderColor: selected ? "#62C9FD" : colors.borderStrong,
-            }]}
+            style={styles.scaleStop}
           >
-            <Text style={[styles.chipText, { color: selected ? colors.onBrandPrimary : colors.onSurface }]}> {o.label} </Text>
+            <Body style={[styles.scaleLabel, selected && styles.scaleLabelSelected]} numberOfLines={1}>{o.label}</Body>
+            <View style={[styles.scaleDot, selected && styles.scaleDotSelected]}>
+              {selected ? <View style={styles.scaleDotCenter} /> : null}
+            </View>
           </Pressable>
         );
       })}
@@ -145,8 +149,8 @@ export function EventRow({ e }: { e: SecEvent }) {
   );
 }
 
-const USES = [{ key: "1", label: "One-time" }, { key: "5", label: "5 uses" }, { key: "25", label: "25 uses" }, { key: "0", label: "Unlimited" }] as const;
-const EXPIRY = [{ key: "1h", label: "1 hour" }, { key: "1d", label: "1 day" }, { key: "1w", label: "1 week" }, { key: "custom", label: "Custom" }, { key: "never", label: "Never" }] as const;
+const USES = [{ key: "1", label: "1" }, { key: "10", label: "10" }, { key: "100", label: "100" }, { key: "0", label: "∞" }] as const;
+const EXPIRY = [{ key: "1h", label: "1 hour" }, { key: "1d", label: "1 day" }, { key: "1w", label: "1 week" }, { key: "never", label: "∞" }] as const;
 
 export function InvitePanel({ roomId, invites, onDone }: { roomId: string; invites: Invite[]; onDone: () => void }) {
   const toast = useToast();
@@ -183,15 +187,30 @@ export function InvitePanel({ roomId, invites, onDone }: { roomId: string; invit
   return (
     <View style={{ gap: spacing.lg }}>
       <Card style={{ gap: spacing.md }} testID="invite-create-card">
-        <Heading size={18}>New private invitation</Heading>
-        <Field testID="invite-name-input" label="Invitation name" value={name} onChangeText={setName} placeholder="Legal team" maxLength={60} />
-        <Label>Uses</Label>
-        <InviteChoices options={USES} value={uses} onChange={setUses} testPrefix="invite-uses" />
-        <Label>Expires</Label>
+        <View style={styles.rowBetween}>
+          <Heading size={18}>New invitation</Heading>
+          <Icon name="link-2" size={20} color={nova.color.mint} />
+        </View>
+        <Field testID="invite-name-input" label="Invitation name (optional)" value={name} onChangeText={setName} placeholder="Guest invitation" maxLength={60} />
+        <Label>LIMIT BY TIME</Label>
         <InviteChoices options={EXPIRY} value={expiry} onChange={setExpiry} testPrefix="invite-expiry" />
+        <View style={styles.inviteSummary}>
+          <Body>Expiration</Body>
+          <Body style={styles.inviteSummaryValue}>{expiry === "1h" ? "1 hour" : expiry === "1d" ? "1 day" : expiry === "1w" ? "1 week" : expiry === "never" ? "Never" : `${hours || "1"} hours`}</Body>
+        </View>
+        <Pressable testID="invite-custom-expiry" accessibilityRole="button" accessibilityLabel="Set custom invitation expiration" onPress={() => setExpiry(expiry === "custom" ? "1d" : "custom")} style={styles.customExpiry}>
+          <Icon name="calendar-clock" size={17} color={nova.color.mint} />
+          <Label>{expiry === "custom" ? "Use preset expiration" : "Custom expiration"}</Label>
+        </Pressable>
         {expiry === "custom" ? (
           <Field testID="invite-custom-hours-input" label="Expire after (hours)" value={hours} onChangeText={(t) => setHours(t.replace(/\D/g, "").slice(0, 4))} keyboardType="number-pad" />
         ) : null}
+        <Label>LIMIT BY NUMBER OF USERS</Label>
+        <InviteChoices options={USES} value={uses} onChange={setUses} testPrefix="invite-uses" />
+        <View style={styles.inviteSummary}>
+          <Body>Number of users</Body>
+          <Body style={styles.inviteSummaryValue}>{uses === "0" ? "Unlimited" : uses}</Body>
+        </View>
         <View style={styles.rowBetween}>
           <Body>Require host approval</Body>
           <Switch testID="invite-approval-switch" value={approval} onValueChange={setApproval} trackColor={{ true: colors.brandPrimary, false: colors.surfaceTertiary }} thumbColor={colors.onSurfaceSecondary} />
@@ -270,12 +289,17 @@ export function SettingsPanel({ roomId, settings, onDone }: { roomId: string; se
 const styles = StyleSheet.create({
   chip: { height: 36, paddingHorizontal: spacing.lg, borderRadius: 6, alignItems: "center", justifyContent: "center", borderWidth: 1, flexShrink: 0 },
   chipText: { fontFamily: fonts.text, fontSize: 13, letterSpacing: 0.6 },
-  inviteChoices: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm, width: "100%" },
-  inviteChoice: {
-    minHeight: 42, minWidth: "43%", flexGrow: 1, flexShrink: 1,
-    paddingVertical: spacing.sm, paddingHorizontal: spacing.md, borderRadius: 6,
-    borderWidth: 1, justifyContent: "center", alignItems: "center",
-  },
+  inviteScale: { width: "100%", flexDirection: "row", alignItems: "stretch", position: "relative", paddingBottom: spacing.xs },
+  scaleTrack: { position: "absolute", left: "12.5%", right: "12.5%", bottom: 15, height: 3, borderRadius: 2, backgroundColor: nova.color.mintSoft },
+  scaleStop: { flex: 1, minWidth: 0, minHeight: 64, alignItems: "center", justifyContent: "space-between", paddingVertical: spacing.sm, gap: spacing.sm },
+  scaleLabel: { color: nova.color.muted, fontSize: 12 },
+  scaleLabelSelected: { color: nova.color.mint, fontWeight: "700" },
+  scaleDot: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: nova.color.lineStrong, backgroundColor: nova.color.surface, alignItems: "center", justifyContent: "center" },
+  scaleDotSelected: { borderColor: nova.color.mint, backgroundColor: nova.color.mint },
+  scaleDotCenter: { width: 8, height: 8, borderRadius: 4, backgroundColor: nova.color.mintInk },
+  inviteSummary: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: spacing.md, padding: spacing.md, backgroundColor: nova.color.stage, borderRadius: 6 },
+  inviteSummaryValue: { color: nova.color.mint },
+  customExpiry: { flexDirection: "row", alignItems: "center", gap: spacing.sm, minHeight: 44 },
   rowTop: { flexDirection: "row", alignItems: "center", gap: spacing.md },
   rowBetween: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: spacing.md },
   badges: { flexDirection: "row", flexWrap: "wrap", gap: spacing.xs },
