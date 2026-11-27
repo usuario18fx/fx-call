@@ -1,5 +1,5 @@
 import React from "react";
-import { Platform, StyleSheet, useWindowDimensions, View } from "react-native";
+import { Platform, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 
 import { Screen } from "@/src/components/Screen";
 import { Body, Heading, Logo } from "@/src/components/ui";
@@ -13,13 +13,13 @@ const texture = Platform.OS === "web" ? ({
 /** Crown-blue antique sign-in plate. Decorative views do not intercept touch. */
 export function AuthShell({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
   const { height, width } = useWindowDimensions();
-  const compact = height < 750 || width < 360;
+  const compact = height < 950 || width < 420;
   return (
     <View style={styles.root}>
-      <Screen maxWidth={600} contentStyle={{ paddingTop: compact ? spacing.sm : spacing.xl, paddingBottom: spacing.lg, gap: compact ? spacing.md : spacing.lg }} testID="auth-screen">
+      <Screen maxWidth={520} contentStyle={{ paddingTop: compact ? 2 : spacing.lg, paddingBottom: spacing.sm, gap: compact ? 7 : spacing.md }} testID="auth-screen">
         <View style={[styles.brand, { gap: compact ? spacing.xs : spacing.sm }]}>
-          <Logo size={compact ? 88 : 104} />
-          <Heading size={30} style={{ color: "#f1eee8", letterSpacing: 5 }}>FX CALL</Heading>
+          <Logo size={compact ? 68 : 96} />
+          <Heading size={compact ? 26 : 30} style={{ color: "#f1eee8", letterSpacing: 5 }}>FX CALL</Heading>
           <Body style={{ color: "#b2bac2", letterSpacing: 2, fontSize: 11 }}>SECURITY FIRST · PRIVACY ALWAYS</Body>
         </View>
         <View style={styles.frameWrap}>
@@ -35,7 +35,7 @@ export function AuthShell({ title, subtitle, children }: { title: string; subtit
             </View>
           </View>
           <View pointerEvents="none" style={styles.topCrown}>
-            <View style={styles.crownBacking}><Logo size={compact ? 36 : 46} /></View>
+            <View style={styles.crownBacking}><Text style={styles.crownSymbol}>♛</Text></View>
           </View>
           <View pointerEvents="none" style={[styles.rivet, styles.topLeft]} />
           <View pointerEvents="none" style={[styles.rivet, styles.topRight]} />
@@ -54,8 +54,8 @@ export function AuthShell({ title, subtitle, children }: { title: string; subtit
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#03080e" },
-  brand: { alignItems: "center", gap: spacing.sm, marginBottom: 12 },
-  frameWrap: { marginTop: 11, marginBottom: 14, position: "relative" },
+  brand: { alignItems: "center", gap: spacing.xs, marginBottom: 1 },
+  frameWrap: { marginTop: 9, marginBottom: 12, position: "relative" },
   outerFrame: {
     backgroundColor: "#123a50",
     borderWidth: 3,
@@ -79,18 +79,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(66,124,150,0.3)",
     borderRadius: 7,
-    paddingTop: 24,
-    paddingHorizontal: 22,
-    paddingBottom: 27,
-    gap: spacing.md,
+    paddingTop: 19,
+    paddingHorizontal: 19,
+    paddingBottom: 18,
+    gap: 10,
   },
   heading: { color: "#eeeae4", letterSpacing: 3, fontFamily: "serif" },
   subtitle: { color: "#abb9c4" },
-  topCrown: { position: "absolute", top: -26, alignSelf: "center", zIndex: 4 },
+  topCrown: { position: "absolute", top: -20, alignSelf: "center", zIndex: 4 },
   crownBacking: {
-    width: 77, height: 56, justifyContent: "center", alignItems: "center",
-    borderWidth: 2, borderColor: blue, borderRadius: 10, backgroundColor: "#09283c",
+    width: 65, height: 43, justifyContent: "center", alignItems: "center",
+    borderWidth: 1, borderColor: blue, borderRadius: 7, backgroundColor: "#09283c",
   },
+  crownSymbol: { color: "#3985a5", fontSize: 35, lineHeight: 42, textAlign: "center", textShadowColor: "#061521", textShadowRadius: 2 },
   rivet: {
     width: 17, height: 17, borderRadius: 9, position: "absolute",
     borderWidth: 3, borderColor: "#266a8d", backgroundColor: "#051b2c", zIndex: 4,
