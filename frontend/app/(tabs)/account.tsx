@@ -8,6 +8,7 @@ import { Platform, Pressable, StyleSheet, Switch, View } from "react-native";
 import { api } from "@/src/api";
 import { useAuth } from "@/src/auth";
 import { Screen } from "@/src/components/Screen";
+import { GeneralPanel } from "@/src/components/GeneralPanel";
 import { Badge, Body, Button, Card, ErrorText, Field, Heading, Icon, type IconName, Label, useToast } from "@/src/components/ui";
 import { deviceInfo } from "@/src/device";
 import { platformLabel, timeAgo } from "@/src/privacy/labels";
@@ -45,7 +46,7 @@ export default function Account() {
   const router = useRouter();
   const toast = useToast();
   const [section, setSection] = useState<Section | null>(null);
-  const [accountView, setAccountView] = useState<"profile" | "settings">("profile");
+  const [accountView, setAccountView] = useState<"profile" | "settings" | "general">("profile");
   const [busy, setBusy] = useState(false);
   const [name, setName] = useState(user?.display_name ?? "");
   const [err, setErr] = useState<string | null>(null);
@@ -217,20 +218,20 @@ export default function Account() {
 
   return (
     <Screen testID="account-screen" maxWidth={760}>
-      {section !== null || accountView === "settings" ? (
+      {section !== null || accountView !== "profile" ? (
         <View style={styles.accountBreadcrumb} testID="account-breadcrumb">
           <Pressable
             testID="breadcrumb-profile"
             accessibilityRole="button"
             accessibilityLabel="Back to Profile"
-            onPress={backToProfile}
+            onPress={accountView === "general" ? backToSettings : backToProfile}
             style={styles.crumbButton}
           >
             <Icon name="arrow-left" size={21} color={nova.color.ink} />
             <Body style={styles.crumbLink}>Profile</Body>
           </Pressable>
           <Icon name="chevron-right" size={18} color={nova.color.muted} />
-          {section !== null && accountView === "settings" ? (
+          {(section !== null && accountView === "settings") || accountView === "general" ? (
             <>
               <Pressable testID="breadcrumb-settings" accessibilityRole="button" accessibilityLabel="Back to Settings" onPress={backToSettings} style={styles.crumbButton}>
                 <Body style={styles.crumbLink}>Settings</Body>
@@ -238,7 +239,7 @@ export default function Account() {
               <Icon name="chevron-right" size={18} color={nova.color.muted} />
             </>
           ) : null}
-          <Heading size={21} style={styles.crumbCurrent}>{section ? SECTION_TITLES[section] : "Settings"}</Heading>
+          <Heading size={21} style={styles.crumbCurrent}>{accountView === "general" ? "General" : section ? SECTION_TITLES[section] : "Settings"}</Heading>
         </View>
       ) : (
         <View style={styles.accountTitleRow}>
@@ -527,12 +528,17 @@ export default function Account() {
         </Card>
       ) : null}
 
-      {accountView === "settings" && section !== "email" ? (
-      <Card style={{ gap: spacing.xs }} testID="account-settings-card">
+      {accountView === "settings" ? (
+      <Card style={styles.settingsShell} testID="account-settings-card">
         {section === null ? (
           <>
             <Label style={{ color: nova.color.mint }}>FX CALL / SETTINGS</Label>
             <Heading size={22} style={styles.sectionHeading}>Settings</Heading>
+            <Pressable testID="settings-open-general" accessibilityRole="button" accessibilityLabel="Open general settings" onPress={() => { setAccountView("general"); setSection(null); setErr(null); }} style={styles.settingsQuickLink}>
+              <Icon name="settings" size={21} color={nova.color.mint} />
+              <Body style={styles.menuTitle}>General</Body>
+              <Icon name="chevron-right" size={19} color={colors.muted} />
+            </Pressable>
             <Pressable testID="settings-open-studio" accessibilityRole="button" onPress={() => router.push("/studio")} style={styles.settingsQuickLink}>
               <Icon name="video" size={21} color={nova.color.mint} />
               <Body style={styles.menuTitle}>Camera & Studio</Body>
@@ -683,8 +689,16 @@ export default function Account() {
       </Card>
       ) : null}
 
+      {accountView === "general" ? (
+        <GeneralPanel
+          onOpenStudio={() => router.push("/studio")}
+          onOpenMeetings={() => router.push("/meetings")}
+          onOpenSecurity={() => { setAccountView("settings"); setSection("privacy"); setErr(null); }}
+        />
+      ) : null}
+
       {accountView === "settings" && section === null ? (
-      <Card style={{ gap: spacing.sm }} testID="sign-out-card">
+      <Card style={styles.settingsShell} testID="sign-out-card">
         <Heading size={18}>Sessions</Heading>
         <Button testID="logout-button" label="Sign out" variant="secondary" icon="log-out" onPress={() => signOut(false)} />
         <Button testID="logout-all-button" label="Sign out of all devices" variant="danger" icon="shield-off" onPress={() => signOut(true)} />
@@ -704,6 +718,7 @@ function CapRow({ label, on, offText = "Unavailable" }: { label: string; on: boo
 }
 
 const styles = StyleSheet.create({
+  settingsShell: { gap: spacing.sm, padding: spacing.lg, borderColor: nova.color.lineStrong, backgroundColor: nova.color.surfaceRaised, borderRadius: 6 },
   accountTitleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: spacing.md, paddingVertical: spacing.sm },
   settingsGear: { width: 46, height: 46, borderRadius: 6, borderColor: nova.color.lineStrong, backgroundColor: nova.color.surfaceRaised, borderWidth: 1, alignItems: "center", justifyContent: "center" },
   accountBreadcrumb: { flexDirection: "row", alignItems: "center", gap: spacing.sm, flexWrap: "wrap", paddingVertical: spacing.sm },
