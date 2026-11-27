@@ -10,7 +10,7 @@ import { ChatMessage, ChatSheet } from "@/src/components/ChatSheet";
 import { Badge, Body, Button, Heading, Icon, IconButton, Label, Loading } from "@/src/components/ui";
 import { Watermark } from "@/src/components/Watermark";
 import { PRIVACY_WARNING } from "@/src/privacy/labels";
-import { getCaptureCapabilities, setCaptureProtection, startShield } from "@/src/privacy/shield";
+import { getCaptureCapabilities, startShield } from "@/src/privacy/shield";
 import { useRoomSocket } from "@/src/realtime";
 import { colors, fonts, radius, spacing } from "@/src/theme";
 import { pickAudioRoute, supportsAudioRoute } from "@/src/video/lk";
@@ -89,14 +89,8 @@ export default function CallScreen() {
     });
   }, [approved, id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const protect = !!me.data?.room.settings.capture_protection;
-  useEffect(() => {
-    if (!approved || !protect) return;
-    setCaptureProtection(true);
-    return () => {
-      setCaptureProtection(false);
-    };
-  }, [approved, protect]);
+  // The single FX CALL root guard protects all screens, including this call.
+  // Don't install a second differently-keyed guard here: that can freeze iOS.
 
   useEffect(() => {
     const t = setInterval(() => setStamp(new Date().toLocaleString()), 30000);

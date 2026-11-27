@@ -9,6 +9,9 @@ import { useNovaActions, type NovaPacket } from "@/src/nova/useNovaActions";
 
 const CompatibleWebView = WebView as unknown as ComponentType<any>;
 
+// The API route reads the current NOVA HTML directly from frontend/public.
+// Do not point the native WebView at /nova-studio.html: that path may be stale.
+
 export default function NovaStudioNative() {
   const webView = useRef<WebView>(null);
   const { user, ready } = useAuth();
@@ -31,15 +34,19 @@ export default function NovaStudioNative() {
   if (!user) return <Loading label="Sign in to FX CALL first" />;
 
   const backend = (process.env.EXPO_PUBLIC_BACKEND_URL || "").replace(/\/$/, "");
+  const novaPath = "/api/studio/nova.html";
+  const novaUrl = `${backend}${novaPath}?fxbuild=novastudio-v7-20261127`;
   if (!backend.startsWith("https://")) return <Loading label="HTTPS preview URL is not configured" />;
 
   return (
     <View style={{ flex: 1, backgroundColor: "#050607" }} testID="fx-nova-studio-native">
       <CompatibleWebView
         ref={webView}
-        source={{ uri: `${backend}/nova-studio.html` }}
+        source={{ uri: novaUrl, headers: { "Cache-Control": "no-cache, no-store" } }}
         originWhitelist={["https://*"]}
-        onShouldStartLoadWithRequest={(request: { url: string }) => request.url === "about:blank" || request.url.startsWith(`${backend}/nova-studio.html`)}
+        onShouldStartLoadWithRequest={(request: { url: string }) => request.url === "about:blank" || request.url.startsWith(`${backend}${novaPath}`)}
+        cacheEnabled={false}
+        cacheMode="LOAD_NO_CACHE"
         javaScriptEnabled
         domStorageEnabled={false}
         allowsInlineMediaPlayback

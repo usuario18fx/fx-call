@@ -527,7 +527,7 @@ export default function Account() {
         </Card>
       ) : null}
 
-      {accountView === "settings" && section !== "email" ? (
+      {accountView === "settings" ? (
       <Card style={{ gap: spacing.xs }} testID="account-settings-card">
         {section === null ? (
           <>

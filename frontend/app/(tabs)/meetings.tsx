@@ -7,7 +7,7 @@ import { api } from "@/src/api";
 import { useAuth } from "@/src/auth";
 import { Screen } from "@/src/components/Screen";
 import type { Settings } from "@/src/components/host-panels";
-import { Badge, Body, Button, Card, ErrorText, Field, Heading, Icon, Label, useToast } from "@/src/components/ui";
+import { Badge, Body, Button, Card, ErrorText, Field, Heading, Icon, Label, Logo, useToast } from "@/src/components/ui";
 import { nova } from "@/src/nova/designTokens";
 import { timeAgo } from "@/src/privacy/labels";
 import { colors, radius, spacing } from "@/src/theme";
@@ -251,7 +251,7 @@ export default function Meetings() {
       refreshControl={<RefreshControl refreshing={rooms.isRefetching} onRefresh={() => { void rooms.refetch(); }} tintColor={colors.onSurface} />}
     >
       <View style={styles.top}>
-        <View style={styles.novaMark}><Body style={styles.novaMarkText}>N</Body></View>
+        <View style={styles.novaMark}><Logo size={46} /></View>
         <View style={{ flex: 1 }}>
           <Label style={{ color: nova.color.mint }}>NOVA / FX CALL</Label>
           <Heading size={26}>Meetings</Heading>
@@ -275,9 +275,9 @@ const styles = StyleSheet.create({
   optionRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, justifyContent: "space-between", paddingVertical: spacing.xs },
   rowActions: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: spacing.xs },
   renamePanel: { gap: spacing.sm, width: "100%" },
-  novaMark: { width: 48, height: 48, backgroundColor: nova.color.mint, borderRadius: 6, alignItems: "center", justifyContent: "center" },
+  novaMark: { width: 52, height: 52, backgroundColor: "#0B1D29", borderWidth: 1, borderColor: "#31627A", borderRadius: 6, alignItems: "center", justifyContent: "center" },
   novaMarkText: { fontSize: 22, fontWeight: "800", color: nova.color.mintInk },
-  actionCard: { gap: spacing.md, borderColor: nova.color.lineStrong, backgroundColor: nova.color.surfaceRaised },
+  actionCard: { gap: spacing.md, borderColor: nova.color.lineStrong, backgroundColor: nova.color.surfaceRaised, borderRadius: 6, padding: spacing.lg },
   row: { flexDirection: "row", alignItems: "center", gap: spacing.md, padding: spacing.lg, borderRadius: radius.lg, backgroundColor: nova.color.surfaceRaised, borderWidth: 1, borderColor: nova.color.lineStrong, width: "100%" },
   skeleton: { height: 92, borderRadius: radius.lg, backgroundColor: colors.surfaceTertiary, width: "100%" },
 });

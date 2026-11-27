@@ -1,9 +1,11 @@
 import asyncio
 import logging
 import os
+from pathlib import Path
 from contextlib import suppress
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import FileResponse
 from pymongo import ASCENDING, DESCENDING, IndexModel
 from starlette.middleware.cors import CORSMiddleware
 
@@ -59,6 +61,24 @@ async def health():
     return {"status": "ok"}
 
 
+# Serve the current checked-out NOVA file directly from the backend process.
+# The native iOS WebView uses this API-prefixed route instead of any stale
+# frontend/static deployment. Only this trusted public HTML file is served.
+NOVA_HTML = Path(__file__).resolve().parent.parent / "frontend" / "public" / "nova-studio.html"
+
+
+@app.get("/api/studio/nova.html", include_in_schema=False)
+@app.head("/api/studio/nova.html", include_in_schema=False)
+async def studio_nova_html():
+    if not NOVA_HTML.is_file():
+        raise HTTPException(status_code=503, detail="NOVA Studio HTML is unavailable")
+    return FileResponse(
+        NOVA_HTML,
+        media_type="text/html; charset=utf-8",
+        headers={"Cache-Control": "no-store, max-age=0", "X-FX-NOVA-Source": "live-project-file"},
+    )
+
+
 @app.get("/api/")
 async def root():
     return {"service": "FX CALL", "screen_sharing": "disabled"}
@@ -73,7 +93,19 @@ async def security_headers(request: Request, call_next):
     response.headers["Permissions-Policy"] = "display-capture=()"
     response.headers["Cache-Control"] = "no-store"
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
-    if IS_PROD:  # pure JSON API: nothing it returns should ever load or frame anything
+    if request.url.path == "/api/studio/nova.html":
+        # The studio is trusted HTML with inline CSS/JS; its camera preview
+        # needs a secure HTTPS top-level origin. No external code or navigation.
+        # NOVA is embedded only inside our own Expo web app.
+        # Keep all other API pages DENY, prevent external framing.
+        response.headers["X-Frame-Options"] = "SAMEORIGIN"
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'none'; base-uri 'none'; object-src 'none'; "
+            "img-src 'self' data: blob:; media-src 'self' blob:; "
+            "style-src 'unsafe-inline'; script-src 'unsafe-inline'; "
+            "connect-src 'self'; frame-ancestors 'self'"
+        )
+    elif IS_PROD:  # JSON-only API endpoints never execute browser scripts.
         response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
     return response
 

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -68,6 +68,7 @@
       --accent-rgb: 46, 211, 183;
       --accent-ink: #03201b;
     }
+    .app[data-mode="general"] { --accent: #408dc6; --accent-rgb: 64,141,198; --accent-ink: #051928; }
 
     .screen {
       position: absolute;
@@ -543,10 +544,10 @@
       left: 50%;
       bottom: 16px;
       z-index: 20;
-      width: min(620px, calc(100% - 28px));
+      width: min(800px, calc(100% - 20px));
       height: 100px;
       display: grid;
-      grid-template-columns: 1fr 108px 1fr;
+      grid-template-columns: minmax(0,1fr) 108px minmax(0,1fr) minmax(0,1fr);
       align-items: center;
       padding: 8px;
       border: 1px solid rgba(255,255,255,.12);
@@ -1300,6 +1301,135 @@
       font-size: 18px;
     }
 
+    /* NOVA GENERAL GROUP ROOM — secure design preview */
+    .gen-launch { grid-template-columns: minmax(240px,1.05fr) minmax(250px,.95fr); gap: 24px; padding: 28px; border-radius: 12px; border-color: #3A5E78; }
+    .gen-launch .launch-intro h2 { font-size: clamp(38px,5vw,68px); }
+    .gen-preview { background:#0A1722;border:1px solid #375A75;border-radius:7px;padding:12px; }
+    .gen-caption {display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;color:#8DAEC3;font:700 9px ui-monospace,monospace;letter-spacing:.11em;margin-bottom:9px}
+    .gen-stage-preview {display:grid;grid-template-columns: minmax(70px, .32fr) minmax(0,1fr);min-height:210px;gap:7px}
+    .gen-preview-rail {display:grid;grid-template-rows:repeat(4,1fr);gap:5px}
+    .gen-preview-rail>div {background:#142636;border:1px solid #355069;border-radius:5px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:3px;color:#9DBBD0;font:700 8px ui-monospace,monospace;padding:7px}
+    .gen-preview-rail small {font-size:7px;color:#7091A7}
+    .gen-preview-main {background:radial-gradient(ellipse at 50% 30%,#23455D,#0A1825 85%);border:1px solid #456E8C;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+    .gen-preview-main .ico {width:40px;height:40px;color:#88B1C8}
+    .gen-preview-main strong {font-size:11px;letter-spacing:.12em}
+    .gen-preview-main small {color:#89A8BC;font:700 8px ui-monospace,monospace}
+    .gen-seat-strip {display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px}
+    .gen-seat-strip span {display:grid;place-items:center;background:#142B3C;border:1px solid #2F5872;border-radius:4px;height:24px;font:700 8px ui-monospace,monospace;color:#8DAEC3}
+    .gen-info {display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 11px;margin-top:7px;background:#101C29;border:1px solid #2A475A;border-radius:6px;font:700 10px ui-monospace,monospace;color:#ADC6D6}
+    .gen-info strong {color:#81B5D6;font-size:9px}
+    @media(max-width:850px){.gen-launch{display:flex;flex-direction:column;max-height:calc(100dvh - 18px);gap:18px;padding:17px}.gen-stage-preview{min-height:145px}.gen-launch .launch-intro h2{font-size:38px}}
+    @media(max-width:600px){.mode-dial{bottom:94px;width:calc(100% - 12px);height:82px;grid-template-columns:minmax(0,1fr) 74px minmax(0,1fr) minmax(0,1fr);padding:3px}.mode-hint{bottom:184px}.mode-node{flex-direction:column;justify-content:center;gap:2px;text-align:center;padding:6px 3px}.mode-node .mode-name{font-size:9px}.mode-node .mode-meta{font-size:8px;max-width:100%;overflow:hidden;text-overflow:ellipsis}.core-launch{width:66px;height:66px}.core-title{font-size:8px}}
+    /* NOVA PUBLIC STUDIO / isolated local video preview */
+    .fx-public-panel {
+      grid-template-columns: minmax(280px, 1.04fr) minmax(310px, .96fr);
+      gap: 28px;
+      padding: 30px;
+      background: radial-gradient(ellipse at 0 45%, rgba(27,51,68,.34), transparent 62%), rgba(8,11,15,.97);
+      border: 1px solid rgba(101,132,157,.26);
+      border-radius: 20px;
+    }
+    .fx-public-intro { gap: 18px; }
+    .fx-public-intro h2 { font-size: clamp(40px, 5.4vw, 76px); line-height: .89; margin-top: 10px; }
+    .fx-public-intro p { margin-top: 12px; max-width: 370px; }
+    .fx-public-stage {
+      min-width: 0; padding: 10px;
+      border: 1px solid rgba(93,123,150,.29);
+      border-radius: 14px; background: linear-gradient(140deg,#121c27,#070d14);
+    }
+    .fx-public-frame {
+      position: relative; isolation: isolate; aspect-ratio: 4 / 3; overflow: hidden;
+      background: radial-gradient(ellipse at 50% 35%, #273947,#070e17 72%);
+      border: 1px solid rgba(99,136,165,.3); border-radius: 10px; min-height: 210px;
+    }
+    #fxPublicVideo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: none; }
+    .fx-public-placeholder {
+      position: absolute; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 10px; text-align: center;
+      color: #a5b8c8; padding: 38px 16px;
+    }
+    .fx-public-placeholder .ico { width: 55px; height: 55px; color: #80a9c5; opacity: .74; }
+    .fx-public-placeholder strong { font-size: 12px; letter-spacing: .11em; color: #e6f3fb; }
+    .fx-public-placeholder small { color: #8ba1af; font-size: 11px; line-height: 1.6; }
+    .fx-public-hud { position: absolute; top: 12px; left: 12px; right: 12px;
+      display: flex; justify-content: space-between; gap: 7px; pointer-events: none;
+      font: 700 9px ui-monospace,monospace; color: #aabdc9; letter-spacing: .1em; }
+    .fx-public-indicator { color: #ff8d95; background: #190e15e3; padding: 5px 7px; border-radius: 30px; }
+    .fx-public-bottom-tag {
+      position: absolute; bottom: 10px; left: 12px; right: 12px;
+      pointer-events: none; text-align: left; font: 700 9px ui-monospace,monospace;
+      color: #cad6e2; letter-spacing: .09em; text-shadow: 0 1px 8px #000;
+    }
+    .fx-public-controls { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 7px; margin-top: 10px; }
+    .fx-public-controls button {
+      min-width: 0; min-height: 51px; background: #101a25; border: 1px solid #344a5c;
+      border-radius: 9px; color: #acbed0; display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 4px;
+    }
+    .fx-public-controls button .ico { width: 19px; height: 19px; }
+    .fx-public-controls button span { font: 700 9px ui-monospace,monospace; letter-spacing: .07em; }
+    .fx-public-controls button[aria-pressed="true"] { border-color: #2ed3b7; color: #2ed3b7; background: #12302f; }
+    .fx-public-controls button:focus-visible,.fx-public-filters button:focus-visible { outline: 2px solid #69bfe7; outline-offset: 2px; }
+    .fx-public-filters { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-top: 11px; }
+    .fx-public-filters>span { color: #8ea6b7; font: 800 9px ui-monospace,monospace; letter-spacing: .13em; margin-right: 3px; }
+    .fx-public-filters button {
+      border: 1px solid #344755; background: #0e1721; border-radius: 20px;
+      color: #acb7c7; font-size: 10px; padding: 7px 10px;
+    }
+    .fx-public-filters button.selected { border-color: #669bc6; background: #1c3550; color: #eff9ff; }
+    .fx-public-status { color: #8ba5b4; font-size: 10px; line-height: 1.55; margin-top: 10px; min-height: 16px; }
+    .fx-public-settings { padding-top: 8px; gap: 18px; }
+    .fx-public-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    .fx-public-stats>div {
+      padding: 12px 14px; border: 1px solid #304150; border-radius: 10px;
+      background: #101720; display: flex; flex-direction: column; gap: 5px;
+    }
+    .fx-public-stats span,.fx-public-stats small { color: #8ca2b4; font: 800 9px ui-monospace,monospace; letter-spacing: .1em; }
+    .fx-public-stats strong { font-size: 22px; letter-spacing: -.05em; }
+    .fx-public-section-title { color: #8ca2b4; font: 800 9px ui-monospace,monospace; letter-spacing: .15em; }
+    .fx-public-setting { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid #24323f; padding-bottom: 12px; }
+    .fx-public-setting>div { min-width: 0; }
+    .fx-public-setting strong { display: block; font-size: 12px; color: #d8e5ee; }
+    .fx-public-setting small { display: block; margin-top: 5px; font-size: 10px; color: #859aab; }
+    .fx-public-locked { color: #bb8e95; font: 700 8px ui-monospace,monospace; white-space: nowrap; }
+    .fx-public-warning { border-color: rgba(255,96,112,.25); background: rgba(255,96,112,.06); color: #e3acb2; }
+    .fx-public-warning .ico { color: #ff7e8b; }
+    .fx-public-disabled {
+      width: 100%; border: 1px solid rgba(255,96,112,.28); border-radius: 11px;
+      padding: 13px 17px; background: #2b171e; color: #bb7e88; cursor: not-allowed;
+      font: 800 10px ui-monospace,monospace; letter-spacing: .11em;
+    }
+    .fx-public-panel .launch-action { margin-top: 0; border-radius: 11px; }
+    @media (max-width: 850px) {
+      .fx-public-panel { display: flex; flex-direction: column; gap: 20px; max-height: calc(100dvh - 22px); padding: 22px 15px; border-radius: 15px; }
+      .fx-public-intro h2 { font-size: 44px; }
+      .fx-public-intro p { font-size: 11px; }
+      .fx-public-frame { min-height: 190px; }
+      .fx-public-intro { gap: 13px; }
+      .fx-public-settings { gap: 15px; }
+    }
+    @media (max-width: 420px) {
+      .fx-public-panel { padding: 18px 12px; }
+      .fx-public-frame { aspect-ratio: 16 / 11; min-height: 165px; }
+      .fx-public-controls button { min-height: 43px; }
+      .fx-public-controls button span { font-size: 8px; }
+      .fx-public-hud { font-size: 8px; }
+    }
+
+    /* PRIVATE / waiting room preview */
+    .private-waiting { background:#0B1722; border:1px solid #31576E; border-radius:8px; padding:12px; display:flex; flex-direction:column; gap:9px; }
+    .private-waiting-head { display:flex; align-items:center; justify-content:space-between; gap:9px; font:700 9px ui-monospace,monospace; letter-spacing:.10em; color:#A8C7DB; }
+    .private-waiting-head button { color:#4BDABC; background:#122B2C; border:1px solid #2B756D; border-radius:6px; padding:6px 9px; font:700 9px ui-monospace,monospace; }
+    .private-waiting-stage { min-height:145px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; padding:14px; border:1px solid #23465F; background:radial-gradient(ellipse at center,#15304A,#0A1320); border-radius:6px; text-align:center; }
+    .private-waiting-stage .ico { width:24px; height:24px; color:#79BBD4; }
+    .private-waiting-stage h3 {font:600 20px Georgia,serif; color:#F1F8FD; }
+    .private-waiting-stage p {font-size:11px;color:#A6C0D0;line-height:1.5}
+    .private-waiting-stage span {color:#35CDAE;font:700 8px ui-monospace,monospace;letter-spacing:.08em}
+    .private-waiting small {font-size:10px;color:#8BA9BC;line-height:1.5}
+    .private-waiting-editor {display:grid;gap:9px}
+    .private-waiting-editor[hidden] {display:none}
+    .private-waiting-editor label {font:700 9px ui-monospace,monospace; color:#8CABBD;letter-spacing:.10em}
+    .private-waiting-editor input {display:block;width:100%;margin-top:6px;padding:10px;background:#101D29;color:#F4FBFF;border:1px solid #345A75;border-radius:6px}
     /* ============================================================
        COMMAND CENTER
     ============================================================ */
@@ -1984,6 +2114,667 @@
       .fx-locked-avatar { max-height: 48%; }
     }
 
+
+    /* FX NOVA V7 — 3 modes always visible + refined mobile controls */
+    .mode-dial {
+      bottom: max(14px, env(safe-area-inset-bottom, 0px));
+      width: min(640px, calc(100% - 28px));
+      height: auto;
+      min-height: 0;
+      padding: 9px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-rows: auto 52px;
+      gap: 7px;
+      border-radius: 20px;
+      border: 1px solid rgba(96, 139, 153, .30);
+      background: rgba(6, 12, 16, .96);
+      box-shadow: 0 18px 64px rgba(0, 0, 0, .62);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+    }
+    .mode-dial > .mode-node {
+      grid-row: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      gap: 3px;
+      min-width: 0;
+      min-height: 58px;
+      padding: 9px 3px;
+      border-radius: 12px;
+      background: #10191f;
+      border: 1px solid rgba(153, 192, 208, .09);
+      color: #a4b0b9;
+    }
+    .mode-dial > .mode-node.live { grid-column: 1; }
+    .mode-dial > .mode-node.private { grid-column: 2; }
+    .mode-dial > .mode-node.general { grid-column: 3; }
+    .mode-dial > .mode-node.selected {
+      color: #edfffa;
+      background: rgba(39, 201, 179, .14);
+      border-color: rgba(46, 211, 183, .64);
+      box-shadow: inset 0 0 0 1px rgba(46, 211, 183, .08);
+    }
+    .mode-dial .mode-index {
+      display: block;
+      font-size: 8px;
+      line-height: 1;
+      letter-spacing: .08em;
+      color: #728690;
+    }
+    .mode-dial .mode-name {
+      font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+      font-size: clamp(10px, 2.7vw, 12px);
+      letter-spacing: .075em;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .mode-dial .mode-meta {
+      display: block;
+      font-size: clamp(8px, 2.1vw, 10px);
+      letter-spacing: 0;
+      color: #7d929d;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+    .mode-dial > .core-launch {
+      grid-column: 1 / -1;
+      grid-row: 2;
+      justify-self: stretch;
+      align-self: stretch;
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      width: 100%;
+      height: 52px;
+      min-height: 52px;
+      border-radius: 12px;
+      background: #2bcdb4;
+      color: #071b1a;
+      box-shadow: none;
+    }
+    .mode-dial > .core-launch .core-kicker {
+      font-size: 12px;
+      font-weight: 800;
+      opacity: 1;
+    }
+    .mode-dial > .core-launch .core-title {
+      max-width: none;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .05em;
+    }
+    .mode-dial > .core-launch .core-arrow {
+      font-size: 16px;
+      margin: 0;
+    }
+    .mode-dial > .core-launch:hover,
+    .mode-dial > .core-launch:active {
+      transform: none;
+      box-shadow: none;
+    }
+    .mode-hint { display: none !important; }
+    .recent-orbit { bottom: 207px; }
+    .camera-bottom-caption { bottom: 213px; }
+    #fxNovaNotice { bottom: 219px; }
+
+    /* Compact, single-column mobile controls; desktop can use two columns. */
+    #screen-command {
+      overflow: hidden;
+      padding: clamp(12px, 2.5vw, 24px);
+      background: #050a0d;
+    }
+    .command-head {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      grid-template-rows: auto auto auto;
+      align-items: center;
+      gap: 13px 8px;
+      padding-bottom: 14px;
+      border-bottom: 0;
+    }
+    .command-head .back-btn {
+      grid-column: 1;
+      grid-row: 1;
+      justify-self: start;
+      border-radius: 8px;
+      font-size: 10px;
+    }
+    .command-head > .text-action {
+      grid-column: 2;
+      grid-row: 1;
+      justify-self: end;
+      border-radius: 8px;
+    }
+    .command-head .command-title {
+      grid-column: 1 / -1;
+      grid-row: 2;
+      min-width: 0;
+    }
+    .command-title h2 {
+      font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+      font-size: clamp(29px, 6.2vw, 40px);
+      line-height: 1.15;
+      font-weight: 700;
+      letter-spacing: -.055em;
+      margin: 3px 0 8px;
+    }
+    .command-title .micro {
+      display: block;
+      max-width: 620px;
+      line-height: 1.5;
+      font-size: 9px;
+      letter-spacing: .10em;
+      color: #8b9aa4;
+    }
+    .command-head .search-box {
+      grid-column: 1 / -1;
+      grid-row: 3;
+      order: initial;
+      width: 100%;
+      max-width: none;
+      min-width: 0;
+      padding: 12px 14px;
+      border: 1px solid rgba(116, 158, 170, .22);
+      border-radius: 11px;
+      background: #10181d;
+    }
+    .command-body {
+      flex: 1;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto minmax(0, 1fr);
+      gap: 0;
+      padding-top: 0;
+    }
+    .command-rail {
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      min-width: 0;
+      min-height: 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 0 0 13px;
+      border-right: 0;
+      border-bottom: 1px solid rgba(116, 158, 170, .15);
+      scrollbar-width: none;
+    }
+    .command-rail::-webkit-scrollbar { display: none; }
+    .command-rail .rail-cat {
+      display: flex;
+      flex-direction: column;
+      flex: 0 0 auto;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 3px;
+      width: auto;
+      max-width: 150px;
+      min-width: 116px;
+      min-height: 59px;
+      padding: 10px 12px;
+      border: 1px solid rgba(116, 158, 170, .13);
+      border-radius: 10px;
+      background: #10191f;
+      white-space: normal;
+      text-align: left;
+      line-height: 1.15;
+      font-size: 11px;
+      scroll-snap-align: start;
+    }
+    .command-rail .rail-cat.active {
+      color: #dffbf6;
+      background: rgba(39, 201, 179, .12);
+      border-color: rgba(39, 201, 179, .55);
+      box-shadow: none;
+    }
+    .command-main {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      min-width: 0;
+      padding-top: 14px;
+    }
+    .command-main-head {
+      align-items: center;
+      gap: 8px;
+      padding: 0 0 13px;
+    }
+    .command-main-head h3 {
+      font-size: clamp(21px, 5.5vw, 29px);
+      font-weight: 750;
+      line-height: 1.2;
+    }
+    .command-main-head .reset-btn {
+      border-radius: 8px;
+      font-size: 9px;
+      padding: 9px;
+    }
+    .param-grid {
+      grid-template-columns: 1fr;
+      gap: 8px;
+      padding: 0 0 36px;
+      overscroll-behavior: contain;
+    }
+    .param {
+      min-height: 95px;
+      border: 1px solid rgba(116, 158, 170, .16);
+      border-radius: 12px;
+      clip-path: none;
+      padding: 14px;
+      background: #0d151a;
+    }
+    .param-copy strong { font-size: 13px; }
+    .param-copy small { font-size: 10px; line-height: 1.45; }
+    .param-code { font-size: 8px; }
+    @media (max-width: 760px) {
+      .mode-dial {
+        bottom: max(12px, env(safe-area-inset-bottom, 0px));
+        width: calc(100% - 20px);
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-rows: auto 52px;
+      }
+      .mode-dial > .mode-node {
+        min-height: 59px;
+        padding: 8px 2px;
+        gap: 3px;
+      }
+      .mode-dial > .core-launch {
+        width: 100%;
+        height: 52px;
+        border-radius: 12px;
+      }
+      .recent-orbit { bottom: 212px; left: 15px; }
+      .camera-bottom-caption {
+        left: 15px;
+        bottom: 227px;
+        max-width: 64%;
+        font-size: 9px;
+      }
+      #fxNovaNotice { bottom: 225px; left: 15px; }
+      .control-rail { right: 11px; }
+      #screen-command { padding: 13px 15px 18px; }
+      .command-head { flex-wrap: initial; }
+    }
+    @media (max-width: 360px) {
+      .mode-dial .mode-name { font-size: 10px; }
+      .mode-dial .mode-meta { font-size: 8px; }
+      .command-rail .rail-cat { min-width: 101px; }
+    }
+    @media (min-width: 900px) {
+      .command-body { grid-template-columns: 180px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); gap: 18px; padding-top: 10px; }
+      .command-rail { flex-direction: column; overflow-y: auto; overflow-x: hidden; border-right: 1px solid rgba(116,158,170,.15); border-bottom: 0; padding: 0 14px 0 0; }
+      .command-rail .rail-cat { flex-direction: row; min-width: 0; width: 100%; max-width: none; min-height: 44px; align-items: center; }
+      .param-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    /* FX CALL MOBILE V8: BEGIN
+       Mobile-only layout layer. Keep the desktop Command Center untouched.
+       One document serves Safari, the Expo WebView and the web preview. */
+    @media screen and (max-width: 899px) {
+      #screen-command {
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+        overflow: hidden;
+        padding: max(12px, env(safe-area-inset-top, 0px)) 14px max(12px, env(safe-area-inset-bottom, 0px));
+      }
+      #screen-command.active {
+        display: flex;
+        flex-direction: column;
+      }
+      .command-head {
+        flex: 0 0 auto;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-rows: auto auto auto;
+        align-items: center;
+        gap: 9px;
+        margin: 0;
+        padding: 0 0 12px;
+        border-bottom: 1px solid rgba(116, 158, 170, .18);
+      }
+      .command-head .back-btn {
+        grid-area: 1 / 1;
+        justify-self: start;
+        min-height: 36px;
+        padding: 8px 12px;
+        border-radius: 9px;
+        font-size: 10px;
+      }
+      .command-head > .text-action {
+        grid-area: 1 / 2;
+        justify-self: end;
+        min-height: 36px;
+        padding: 8px 11px;
+        border-radius: 9px;
+      }
+      .command-head .command-title {
+        grid-area: 2 / 1 / auto / -1;
+        min-width: 0;
+        overflow: visible;
+      }
+      .command-head .command-title h2 {
+        margin: 3px 0 3px;
+        font-size: clamp(27px, 8vw, 34px);
+        line-height: 1.08;
+        letter-spacing: -.055em;
+        overflow-wrap: anywhere;
+      }
+      .command-head .command-title .micro {
+        display: block;
+        font-size: 9px;
+        letter-spacing: .07em;
+        line-height: 1.4;
+        overflow-wrap: anywhere;
+      }
+      .command-head .search-box {
+        grid-area: 3 / 1 / auto / -1;
+        order: initial;
+        flex: none;
+        width: 100%;
+        max-width: none;
+        min-width: 0;
+        min-height: 43px;
+        padding: 9px 12px;
+        border-radius: 10px;
+      }
+      .command-head .search-box input {
+        min-width: 0;
+        font-size: 16px; /* Avoid iOS Safari zoom on focus */
+      }
+      .command-body {
+        flex: 1 1 auto;
+        min-width: 0;
+        min-height: 0;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto minmax(0, 1fr);
+        gap: 0;
+        padding: 10px 0 0;
+        overflow: hidden;
+      }
+      .command-rail {
+        display: flex;
+        flex-direction: row;
+        align-items: stretch;
+        gap: 7px;
+        max-width: 100%;
+        min-width: 0;
+        min-height: 0;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 0 0 10px;
+        border-right: 0;
+        border-bottom: 1px solid rgba(116, 158, 170, .18);
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-x;
+        scroll-snap-type: x proximity;
+        scrollbar-width: none;
+      }
+      .command-rail::-webkit-scrollbar { display: none; }
+      .command-rail .rail-cat {
+        flex: 0 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        gap: 4px;
+        width: auto;
+        min-width: 108px;
+        max-width: 155px;
+        min-height: 54px;
+        margin: 0;
+        padding: 9px 12px;
+        border: 1px solid rgba(116, 158, 170, .17);
+        border-radius: 10px;
+        background: #10191f;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        text-align: left;
+        font-size: 11px;
+        line-height: 1.15;
+        scroll-snap-align: start;
+      }
+      .command-rail .rail-cat.active {
+        border-color: rgba(46, 211, 183, .6);
+        color: #e0faf5;
+        background: rgba(46, 211, 183, .12);
+        box-shadow: none;
+      }
+      .command-main {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 auto;
+        min-height: 0;
+        min-width: 0;
+        overflow: hidden;
+        padding: 12px 0 0;
+      }
+      .command-main-head {
+        display: flex;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: space-between;
+        gap: 9px;
+        min-width: 0;
+        padding: 0 1px 10px;
+      }
+      .command-main-head > div { min-width: 0; }
+      .command-main-head h3 {
+        font-size: clamp(20px, 6vw, 27px);
+        line-height: 1.15;
+        overflow-wrap: anywhere;
+      }
+      .command-main-head .reset-btn {
+        flex: 0 0 auto;
+        min-height: 34px;
+        padding: 8px 10px;
+        border-radius: 9px;
+        font-size: 9px;
+      }
+      .param-grid {
+        display: grid;
+        flex: 1 1 auto;
+        min-height: 0;
+        min-width: 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+        grid-template-columns: minmax(0, 1fr);
+        align-content: start;
+        gap: 9px;
+        padding: 0 2px max(24px, env(safe-area-inset-bottom, 0px)) 0;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+        touch-action: pan-y;
+      }
+      .param {
+        width: 100%;
+        min-width: 0;
+        min-height: 104px;
+        padding: 14px;
+        gap: 14px;
+        border: 1px solid rgba(116, 158, 170, .20);
+        border-radius: 11px;
+        clip-path: none;
+      }
+      .param-copy strong { font-size: 13px; line-height: 1.35; overflow-wrap: anywhere; }
+      .param-copy small { font-size: 11px; line-height: 1.45; overflow-wrap: anywhere; }
+      .param-value { min-width: 0; overflow-wrap: anywhere; }
+      .param-value .chev { flex: none; }
+
+      /* Studio: all three real choices visible above the separate Expo tabs. */
+      .mode-dial {
+        z-index: 40;
+        left: 50%;
+        bottom: max(10px, env(safe-area-inset-bottom, 0px));
+        width: calc(100% - 20px);
+        height: auto;
+        min-height: 0;
+        padding: 8px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-rows: minmax(59px, auto) 50px;
+        gap: 6px;
+        border-radius: 16px;
+        background: rgba(6, 12, 16, .97);
+      }
+      .mode-dial > .mode-node {
+        grid-row: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 3px;
+        min-width: 0;
+        min-height: 59px;
+        padding: 7px 2px;
+        text-align: center;
+        border-radius: 10px;
+      }
+      .mode-dial > .mode-node.live { grid-column: 1; }
+      .mode-dial > .mode-node.private { grid-column: 2; }
+      .mode-dial > .mode-node.general { grid-column: 3; }
+      .mode-dial .mode-name { font-size: clamp(10px, 2.7vw, 12px); white-space: nowrap; }
+      .mode-dial .mode-meta { display: block; font-size: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .mode-dial .mode-index { display: block; }
+      .mode-dial > .core-launch {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        justify-self: stretch;
+        align-self: stretch;
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        height: 50px;
+        min-height: 50px;
+        padding: 6px;
+        border-radius: 10px;
+        box-shadow: none;
+      }
+      .mode-dial > .core-launch .core-kicker { font-size: 11px; }
+      .mode-dial > .core-launch .core-title { font-size: 11px; max-width: none; }
+      .mode-dial > .core-launch .core-arrow { margin: 0; }
+      .mode-hint { display: none !important; }
+      .recent-orbit { bottom: 203px; }
+      .camera-bottom-caption { bottom: 215px; max-width: 60%; }
+      .launch-panel {
+        width: min(100%, 520px);
+        max-height: calc(100% - 22px);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+      }
+    }
+    @media screen and (max-width: 380px) {
+      #screen-command { padding-left: 10px; padding-right: 10px; }
+      .command-head .command-title h2 { font-size: 25px; }
+      .command-rail .rail-cat { min-width: 98px; max-width: 137px; padding: 8px 9px; }
+      .param { padding: 12px; }
+      .mode-dial .mode-name { font-size: 10px; }
+      .mode-dial .mode-meta { font-size: 8px; }
+    }
+    @media screen and (max-height: 600px) and (max-width: 899px) {
+      .command-head { gap: 6px; padding-bottom: 8px; }
+      .command-head .command-title h2 { font-size: 23px; }
+      .command-head .command-title .micro:last-child { display: none; }
+      .command-head .search-box { min-height: 38px; padding: 6px 10px; }
+      .command-rail .rail-cat { min-height: 45px; }
+      .command-main { padding-top: 8px; }
+      .param { min-height: 88px; }
+      .camera-bottom-caption { display: none; }
+      .recent-orbit { bottom: 174px; }
+    }
+    /* FX CALL MOBILE V8: END */
+
+    /* FX CALL PRIVATE ICONS V9 — inline, borderless, icon-only controls. */
+    #launch-private .fx-private-icon-choices,
+    #launch-private .fx-private-icon-toggles {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-start;
+      column-gap: 14px;
+      row-gap: 9px;
+    }
+    #launch-private .fx-private-icon-choices > .choice,
+    #launch-private .fx-private-icon-toggles > .toggle-pill {
+      appearance: none;
+      -webkit-appearance: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      width: 48px;
+      min-width: 48px;
+      height: 48px;
+      min-height: 48px;
+      padding: 9px;
+      margin: 0;
+      gap: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+      outline: none;
+      color: #e9f2f4;
+      opacity: 0.6;
+      cursor: pointer;
+      transition: opacity 180ms ease, color 180ms ease, transform 180ms ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #launch-private .fx-private-icon-toggles > .toggle-pill::before {
+      content: none;
+      display: none;
+    }
+    #launch-private .fx-private-icon-choices > .choice.active,
+    #launch-private .fx-private-icon-toggles > .toggle-pill.on {
+      color: #2ed3b7;
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+      opacity: 1;
+    }
+    #launch-private .fx-private-icon-choices > .choice:not(.active),
+    #launch-private .fx-private-icon-toggles > .toggle-pill:not(.on) {
+      opacity: 0.6;
+    }
+    #launch-private .fx-private-icon-choices > .choice > .ico,
+    #launch-private .fx-private-icon-toggles > .toggle-pill > .ico {
+      width: 27px;
+      height: 27px;
+      stroke-width: 1.8;
+      flex: none;
+      pointer-events: none;
+    }
+    #launch-private .fx-private-icon-choices > .choice:focus-visible,
+    #launch-private .fx-private-icon-toggles > .toggle-pill:focus-visible {
+      outline: 2px solid #2ed3b7;
+      outline-offset: 2px;
+      border-radius: 3px;
+    }
+    @media (hover:hover) {
+      #launch-private .fx-private-icon-choices > .choice:hover,
+      #launch-private .fx-private-icon-toggles > .toggle-pill:hover {
+        opacity: 1;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #launch-private .fx-private-icon-choices > .choice,
+      #launch-private .fx-private-icon-toggles > .toggle-pill {
+        transition: none;
+      }
+    }
+    /* FX CALL PRIVATE ICONS V9 END */
+
   </style>
 </head>
 <body>
@@ -2030,6 +2821,22 @@
         <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
       </symbol>
 
+      <symbol id="i-headphones" viewBox="0 0 24 24">
+        <path d="M3 14v-3a9 9 0 0 1 18 0v3"></path>
+        <rect x="2" y="13" width="4" height="8" rx="2"></rect>
+        <rect x="18" y="13" width="4" height="8" rx="2"></rect>
+      </symbol>
+      <symbol id="i-shield-check" viewBox="0 0 24 24">
+        <path d="M12 22s9-4 9-11V5l-9-3-9 3v6c0 7 9 11 9 11Z"></path>
+        <path d="m8.5 12 2.5 2.5 4.5-5"></path>
+      </symbol>
+      <symbol id="i-link" viewBox="0 0 24 24">
+        <path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7.1-7.1l-1.7 1.7"></path>
+        <path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7.1 7.1l1.7-1.7"></path>
+      </symbol>
+      <symbol id="i-hourglass" viewBox="0 0 24 24">
+        <path d="M5 2h14M5 22h14M7 2v5l5 5-5 5v5M17 2v5l-5 5 5 5v5"></path>
+      </symbol>
       <symbol id="i-search" viewBox="0 0 24 24">
         <circle cx="11" cy="11" r="7"></circle>
         <path d="m20 20-3.5-3.5"></path>
@@ -2100,7 +2907,7 @@
           </div>
 
           <button class="text-action" type="button" data-action="settings">
-            AJUSTES <span>↗</span>
+            CONTROLS <span>↗</span>
           </button>
         </div>
 
@@ -2120,59 +2927,63 @@
         </div>
 
         <div class="recent-orbit">
-          <span class="micro">TUS SALAS</span>
+          <span class="micro">YOUR ROOMS</span>
           <div class="recent-avatars" id="fxNovaRecent"><button class="recent-btn add" type="button" onclick="FXNOVA_post('open-meetings')" aria-label="All meetings">+</button></div>
         </div>
 
         <div class="camera-bottom-caption">
           <span class="dot"></span>
-          <span id="fxCaption">Cámara apagada · toca el icono de cámara para activarla</span>
+          <span id="fxCaption">Camera off · tap the camera icon to start a local preview</span>
         </div>
 
         <div class="control-rail">
-          <button class="rail-btn" type="button" data-action="mic" title="Micrófono" aria-label="Micrófono">
+          <button class="rail-btn" type="button" data-action="mic" title="Microphone" aria-label="Microphone">
             <svg class="ico"><use href="#i-mic"></use></svg>
           </button>
 
-          <button class="rail-btn" type="button" data-action="cam" title="Cámara" aria-label="Cámara">
+          <button class="rail-btn" type="button" data-action="cam" title="Camera" aria-label="Camera">
             <svg class="ico"><use href="#i-camera"></use></svg>
           </button>
 
-          <button class="rail-btn" type="button" data-action="flip" title="Cambiar cámara" aria-label="Cambiar cámara">
+          <button class="rail-btn" type="button" data-action="flip" title="Switch camera" aria-label="Switch camera">
             <svg class="ico"><use href="#i-flip"></use></svg>
           </button>
 
-          <button class="rail-btn" type="button" data-action="fx" title="Efectos" aria-label="Efectos">
+          <button class="rail-btn" type="button" data-action="fx" title="Effects" aria-label="Effects">
             <svg class="ico"><use href="#i-sparkle"></use></svg>
           </button>
 
-          <button class="rail-btn" type="button" data-action="settings" title="Command Center" aria-label="Ajustes">
+          <button class="rail-btn" type="button" data-action="settings" title="Studio Controls" aria-label="Studio Controls">
             <svg class="ico"><use href="#i-gear"></use></svg>
           </button>
         </div>
       </div>
 
-      <div class="mode-dial" aria-label="Seleccionar modo">
+      <div class="mode-dial" aria-label="Choose a call mode">
         <button class="mode-node live selected" type="button" data-mode="live" onclick="selectMode('live')">
           <span class="mode-index">01</span>
           <span>
-            <span class="mode-name">EN VIVO</span>
-            <span class="mode-meta">Con invitación</span>
+            <span class="mode-name">LIVE</span>
+            <span class="mode-meta">Invite-only</span>
           </span>
         </button>
 
-        <button class="core-launch" type="button" id="coreLaunch" onclick="launchSelected()" aria-label="Abrir secuencia del modo seleccionado">
-          <span class="core-kicker">ABRIR</span>
-          <span class="core-title" id="coreTitle">EN VIVO</span>
+        <button class="core-launch" type="button" id="coreLaunch" onclick="launchSelected()" aria-label="Open the selected mode">
+          <span class="core-kicker">OPEN</span>
+          <span class="core-title" id="coreTitle">LIVE</span>
           <span class="core-arrow">↗</span>
         </button>
 
         <button class="mode-node private" type="button" data-mode="private" onclick="selectMode('private')">
           <span class="mode-index">02</span>
           <span>
-            <span class="mode-name">PRIVADO</span>
+            <span class="mode-name">PRIVATE</span>
             <span class="mode-meta">1:1</span>
           </span>
+        </button>
+        <button class="mode-node general" type="button" data-mode="general" onclick="selectMode('general')">
+          <span class="mode-index">03</span>
+          <span><span class="mode-name">GENERAL</span><span class="mode-meta">Group room</span></span>
         </button>
       </div>
 
@@ -2314,6 +3125,46 @@
       </div>
     </section>
 
+    <!-- GENERAL ROOM — real invite-only creation; stage is a layout preview -->
+    <div class="launch" id="launch-general" aria-hidden="true">
+      <div class="launch-scrim" onclick="closeLaunch()"></div>
+      <div class="launch-panel gen-launch" role="dialog" aria-modal="true" aria-labelledby="genLaunchTitle">
+        <button class="launch-close" type="button" aria-label="Close General Room" onclick="closeLaunch()"><svg class="ico"><use href="#i-close"></use></svg></button>
+        <div class="launch-intro">
+          <div>
+            <span class="seq-label">SEQ / 03 — GROUP STUDIO</span>
+            <h2 id="genLaunchTitle">GENERAL<br><span>ROOM</span></h2>
+            <p>A group meeting with a featured stage, a pinned tile, three side cameras and a 20-slot guest strip. Manage real guests and access from your room dashboard.</p>
+          </div>
+          <div class="gen-preview" aria-label="Group room design preview; no participants connected">
+            <div class="gen-caption"><span>GROUP STAGE / LAYOUT PREVIEW</span><span>OFF AIR</span></div>
+            <div class="gen-stage-preview">
+              <div class="gen-preview-rail"><div>PINNED <small>EMPTY</small></div><div>CAM 02 <small>EMPTY</small></div><div>CAM 03 <small>EMPTY</small></div><div>CAM 04 <small>EMPTY</small></div></div>
+              <div class="gen-preview-main"><svg class="ico"><use href="#i-camera"></use></svg><strong>MAIN CAMERA</strong><small>OFF · NOT STREAMING</small></div>
+            </div>
+            <div class="gen-caption" style="margin-top:12px">20 GUEST SLOTS · DESIGN ONLY</div>
+            <div class="gen-seat-strip"><span>01</span><span>02</span><span>03</span><span>04</span><span>05</span><span>06</span><span>07</span><span>08</span><span>09</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span></div>
+          </div>
+          <span class="launch-stamp">● GROUP ROOM / INVITE ONLY</span>
+        </div>
+        <div class="launch-form">
+          <span class="seq-label">NOVA / ROOM CONFIGURATION</span>
+          <label class="field">ROOM NAME<input id="generalTitleInput" type="text" value="General room" maxlength="80" autocomplete="off" /></label>
+          <div class="field">ACCESS<div class="choice-row"><button class="choice active" type="button">Invitation required</button><button class="choice" type="button" disabled>Public · unavailable</button></div></div>
+          <div class="field">SECURITY
+            <div class="gen-info"><span>Host approval</span><strong>SUPPORTED</strong></div>
+            <div class="gen-info"><span>Invitation expiry</span><strong>HOST DASHBOARD</strong></div>
+            <div class="gen-info"><span>Screen sharing</span><strong>DISABLED</strong></div>
+            <div class="gen-info"><span>Telegram Stars</span><strong>NOT CONNECTED</strong></div>
+          </div>
+          <div class="launch-note"><svg class="ico"><use href="#i-lock"></use></svg>
+            This creates a real invitation-only FX CALL room. Public discovery, paid access and the 20-seat layout are not yet implemented in the LiveKit call UI. Screenshot prevention cannot be guaranteed.
+          </div>
+          <button class="launch-action" type="button" onclick="startGeneral()">CREATE GROUP ROOM <span>↗</span></button>
+        </div>
+      </div>
+    </div>
+
     <!-- ============================================================
          COMMAND CENTER
     ============================================================ -->
@@ -2322,28 +3173,28 @@
         <button class="back-btn" type="button" onclick="closeCommand()">← STUDIO</button>
 
         <div class="command-title">
-          <span class="micro">NOVA / CONTROL</span>
-          <h2>Command Center</h2><span class="micro">Los controles de vista previa son locales · Cuenta abre los ajustes reales</span>
+          <span class="micro">FX CALL / NOVA</span>
+          <h2>Studio Controls</h2><span class="micro">LOCAL PREVIEW CONTROLS · ACCOUNT SETTINGS ARE IN PROFILE</span>
         </div>
 
         <div class="search-box">
           <svg class="ico"><use href="#i-search"></use></svg>
-          <input id="commandSearch" type="search" placeholder="Buscar parámetro, función o módulo…" autocomplete="off" />
+          <input id="commandSearch" type="search" placeholder="Search settings and controls…" autocomplete="off" />
         </div>
 
-        <button class="text-action" type="button" onclick="closeCommand()">ESC · CERRAR</button>
+        <button class="text-action" type="button" onclick="closeCommand()">CLOSE ✕</button>
       </header>
 
       <div class="command-body">
-        <aside class="command-rail" id="categoryRail" aria-label="Categorías de ajustes"></aside>
+        <aside class="command-rail" id="categoryRail" aria-label="Settings categories"></aside>
 
         <main class="command-main">
           <div class="command-main-head">
             <div>
-              <span class="micro" id="catKicker">MÓDULO 01</span>
-              <h3 id="catTitle">Cuenta y perfil</h3>
+              <span class="micro" id="catKicker">SECTION 01</span>
+              <h3 id="catTitle">Account & Profile</h3>
             </div>
-            <button class="reset-btn" type="button" id="resetBtn">RESTABLECER</button>
+            <button class="reset-btn" type="button" id="resetBtn">RESET</button>
           </div>
 
           <div class="param-grid" id="paramGrid"></div>
@@ -2352,68 +3203,105 @@
     </section>
 
     <!-- ============================================================
-         LAUNCH: LIVE
+         NOVA / PUBLIC LIVE CAMERA PREVIEW
+         Browser-local media only. Public streaming is NOT enabled.
     ============================================================ -->
     <div class="launch" id="launch-live" aria-hidden="true">
       <div class="launch-scrim" onclick="closeLaunch()"></div>
 
-      <div class="launch-panel" role="dialog" aria-modal="true" aria-labelledby="liveLaunchTitle">
-        <button class="launch-close" type="button" onclick="closeLaunch()" aria-label="Cerrar">
+      <div class="launch-panel fx-public-panel" role="dialog" aria-modal="true" aria-labelledby="liveLaunchTitle">
+        <button class="launch-close" type="button" onclick="closeLaunch()" aria-label="Close public preview">
           <svg class="ico"><use href="#i-close"></use></svg>
         </button>
 
-        <div class="launch-intro">
+        <div class="launch-intro fx-public-intro">
           <div>
-            <span class="seq-label">SEQ / 01 — BROADCAST</span>
-            <h2 id="liveLaunchTitle">EN<br><span>VIVO</span></h2>
-            <p>Configura la señal antes de abrir la puerta. Tu cámara no será visible hasta que confirmes la emisión.</p>
+            <span class="seq-label">SEQ / 01 — PUBLIC STUDIO</span>
+            <h2 id="liveLaunchTitle">PUBLIC<br><span>LIVE</span></h2>
+            <p>Set up your camera before inviting anyone. This is a local preview — nothing is being broadcast or recorded.</p>
           </div>
 
-          <span class="launch-stamp">● LISTO PARA SALIR</span>
+          <div class="fx-public-stage" aria-label="Local camera preview">
+            <div class="fx-public-frame">
+              <video id="fxPublicVideo" autoplay muted playsinline aria-label="Your local video preview"></video>
+              <div class="fx-public-placeholder" id="fxPublicPlaceholder" aria-hidden="false">
+                <svg class="ico" aria-hidden="true"><use href="#i-camera"></use></svg>
+                <strong>CAMERA OFF</strong>
+                <small>Tap CAMERA to turn on your preview.</small>
+              </div>
+              <div class="fx-public-hud">
+                <span class="fx-public-indicator">● OFF AIR</span>
+                <span>CAM / LOCAL</span>
+              </div>
+              <span class="fx-public-bottom-tag">PREVIEW ONLY · NOT STREAMING</span>
+            </div>
+
+            <div class="fx-public-controls" aria-label="Local camera controls">
+              <button type="button" data-public-control="cam" aria-label="Enable camera preview" aria-pressed="false">
+                <svg class="ico"><use href="#i-camera"></use></svg><span>CAMERA</span>
+              </button>
+              <button type="button" data-public-control="mic" aria-label="Enable local microphone test" aria-pressed="false">
+                <svg class="ico"><use href="#i-mic"></use></svg><span>MIC</span>
+              </button>
+              <button type="button" data-public-control="flip" aria-label="Switch camera">
+                <svg class="ico"><use href="#i-flip"></use></svg><span>FLIP</span>
+              </button>
+              <button type="button" data-public-control="stop" aria-label="Stop local camera and microphone">
+                <svg class="ico"><use href="#i-end"></use></svg><span>STOP</span>
+              </button>
+            </div>
+            <div class="fx-public-filters" aria-label="Camera filters">
+              <span>FILTER</span>
+              <button type="button" data-public-filter="natural" class="selected" aria-pressed="true">Natural</button>
+              <button type="button" data-public-filter="studio" aria-pressed="false">Studio</button>
+              <button type="button" data-public-filter="mono" aria-pressed="false">Mono</button>
+              <button type="button" data-public-filter="warm" aria-pressed="false">Warm</button>
+            </div>
+            <div id="fxPublicStatus" class="fx-public-status" aria-live="polite">Camera and microphone are off.</div>
+          </div>
+          <span class="launch-stamp">● LOCAL STUDIO · OFF AIR</span>
         </div>
 
-        <div class="launch-form">
+        <div class="launch-form fx-public-settings">
+          <span class="seq-label">NOVA / LIVE CONFIGURATION</span>
           <label class="field">
-            NOMBRE DE LA EMISIÓN
-            <input id="liveTitleInput" type="text" value="Mi sala en vivo" />
+            SESSION TITLE
+            <input id="liveTitleInput" type="text" value="My Live Room" maxlength="80" />
           </label>
-
           <div class="field">
-            AUDIENCIA
+            VISIBILITY
             <div class="choice-row" id="audienceChoices">
-              <button class="choice" type="button" disabled title="La emisión pública aún no está activada">Público · no disponible</button>
-              <button class="choice" type="button" disabled title="La emisión a seguidores aún no está activada">Seguidores · no disponible</button>
-              <button class="choice active" type="button" onclick="selectChoice(this)">Solo invitados</button>
-              <button class="choice" type="button" onclick="selectChoice(this)">Enlace privado</button>
+              <button class="choice" type="button" disabled title="Public streaming requires a broadcasting backend">Public · unavailable</button>
+              <button class="choice" type="button" disabled title="Follower broadcasting requires a broadcasting backend">Followers · unavailable</button>
+              <button class="choice active" type="button" onclick="selectChoice(this)">Invite only</button>
+              <button class="choice" type="button" onclick="selectChoice(this)">Private link</button>
             </div>
           </div>
-
-          <div class="field">
-            CALIDAD DE SEÑAL
-            <div class="choice-row">
-              <button class="choice active" type="button" onclick="selectChoice(this)">Automática</button>
-              <button class="choice" type="button" onclick="selectChoice(this)">1080p</button>
-              <button class="choice" type="button" onclick="selectChoice(this)">720p</button>
-            </div>
+          <div class="fx-public-stats" aria-label="Stream status">
+            <div><span>VIEWERS</span><strong>0</strong><small>OFF AIR</small></div>
+            <div><span>DURATION</span><strong>00:00</strong><small>NO BROADCAST</small></div>
           </div>
 
-          <div class="field">
-            DURANTE LA EMISIÓN
-            <div class="toggle-pills">
-              <button class="toggle-pill on" type="button" onclick="togglePill(this)">Chat abierto</button>
-              <button class="toggle-pill on" type="button" onclick="togglePill(this)">Notificar seguidores</button>
-              <button class="toggle-pill" type="button" onclick="togglePill(this)">Grabar en local</button>
-              <button class="toggle-pill" type="button" onclick="togglePill(this)">Moderación</button>
-            </div>
+          <div class="fx-public-section-title">AUDIENCE &amp; MODERATION</div>
+          <div class="fx-public-setting">
+            <div><strong>Public chat</strong><small>Available after broadcast integration</small></div>
+            <span class="fx-public-locked">UNAVAILABLE</span>
           </div>
-
-          <div class="launch-note">
+          <div class="fx-public-setting">
+            <div><strong>Moderation queue</strong><small>Review viewer messages before display</small></div>
+            <span class="fx-public-locked">UNAVAILABLE</span>
+          </div>
+          <div class="fx-public-setting">
+            <div><strong>Viewer notifications</strong><small>Notify subscribers when going live</small></div>
+            <span class="fx-public-locked">UNAVAILABLE</span>
+          </div>
+          <div class="launch-note fx-public-warning">
             <svg class="ico"><use href="#i-lock"></use></svg>
-            Se abre una sala real de FX CALL con invitaciones. La emisión pública aún no está configurada.
+            PUBLIC LIVE is a camera preview only. No streaming server is connected. You can still create a real, host-approved invite-only room.
           </div>
-
+          <button type="button" class="fx-public-disabled" disabled aria-disabled="true">● GO LIVE · NOT CONNECTED</button>
           <button class="launch-action" type="button" onclick="startLive()">
-            INICIAR SEÑAL
+            CREATE INVITE-ONLY ROOM
             <span>↗</span>
           </button>
         </div>
@@ -2438,7 +3326,21 @@
             <p>Una sala privada con enlace de invitación y tu aprobación. La cámara se pide al entrar a la llamada real.</p>
           </div>
 
-          <span class="launch-stamp">● CIFRADO DE EXTREMO A EXTREMO</span>
+          <div class="private-waiting" aria-label="Waiting room design preview">
+            <div class="private-waiting-head"><strong>WAITING ROOM / PREVIEW</strong><button id="privateWaitingEdit" type="button" aria-expanded="false">EDIT</button></div>
+            <div class="private-waiting-stage">
+              <svg class="ico" aria-hidden="true"><use href="#i-lock"></use></svg>
+              <h3 id="privateWaitingTitle">You're on the list.</h3>
+              <p id="privateWaitingText">Hang tight — your host will let you in.</p>
+              <span>NO GUESTS WAITING · PREVIEW</span>
+            </div>
+            <div id="privateWaitingControls" class="private-waiting-editor" hidden>
+              <label for="privateWaitingTitleInput">HEADING<input id="privateWaitingTitleInput" value="You're on the list." maxlength="70"></label>
+              <label for="privateWaitingMessageInput">GUEST MESSAGE<input id="privateWaitingMessageInput" value="Hang tight — your host will let you in." maxlength="160"></label>
+            </div>
+            <small>Message editing is visual only. The real guest waiting list and approvals are managed in the host dashboard.</small>
+          </div>
+          <span class="launch-stamp">● ENCRYPTED TRANSPORT · HOST APPROVAL</span>
         </div>
 
         <div class="launch-form">
@@ -2449,20 +3351,34 @@
 
           <div class="field">
             TIPO DE LLAMADA
-            <div class="choice-row">
-              <button class="choice active" type="button" onclick="selectChoice(this)">Video</button>
-              <button class="choice" type="button" onclick="selectChoice(this)">Solo audio</button>
+            <div class="choice-row fx-private-icon-choices" role="group" aria-label="Call type">
+              <button class="choice active" type="button" onclick="selectChoice(this)" title="Video" aria-label="Video" aria-pressed="true">
+                <svg class="ico" aria-hidden="true"><use href="#i-camera"></use></svg>
+              </button>
+              <button class="choice" type="button" onclick="selectChoice(this)" title="Audio only" aria-label="Audio only" aria-pressed="false">
+                <svg class="ico" aria-hidden="true"><use href="#i-headphones"></use></svg>
+              </button>
             </div>
           </div>
 
           <div class="field">
             AL INICIAR
-            <div class="toggle-pills">
-              <button class="toggle-pill on" type="button" onclick="togglePill(this)">Cámara activa</button>
-              <button class="toggle-pill on" type="button" onclick="togglePill(this)">Micrófono abierto</button>
-              <button class="toggle-pill on" type="button" onclick="togglePill(this)">Requerir aceptación</button>
-              <button class="toggle-pill on" type="button" onclick="togglePill(this)">Enlace temporal</button>
-              <button class="toggle-pill" type="button" onclick="togglePill(this)">Sala de espera</button>
+            <div class="toggle-pills fx-private-icon-toggles" role="group" aria-label="Start settings">
+              <button class="toggle-pill on" type="button" onclick="togglePill(this)" title="Camera on" aria-label="Camera on" aria-pressed="true">
+                <svg class="ico" aria-hidden="true"><use href="#i-camera"></use></svg>
+              </button>
+              <button class="toggle-pill on" type="button" onclick="togglePill(this)" title="Microphone on" aria-label="Microphone on" aria-pressed="true">
+                <svg class="ico" aria-hidden="true"><use href="#i-mic"></use></svg>
+              </button>
+              <button class="toggle-pill on" type="button" onclick="togglePill(this)" title="Require approval" aria-label="Require approval" aria-pressed="true">
+                <svg class="ico" aria-hidden="true"><use href="#i-shield-check"></use></svg>
+              </button>
+              <button class="toggle-pill on" type="button" onclick="togglePill(this)" title="Temporary link" aria-label="Temporary link" aria-pressed="true">
+                <svg class="ico" aria-hidden="true"><use href="#i-link"></use></svg>
+              </button>
+              <button class="toggle-pill" type="button" onclick="togglePill(this)" title="Waiting room" aria-label="Waiting room" aria-pressed="false">
+                <svg class="ico" aria-hidden="true"><use href="#i-hourglass"></use></svg>
+              </button>
             </div>
           </div>
 
@@ -2507,251 +3423,251 @@
       {
         id: 'account',
         num: '01',
-        kicker: 'IDENTIDAD',
-        title: 'Cuenta y perfil',
+        kicker: 'IDENTITY',
+        title: 'Account & Profile',
         items: [
-          { label: 'Nombre visible', value: 'FX CALL' },
-          { label: 'Nombre de usuario', value: 'Cuenta' },
-          { label: 'Correo electrónico', value: 'Ajustes de cuenta' },
-          { label: 'Biografía', value: 'Sin definir' },
-          { label: 'Idioma', value: 'Español' },
-          { label: 'Región y zona horaria', value: 'Ajuste del dispositivo' },
-          { label: 'Tipo de cuenta', value: 'Personal' },
-          { label: 'Cuentas vinculadas', value: 'Ajustes de cuenta' },
-          { label: 'Cambiar contraseña', value: 'Gestionar' },
-          { label: 'Passkeys y biometría', type: 'switch', on: true },
-          { label: 'Sesiones activas', value: 'Abrir cuenta' },
-          { label: 'Descargar mis datos', value: 'Solicitar' },
-          { label: 'Eliminar cuenta', value: 'Zona de riesgo' }
+          { label: 'Display name', value: 'FX CALL' },
+          { label: 'Username', value: 'Account' },
+          { label: 'Email address', value: 'Account settings' },
+          { label: 'Bio', value: 'Not set' },
+          { label: 'Language', value: 'English' },
+          { label: 'Region & time zone', value: 'Device setting' },
+          { label: 'Account type', value: 'Personal' },
+          { label: 'Linked accounts', value: 'Account settings' },
+          { label: 'Change password', value: 'Manage' },
+          { label: 'Passkeys & biometrics', type: 'switch', on: true },
+          { label: 'Active sessions', value: 'Open account' },
+          { label: 'Download my data', value: 'Request' },
+          { label: 'Delete account', value: 'Sensitive action' }
         ]
       },
       {
         id: 'camera',
         num: '02',
-        kicker: 'SEÑAL VISUAL',
-        title: 'Cámara y video',
+        kicker: 'VIDEO',
+        title: 'Camera & Video',
         items: [
-          { label: 'Cámara por defecto', value: 'Frontal' },
-          { label: 'Resolución de video', value: 'Automática' },
+          { label: 'Default camera', value: 'Front-facing' },
+          { label: 'Video resolution', value: 'Automatic' },
           { label: 'FPS', value: '30' },
-          { label: 'Relación de aspecto', value: 'Auto' },
-          { label: 'Espejar video frontal', hint: 'Como un espejo', type: 'switch', on: true },
-          { label: 'HDR automático', type: 'switch', on: true },
-          { label: 'Estabilización de imagen', type: 'switch', on: true },
-          { label: 'Modo poca luz', type: 'switch', on: true },
-          { label: 'Zoom por defecto', value: '1x' },
-          { label: 'Enfoque automático', type: 'switch', on: true },
-          { label: 'Filtro de belleza', value: '0' },
-          { label: 'Desenfocar fondo', type: 'switch', on: false },
-          { label: 'Reemplazar fondo', type: 'switch', on: false },
-          { label: 'Intensidad del desenfoque', value: '40%' },
-          { label: 'Corrección de color', value: 'Auto' },
-          { label: 'Efectos / AR por defecto', value: 'Ninguno' },
-          { label: 'Calidad adaptativa', type: 'switch', on: true },
-          { label: 'Ahorro de datos', type: 'switch', on: false },
-          { label: 'Solo Wi-Fi para video', type: 'switch', on: false },
-          { label: 'Mantener pantalla encendida', type: 'switch', on: true },
-          { label: 'Grabar video local', type: 'switch', on: false },
-          { label: 'Marca de agua', type: 'switch', on: true },
-          { label: 'Calidad al compartir pantalla', value: '720p' },
-          { label: 'Exposición', value: 'Auto' },
-          { label: 'Balance de blancos', value: 'Auto' },
-          { label: 'Aceleración por hardware', type: 'switch', on: true }
+          { label: 'Aspect ratio', value: 'Auto' },
+          { label: 'Mirror front camera', hint: 'Mirrored', type: 'switch', on: true },
+          { label: 'Auto HDR', type: 'switch', on: true },
+          { label: 'Image stabilization', type: 'switch', on: true },
+          { label: 'Low-light mode', type: 'switch', on: true },
+          { label: 'Default zoom', value: '1x' },
+          { label: 'Autofocus', type: 'switch', on: true },
+          { label: 'Beauty filter', value: '0' },
+          { label: 'Blur background', type: 'switch', on: false },
+          { label: 'Replace background', type: 'switch', on: false },
+          { label: 'Blur strength', value: '40%' },
+          { label: 'Colour correction', value: 'Auto' },
+          { label: 'Default effects / AR', value: 'None' },
+          { label: 'Adaptive quality', type: 'switch', on: true },
+          { label: 'Data saver', type: 'switch', on: false },
+          { label: 'Wi-Fi only for video', type: 'switch', on: false },
+          { label: 'Keep screen awake', type: 'switch', on: true },
+          { label: 'Record locally', type: 'switch', on: false },
+          { label: 'Watermark', type: 'switch', on: true },
+          { label: 'Screen sharing quality', value: '720p' },
+          { label: 'Exposure', value: 'Auto' },
+          { label: 'White balance', value: 'Auto' },
+          { label: 'Hardware acceleration', type: 'switch', on: true }
         ]
       },
       {
         id: 'audio',
         num: '03',
-        kicker: 'SEÑAL SONORA',
+        kicker: 'AUDIO',
         title: 'Audio',
         items: [
-          { label: 'Micrófono de entrada', value: 'Predeterminado' },
-          { label: 'Altavoz / auriculares', value: 'Altavoz' },
-          { label: 'Probar micrófono', value: 'Iniciar' },
-          { label: 'Probar altavoz', value: 'Iniciar' },
-          { label: 'Supresión de ruido', type: 'switch', on: true },
-          { label: 'Cancelación de eco', type: 'switch', on: true },
-          { label: 'Ganancia automática', type: 'switch', on: true },
-          { label: 'Volumen de entrada', value: '70%' },
-          { label: 'Volumen de salida', value: '80%' },
-          { label: 'Silenciar al entrar', type: 'switch', on: false },
-          { label: 'Push-to-talk', hint: 'Mantener para hablar', type: 'switch', on: false },
-          { label: 'Audio estéreo', type: 'switch', on: true },
-          { label: 'Modo solo audio', type: 'switch', on: false },
-          { label: 'Tono de llamada', value: 'Nova' },
-          { label: 'Vibración de llamada', type: 'switch', on: true },
-          { label: 'Prioridad de voz', type: 'switch', on: true }
+          { label: 'Input microphone', value: 'Default' },
+          { label: 'Speaker / headphones', value: 'Speaker' },
+          { label: 'Test microphone', value: 'Start' },
+          { label: 'Test speaker', value: 'Start' },
+          { label: 'Noise suppression', type: 'switch', on: true },
+          { label: 'Echo cancellation', type: 'switch', on: true },
+          { label: 'Automatic gain', type: 'switch', on: true },
+          { label: 'Input volume', value: '70%' },
+          { label: 'Output volume', value: '80%' },
+          { label: 'Mute on join', type: 'switch', on: false },
+          { label: 'Push-to-talk', hint: 'Hold to talk', type: 'switch', on: false },
+          { label: 'Stereo audio', type: 'switch', on: true },
+          { label: 'Audio-only mode', type: 'switch', on: false },
+          { label: 'Ringtone', value: 'Nova' },
+          { label: 'Call vibration', type: 'switch', on: true },
+          { label: 'Voice priority', type: 'switch', on: true }
         ]
       },
       {
         id: 'calls',
         num: '04',
-        kicker: 'CANAL 1:1',
-        title: 'Llamadas privadas',
+        kicker: 'ONE-TO-ONE',
+        title: 'Private Calls',
         items: [
-          { label: 'Quién puede llamarme', value: 'Contactos' },
-          { label: 'Requerir aprobación', hint: 'Evita llamadas sorpresa', type: 'switch', on: true },
-          { label: 'Enlace de llamada', value: 'Activo' },
-          { label: 'Expiración de enlace', value: '1 hora' },
-          { label: 'Sala de espera', type: 'switch', on: true },
-          { label: 'Video activado al iniciar', type: 'switch', on: true },
-          { label: 'Micrófono activado al iniciar', type: 'switch', on: true },
-          { label: 'Cifrado en tránsito', value: 'Vía LiveKit' },
-          { label: 'Compartir pantalla', value: 'Desactivado' },
-          { label: 'Grabar con consentimiento', type: 'switch', on: false },
-          { label: 'Historial de llamadas', type: 'switch', on: true },
-          { label: 'Mostrar estado en llamada', type: 'switch', on: true },
-          { label: 'Bloqueo de capturas', value: 'No compatible' },
-          { label: 'Reportar y bloquear', value: 'Gestionar' },
-          { label: 'Retardo de entrada', value: '0 s' }
+          { label: 'Who can call me', value: 'Contacts' },
+          { label: 'Require approval', hint: 'Avoid unexpected calls', type: 'switch', on: true },
+          { label: 'Call link', value: 'Active' },
+          { label: 'Link expiry', value: '1 hour' },
+          { label: 'Waiting room', type: 'switch', on: true },
+          { label: 'Video on at start', type: 'switch', on: true },
+          { label: 'Mic on at start', type: 'switch', on: true },
+          { label: 'Encryption in transit', value: 'Via LiveKit' },
+          { label: 'Screen sharing', value: 'Disabled' },
+          { label: 'Record with consent', type: 'switch', on: false },
+          { label: 'Call history', type: 'switch', on: true },
+          { label: 'Show in-call status', type: 'switch', on: true },
+          { label: 'Screenshot protection', value: 'Not supported' },
+          { label: 'Report & block', value: 'Manage' },
+          { label: 'Entry delay', value: '0 sec' }
         ]
       },
       {
         id: 'live',
         num: '05',
-        kicker: 'CANAL ABIERTO',
-        title: 'Directos',
+        kicker: 'BROADCAST',
+        title: 'Live Sessions',
         items: [
-          { label: 'Visibilidad por defecto', value: 'Público' },
-          { label: 'Título automático', type: 'switch', on: true },
-          { label: 'Categoría por defecto', value: 'General' },
-          { label: 'Chat del directo', value: 'Moderado' },
-          { label: 'Comentarios', type: 'switch', on: true },
-          { label: 'Reacciones', type: 'switch', on: true },
+          { label: 'Default visibility', value: 'Public' },
+          { label: 'Auto title', type: 'switch', on: true },
+          { label: 'Default category', value: 'General' },
+          { label: 'Live chat', value: 'Moderated' },
+          { label: 'Comments', type: 'switch', on: true },
+          { label: 'Reactions', type: 'switch', on: true },
           { label: 'Slow mode', type: 'switch', on: false },
-          { label: 'Moderadores', value: '2' },
-          { label: 'Palabras bloqueadas', value: '12' },
-          { label: 'Retraso de seguridad', value: '3 s' },
-          { label: 'Permitir invitados', type: 'switch', on: true },
-          { label: 'Notificar a seguidores', type: 'switch', on: true },
-          { label: 'Guardar directo en el perfil', type: 'switch', on: true },
-          { label: 'Grabar en local', type: 'switch', on: false },
-          { label: 'Grabar en la nube', type: 'switch', on: false },
-          { label: 'Calidad de emisión', value: 'Auto' },
-          { label: 'FPS de emisión', value: '30' },
+          { label: 'Moderators', value: '2' },
+          { label: 'Blocked words', value: '12' },
+          { label: 'Safety delay', value: '3 sec' },
+          { label: 'Allow guests', type: 'switch', on: true },
+          { label: 'Notify followers', type: 'switch', on: true },
+          { label: 'Save live to profile', type: 'switch', on: true },
+          { label: 'Record on device', type: 'switch', on: false },
+          { label: 'Cloud recording', type: 'switch', on: false },
+          { label: 'Stream quality', value: 'Auto' },
+          { label: 'Stream FPS', value: '30' },
           { label: 'Bitrate', value: 'Auto' },
           { label: 'Keyframe', value: '2 s' },
-          { label: 'Latencia', value: 'Baja' },
-          { label: 'Transmisión de respaldo', type: 'switch', on: false },
-          { label: 'RTMP personalizado', value: 'Configurar' },
-          { label: 'Restricción de edad', type: 'switch', on: false }
+          { label: 'Latency', value: 'Low' },
+          { label: 'Backup stream', type: 'switch', on: false },
+          { label: 'Custom RTMP', value: 'Configure' },
+          { label: 'Age restriction', type: 'switch', on: false }
         ]
       },
       {
         id: 'privacy',
         num: '06',
-        kicker: 'PERÍMETRO',
-        title: 'Privacidad y seguridad',
+        kicker: 'PRIVACY',
+        title: 'Privacy & Security',
         items: [
-          { label: 'Visibilidad del perfil', value: 'Seguidores' },
-          { label: 'Quién ve mi estado en vivo', value: 'Contactos' },
-          { label: 'Quién ve mi historial', value: 'Solo yo' },
-          { label: 'Mostrar estado en línea', type: 'switch', on: true },
-          { label: 'Quién puede escribirme', value: 'Contactos' },
-          { label: 'Quién puede seguirme', value: 'Todos' },
-          { label: 'Solicitudes de contacto', type: 'switch', on: true },
-          { label: 'Usuarios bloqueados', value: '3' },
-          { label: 'Verificación en dos pasos', type: 'switch', on: true },
-          { label: 'Passkeys y biometría', type: 'switch', on: true },
-          { label: 'Sesiones activas', value: '2' },
-          { label: 'Enlaces temporales', type: 'switch', on: true },
-          { label: 'Consentimiento para grabar', value: 'Visible' },
-          { label: 'Retención de datos', value: '30 días' },
-          { label: 'Descargar datos', value: 'Solicitar' },
-          { label: 'Eliminar cuenta', value: 'Zona de riesgo' }
+          { label: 'Profile visibility', value: 'Followers' },
+          { label: 'Who sees my live status', value: 'Contacts' },
+          { label: 'Who sees my history', value: 'Only me' },
+          { label: 'Show online status', type: 'switch', on: true },
+          { label: 'Who can message me', value: 'Contacts' },
+          { label: 'Who can follow me', value: 'Everyone' },
+          { label: 'Contact requests', type: 'switch', on: true },
+          { label: 'Blocked users', value: '3' },
+          { label: 'Two-factor authentication', type: 'switch', on: true },
+          { label: 'Passkeys & biometrics', type: 'switch', on: true },
+          { label: 'Active sessions', value: '2' },
+          { label: 'Temporary links', type: 'switch', on: true },
+          { label: 'Recording consent', value: 'Visible' },
+          { label: 'Data retention', value: '30 days' },
+          { label: 'Download data', value: 'Request' },
+          { label: 'Delete account', value: 'Sensitive action' }
         ]
       },
       {
         id: 'notifications',
         num: '07',
-        kicker: 'PULSOS',
-        title: 'Notificaciones',
+        kicker: 'ALERTS',
+        title: 'Notifications',
         items: [
           { label: 'Push', type: 'switch', on: true },
           { label: 'Email', type: 'switch', on: false },
           { label: 'SMS', type: 'switch', on: false },
-          { label: 'Llamadas entrantes', type: 'switch', on: true },
-          { label: 'Mensajes', type: 'switch', on: true },
-          { label: 'Comentarios', type: 'switch', on: true },
-          { label: 'Menciones', type: 'switch', on: true },
-          { label: 'Nuevos seguidores', type: 'switch', on: false },
-          { label: 'Recordatorios de directo', type: 'switch', on: true },
-          { label: 'Resumen semanal', type: 'switch', on: false },
-          { label: 'No molestar', type: 'switch', on: true },
-          { label: 'Horario de silencio', value: '23:00 – 08:00' },
-          { label: 'Sonido', value: 'Nova' },
-          { label: 'Vibración', type: 'switch', on: true },
-          { label: 'Prioridad de llamadas', type: 'switch', on: true }
+          { label: 'Incoming calls', type: 'switch', on: true },
+          { label: 'Messages', type: 'switch', on: true },
+          { label: 'Comments', type: 'switch', on: true },
+          { label: 'Mentions', type: 'switch', on: true },
+          { label: 'New followers', type: 'switch', on: false },
+          { label: 'Live reminders', type: 'switch', on: true },
+          { label: 'Weekly digest', type: 'switch', on: false },
+          { label: 'Do Not Disturb', type: 'switch', on: true },
+          { label: 'Quiet hours', value: '23:00 – 08:00' },
+          { label: 'Sound', value: 'Nova' },
+          { label: 'Vibration', type: 'switch', on: true },
+          { label: 'Priority calls', type: 'switch', on: true }
         ]
       },
       {
         id: 'appearance',
         num: '08',
-        kicker: 'SUPERFICIE',
-        title: 'Apariencia',
+        kicker: 'DISPLAY',
+        title: 'Appearance',
         items: [
-          { label: 'Tema', value: 'Oscuro' },
-          { label: 'Tamaño de texto', value: 'Medio' },
-          { label: 'Densidad', value: 'Cómoda' },
-          { label: 'Color de acento', value: 'Dinámico' },
-          { label: 'Burbujas de chat', value: 'Minimal' },
-          { label: 'Reducir animaciones', type: 'switch', on: false },
-          { label: 'Idioma', value: 'Español' },
-          { label: 'Estilo de controles', value: 'Studio' }
+          { label: 'Theme', value: 'Dark' },
+          { label: 'Text size', value: 'Medium' },
+          { label: 'Density', value: 'Comfortable' },
+          { label: 'Accent colour', value: 'Dynamic' },
+          { label: 'Chat bubbles', value: 'Minimal' },
+          { label: 'Reduce animations', type: 'switch', on: false },
+          { label: 'Language', value: 'English' },
+          { label: 'Control style', value: 'Studio' }
         ]
       },
       {
         id: 'accessibility',
         num: '09',
-        kicker: 'ACCESO',
-        title: 'Accesibilidad',
+        kicker: 'ACCESSIBILITY',
+        title: 'Accessibility',
         items: [
-          { label: 'Subtítulos automáticos', type: 'switch', on: false },
-          { label: 'Idioma de subtítulos', value: 'Español' },
-          { label: 'Tamaño de subtítulos', value: 'Medio' },
-          { label: 'Fondo de subtítulos', type: 'switch', on: true },
-          { label: 'Transcripción', type: 'switch', on: false },
-          { label: 'Lector de pantalla', type: 'switch', on: true },
-          { label: 'Alto contraste', type: 'switch', on: false },
-          { label: 'Reducir movimiento', type: 'switch', on: false },
+          { label: 'Auto captions', type: 'switch', on: false },
+          { label: 'Caption language', value: 'English' },
+          { label: 'Caption size', value: 'Medium' },
+          { label: 'Caption background', type: 'switch', on: true },
+          { label: 'Transcription', type: 'switch', on: false },
+          { label: 'Screen reader', type: 'switch', on: true },
+          { label: 'High contrast', type: 'switch', on: false },
+          { label: 'Reduce motion', type: 'switch', on: false },
           { label: 'Push-to-talk', type: 'switch', on: false },
-          { label: 'Alertas visuales', type: 'switch', on: true },
-          { label: 'Hápticos', type: 'switch', on: true },
-          { label: 'Atajos de teclado', type: 'switch', on: true },
-          { label: 'Tamaño de controles', value: 'Grande' }
+          { label: 'Visual alerts', type: 'switch', on: true },
+          { label: 'Haptics', type: 'switch', on: true },
+          { label: 'Keyboard shortcuts', type: 'switch', on: true },
+          { label: 'Control size', value: 'Large' }
         ]
       },
       {
         id: 'network',
         num: '10',
-        kicker: 'SEÑAL',
-        title: 'Red y rendimiento',
+        kicker: 'NETWORK',
+        title: 'Network & Performance',
         items: [
-          { label: 'Calidad automática', type: 'switch', on: true },
-          { label: 'Límite en datos móviles', value: '720p' },
-          { label: 'Solo Wi-Fi para directo', type: 'switch', on: false },
-          { label: 'Ahorro de batería', type: 'switch', on: true },
-          { label: 'Región / servidor', value: 'Auto' },
-          { label: 'Reconexión automática', type: 'switch', on: true },
-          { label: 'Probar conexión', value: 'Iniciar' },
-          { label: 'Estadísticas', value: 'FPS 30 · 2.4 Mbps · 42 ms' },
-          { label: 'Restablecer red', value: 'Auto' }
+          { label: 'Auto quality', type: 'switch', on: true },
+          { label: 'Mobile data limit', value: '720p' },
+          { label: 'Wi-Fi only for Live', type: 'switch', on: false },
+          { label: 'Battery saver', type: 'switch', on: true },
+          { label: 'Server region', value: 'Auto' },
+          { label: 'Auto reconnect', type: 'switch', on: true },
+          { label: 'Test connection', value: 'Start' },
+          { label: 'Statistics', value: 'FPS 30 · 2.4 Mbps · 42 ms' },
+          { label: 'Reset network', value: 'Auto' }
         ]
       },
       {
         id: 'advanced',
         num: '11',
-        kicker: 'NÚCLEO',
-        title: 'Avanzado',
+        kicker: 'ADVANCED',
+        title: 'Advanced',
         items: [
-          { label: 'Diagnóstico', value: 'Abrir' },
-          { label: 'Logs', value: 'Exportar' },
-          { label: 'Aceleración por hardware', type: 'switch', on: true },
-          { label: 'Protocolo de conexión', value: 'Auto' },
-          { label: 'Opciones de desarrollador', type: 'switch', on: false },
-          { label: 'Restablecer ajustes', value: 'Auto' },
-          { label: 'Versión', value: '1.0.0' },
-          { label: 'Licencias', value: 'Ver' }
+          { label: 'Diagnostics', value: 'Open' },
+          { label: 'Logs', value: 'Export' },
+          { label: 'Hardware acceleration', type: 'switch', on: true },
+          { label: 'Connection protocol', value: 'Auto' },
+          { label: 'Developer options', type: 'switch', on: false },
+          { label: 'Reset settings', value: 'Auto' },
+          { label: 'Version', value: '1.0.0' },
+          { label: 'Licences', value: 'View' }
         ]
       }
     ];
@@ -2806,25 +3722,24 @@
 
       const coreTitle = document.getElementById('coreTitle');
       if (coreTitle) {
-        coreTitle.textContent = mode === 'live' ? 'EN VIVO' : 'PRIVADO';
+        coreTitle.textContent = mode === 'live' ? 'LIVE' : mode === 'general' ? 'GENERAL' : 'PRIVATE';
       }
     }
 
     function launchSelected() {
-      if (currentMode === 'live') {
-        openLaunch('live');
-      } else {
-        openLaunch('private');
-      }
+      if (currentMode === 'general') openLaunch('general');
+      else if (currentMode === 'live') openLaunch('live');
+      else openLaunch('private');
     }
 
     function selectChoice(button) {
       const row = button.closest('.choice-row');
       if (!row) return;
       row.querySelectorAll('.choice').forEach(function (choice) {
-        choice.classList.remove('active');
+        const active = choice === button;
+        choice.classList.toggle('active', active);
+        choice.setAttribute('aria-pressed', active ? 'true' : 'false');
       });
-      button.classList.add('active');
     }
 
     function togglePill(button) {
@@ -2837,14 +3752,14 @@
     ============================================================ */
     function openLaunch(type) {
       closeLaunch();
-      const launch = document.getElementById(type === 'live' ? 'launch-live' : 'launch-private');
+      const launch = document.getElementById(type === 'general' ? 'launch-general' : type === 'live' ? 'launch-live' : 'launch-private');
       if (!launch) return;
       launch.classList.add('open');
       launch.setAttribute('aria-hidden', 'false');
+      if (type === 'live') window.dispatchEvent(new Event('fxnova:public-open'));
 
-      const focusTarget = type === 'live'
-        ? document.getElementById('liveTitleInput')
-        : document.getElementById('contactInput');
+      const focusTarget = type === 'general' ? document.getElementById('generalTitleInput')
+        : type === 'live' ? document.getElementById('liveTitleInput') : document.getElementById('contactInput');
 
       if (focusTarget) {
         setTimeout(function () {
@@ -2855,10 +3770,12 @@
     }
 
     function closeLaunch() {
+      const liveWasOpen = document.getElementById('launch-live').classList.contains('open');
       document.querySelectorAll('.launch.open').forEach(function (launch) {
         launch.classList.remove('open');
         launch.setAttribute('aria-hidden', 'true');
       });
+      if (liveWasOpen) window.dispatchEvent(new Event('fxnova:public-close'));
     }
 
     function openPrivateWith(name) {
@@ -2869,6 +3786,33 @@
       }
       openLaunch('private');
     }
+
+    function startGeneral() {
+      const input = document.getElementById('generalTitleInput');
+      const title = String(input && input.value || 'General room').trim().slice(0,80) || 'General room';
+      if(typeof window.FXNOVA_post !== 'function') { toast('Open from your signed-in FX CALL account.');return; }
+      closeLaunch();
+      window.FXNOVA_post('create-room',{title:title,mode:'general'});
+    }
+
+    (function initWaitingEditor() {
+      const button = document.getElementById('privateWaitingEdit');
+      const panel = document.getElementById('privateWaitingControls');
+      const titleInput = document.getElementById('privateWaitingTitleInput');
+      const messageInput = document.getElementById('privateWaitingMessageInput');
+      if (!button || !panel || !titleInput || !messageInput) return;
+      button.addEventListener('click', function() {
+        panel.hidden = !panel.hidden;
+        button.setAttribute('aria-expanded', String(!panel.hidden));
+        button.textContent = panel.hidden ? 'EDIT' : 'DONE';
+      });
+      titleInput.addEventListener('input', function() {
+        document.getElementById('privateWaitingTitle').textContent = titleInput.value || "You're on the list.";
+      });
+      messageInput.addEventListener('input', function() {
+        document.getElementById('privateWaitingText').textContent = messageInput.value || 'Your host will admit you shortly.';
+      });
+    })();
 
     /* ============================================================
        LIVE
@@ -2972,11 +3916,11 @@
       const query = searchInput.value.trim().toLowerCase();
       let entries = [];
       let title = category.title;
-      let kicker = 'MÓDULO ' + category.num + ' · ' + category.kicker;
+      let kicker = 'SECTION ' + category.num + ' · ' + category.kicker;
 
       if (query) {
-        title = 'Resultados';
-        kicker = 'BÚSQUEDA · ' + query.toUpperCase();
+        title = 'Results';
+        kicker = 'SEARCH · ' + query.toUpperCase();
 
         settingsData.forEach(function (cat) {
           cat.items.forEach(function (item, index) {
@@ -3312,6 +4256,12 @@
       hasCamera=true;app.classList.remove('camera-off');previewStatus('Vista previa local · sin transmitir');
     }catch(e){notify('Acceso a la cámara denegado o no disponible. Revisa los permisos.');}
   }
+  window.addEventListener('fxnova:public-camera-request', function() {
+    if (hasCamera) {
+      stopCamera();
+      document.querySelectorAll('[data-action="cam"]').forEach(function(button) { button.classList.add('off'); });
+    }
+  });
   // The WebView/iframe preview is separate from the real LiveKit call. Real call controls remain in /call/:id.
   document.addEventListener('click',function(event){
     var control=event.target.closest('[data-action]');if(!control)return;
@@ -3371,6 +4321,201 @@
   selectMode('private');
   renderCommand();
   post('ready');
+})();
+</script>
+<script id="fxnova-public-local-preview">
+(function () {
+  "use strict";
+
+  const modal = document.getElementById("launch-live");
+  const camera = document.getElementById("fxPublicVideo");
+  const placeholder = document.getElementById("fxPublicPlaceholder");
+  const status = document.getElementById("fxPublicStatus");
+  if (!modal || !camera || !placeholder || !status) return;
+
+  let open = false;
+  let cameraStream = null;
+  let micStream = null;
+  let cameraRequest = 0;
+  let micRequest = 0;
+  let facingMode = "user";
+  let filter = "natural";
+
+  const filters = {
+    natural: "none",
+    studio: "brightness(1.06) contrast(1.10) saturate(1.08)",
+    mono: "grayscale(1) contrast(1.13)",
+    warm: "sepia(.18) contrast(1.03) saturate(1.15)"
+  };
+  const controls = (name) => modal.querySelector('[data-public-control="' + name + '"]');
+  const running = () => !!cameraStream && cameraStream.getVideoTracks().some(
+    (track) => track.readyState === "live"
+  );
+
+  function message(text) {
+    status.textContent = text;
+  }
+  function sync() {
+    const activeCamera = running();
+    camera.style.display = activeCamera ? "block" : "none";
+    placeholder.style.display = activeCamera ? "none" : "flex";
+    placeholder.setAttribute("aria-hidden", String(activeCamera));
+    const camButton = controls("cam");
+    const micButton = controls("mic");
+    camButton.setAttribute("aria-pressed", String(activeCamera));
+    camButton.setAttribute("aria-label", activeCamera ? "Turn off local camera" : "Enable local camera preview");
+    micButton.setAttribute("aria-pressed", String(!!micStream));
+    micButton.setAttribute("aria-label", micStream ? "Turn off local microphone test" : "Enable local microphone test");
+    camera.style.transform = facingMode === "user" ? "scaleX(-1)" : "none";
+    camera.style.filter = filters[filter] || "none";
+  }
+  function disposeCamera() {
+    if (cameraStream) cameraStream.getTracks().forEach((track) => track.stop());
+    cameraStream = null;
+    camera.pause();
+    camera.srcObject = null;
+    sync();
+  }
+  function disposeMic() {
+    if (micStream) micStream.getTracks().forEach((track) => track.stop());
+    micStream = null;
+    sync();
+  }
+  function disposeAll() {
+    cameraRequest++;
+    micRequest++;
+    disposeCamera();
+    disposeMic();
+  }
+  function explainError(error, medium) {
+    const reason = error && error.name === "NotAllowedError"
+      ? "Permission was denied or blocked in this viewer."
+      : error && error.name === "NotFoundError"
+        ? "No compatible device was found."
+        : error && error.name === "NotReadableError"
+          ? "This device may already be in use."
+          : error && error.message
+            ? error.message
+            : "The device is unavailable.";
+    message(medium + ": " + reason + " Try Safari or the installed FX CALL app.");
+  }
+  async function enableCamera(nextFacing) {
+    const request = ++cameraRequest;
+    disposeCamera();
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      message("Camera preview requires HTTPS and a browser with camera permissions.");
+      return;
+    }
+    window.dispatchEvent(new Event("fxnova:public-camera-request"));
+    message("Requesting camera permission…");
+    try {
+      const next = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: nextFacing }, width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: false
+      });
+      if (!open || request !== cameraRequest) {
+        next.getTracks().forEach((track) => track.stop());
+        return;
+      }
+      cameraStream = next;
+      facingMode = nextFacing;
+      camera.srcObject = next;
+      try { await camera.play(); } catch (_) {
+        message("Camera connected. Tap the preview if autoplay was blocked.");
+      }
+      if (open && request === cameraRequest) {
+        message("Local camera enabled. OFF AIR — no video is sent.");
+      }
+    } catch (error) {
+      if (open && request === cameraRequest) explainError(error, "Camera");
+    } finally {
+      sync();
+    }
+  }
+  async function enableMic() {
+    const request = ++micRequest;
+    disposeMic();
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      message("Microphone test requires HTTPS and microphone permission.");
+      return;
+    }
+    message("Requesting microphone permission…");
+    try {
+      const next = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      if (!open || request !== micRequest) {
+        next.getTracks().forEach((track) => track.stop());
+        return;
+      }
+      micStream = next;
+      message("Microphone test enabled locally. No audio is sent.");
+    } catch (error) {
+      if (open && request === micRequest) explainError(error, "Microphone");
+    } finally {
+      sync();
+    }
+  }
+  modal.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-public-control], [data-public-filter]");
+    if (!button || !modal.contains(button)) return;
+    const action = button.getAttribute("data-public-control");
+    if (action === "cam") {
+      if (running()) {
+        cameraRequest++;
+        disposeCamera();
+        message("Camera off. OFF AIR.");
+      } else {
+        void enableCamera(facingMode);
+      }
+    } else if (action === "mic") {
+      if (micStream) {
+        micRequest++;
+        disposeMic();
+        message("Microphone off. Nothing was transmitted.");
+      } else {
+        void enableMic();
+      }
+    } else if (action === "flip") {
+      const nextFacing = facingMode === "user" ? "environment" : "user";
+      if (running()) void enableCamera(nextFacing);
+      else {
+        facingMode = nextFacing;
+        message((facingMode === "user" ? "Front" : "Rear") + " camera selected. Tap CAMERA to preview.");
+        sync();
+      }
+    } else if (action === "stop") {
+      disposeAll();
+      message("Local camera and microphone stopped.");
+    }
+    const nextFilter = button.getAttribute("data-public-filter");
+    if (nextFilter && Object.prototype.hasOwnProperty.call(filters, nextFilter)) {
+      filter = nextFilter;
+      modal.querySelectorAll("[data-public-filter]").forEach((item) => {
+        const selected = item === button;
+        item.classList.toggle("selected", selected);
+        item.setAttribute("aria-pressed", String(selected));
+      });
+      sync();
+      message("Preview filter: " + button.textContent.trim() + ". The filter is local only.");
+    }
+  });
+  window.addEventListener("fxnova:public-open", () => {
+    open = true;
+    message("Camera and microphone are off. Enable the local preview when ready.");
+    sync();
+  });
+  window.addEventListener("fxnova:public-close", () => {
+    open = false;
+    disposeAll();
+    message("Local preview closed. Camera and microphone are off.");
+  });
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) {
+      disposeAll();
+      message("Camera and microphone stopped while the app is in the background.");
+    }
+  });
+  window.addEventListener("pagehide", disposeAll);
+  sync();
 })();
 </script>
 </body>

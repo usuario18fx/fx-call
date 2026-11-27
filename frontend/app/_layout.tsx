@@ -1,6 +1,7 @@
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
+import { usePreventScreenCapture } from "expo-screen-capture";
 import { StatusBar } from "expo-status-bar";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useEffect } from "react";
@@ -30,6 +31,13 @@ if (Platform.OS === "web" && typeof navigator !== "undefined" && navigator.media
   }
 }
 
+function NativeCaptureGuard() {
+  // This component is only mounted on iOS/Android.
+  // Calling usePreventScreenCapture on web throws: method unavailable.
+  usePreventScreenCapture("fxcall-app");
+  return null;
+}
+
 export default function RootLayout() {
   const [loaded, fontError] = useFonts({
     Cormorant: require("../assets/fonts/CG.ttf"),
@@ -51,6 +59,7 @@ export default function RootLayout() {
               <AuthProvider>
                 <ToastProvider>
                   <StatusBar style="light" />
+                  {Platform.OS === "web" ? null : <NativeCaptureGuard />}
                   <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.surface }, animation: "fade" }} />
                 </ToastProvider>
               </AuthProvider>
