@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Image } from "expo-image";
-import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
 import * as ImagePicker from "expo-image-picker";
 import { Platform, Pressable, StyleSheet, Switch, View } from "react-native";
 
@@ -44,9 +44,16 @@ function MenuRow({ icon, title, subtitle, expanded, onPress, testID }: {
 export default function Account() {
   const { user, setUser, refreshUser, logout } = useAuth();
   const router = useRouter();
+  const params = useLocalSearchParams<{ view?: string }>();
   const toast = useToast();
   const [section, setSection] = useState<Section | null>(null);
   const [accountView, setAccountView] = useState<"profile" | "settings" | "general">("profile");
+  useEffect(() => {
+    if (params.view === "general") {
+      setAccountView("general");
+      setSection(null);
+    }
+  }, [params.view]);
   const [busy, setBusy] = useState(false);
   const [name, setName] = useState(user?.display_name ?? "");
   const [err, setErr] = useState<string | null>(null);
@@ -223,15 +230,15 @@ export default function Account() {
           <Pressable
             testID="breadcrumb-profile"
             accessibilityRole="button"
-            accessibilityLabel="Back to Profile"
+            accessibilityLabel={accountView === "general" ? "Back to Settings" : "Back to Profile"}
             onPress={accountView === "general" ? backToSettings : backToProfile}
             style={styles.crumbButton}
           >
             <Icon name="arrow-left" size={21} color={nova.color.ink} />
-            <Body style={styles.crumbLink}>Profile</Body>
+            <Body style={styles.crumbLink}>{accountView === "general" ? "Settings" : "Profile"}</Body>
           </Pressable>
           <Icon name="chevron-right" size={18} color={nova.color.muted} />
-          {(section !== null && accountView === "settings") || accountView === "general" ? (
+          {section !== null && accountView === "settings" ? (
             <>
               <Pressable testID="breadcrumb-settings" accessibilityRole="button" accessibilityLabel="Back to Settings" onPress={backToSettings} style={styles.crumbButton}>
                 <Body style={styles.crumbLink}>Settings</Body>
