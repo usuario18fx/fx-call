@@ -1416,6 +1416,20 @@
       .fx-public-hud { font-size: 8px; }
     }
 
+    /* PRIVATE / waiting room preview */
+    .private-waiting { background:#0B1722; border:1px solid #31576E; border-radius:8px; padding:12px; display:flex; flex-direction:column; gap:9px; }
+    .private-waiting-head { display:flex; align-items:center; justify-content:space-between; gap:9px; font:700 9px ui-monospace,monospace; letter-spacing:.10em; color:#A8C7DB; }
+    .private-waiting-head button { color:#4BDABC; background:#122B2C; border:1px solid #2B756D; border-radius:6px; padding:6px 9px; font:700 9px ui-monospace,monospace; }
+    .private-waiting-stage { min-height:145px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; padding:14px; border:1px solid #23465F; background:radial-gradient(ellipse at center,#15304A,#0A1320); border-radius:6px; text-align:center; }
+    .private-waiting-stage .ico { width:24px; height:24px; color:#79BBD4; }
+    .private-waiting-stage h3 {font:600 20px Georgia,serif; color:#F1F8FD; }
+    .private-waiting-stage p {font-size:11px;color:#A6C0D0;line-height:1.5}
+    .private-waiting-stage span {color:#35CDAE;font:700 8px ui-monospace,monospace;letter-spacing:.08em}
+    .private-waiting small {font-size:10px;color:#8BA9BC;line-height:1.5}
+    .private-waiting-editor {display:grid;gap:9px}
+    .private-waiting-editor[hidden] {display:none}
+    .private-waiting-editor label {font:700 9px ui-monospace,monospace; color:#8CABBD;letter-spacing:.10em}
+    .private-waiting-editor input {display:block;width:100%;margin-top:6px;padding:10px;background:#101D29;color:#F4FBFF;border:1px solid #345A75;border-radius:6px}
     /* ============================================================
        COMMAND CENTER
     ============================================================ */
@@ -2635,7 +2649,21 @@
             <p>Una sala privada con enlace de invitación y tu aprobación. La cámara se pide al entrar a la llamada real.</p>
           </div>
 
-          <span class="launch-stamp">● CIFRADO DE EXTREMO A EXTREMO</span>
+          <div class="private-waiting" aria-label="Waiting room design preview">
+            <div class="private-waiting-head"><strong>WAITING ROOM / PREVIEW</strong><button id="privateWaitingEdit" type="button" aria-expanded="false">EDIT</button></div>
+            <div class="private-waiting-stage">
+              <svg class="ico" aria-hidden="true"><use href="#i-lock"></use></svg>
+              <h3 id="privateWaitingTitle">You're on the list.</h3>
+              <p id="privateWaitingText">Hang tight — your host will let you in.</p>
+              <span>NO GUESTS WAITING · PREVIEW</span>
+            </div>
+            <div id="privateWaitingControls" class="private-waiting-editor" hidden>
+              <label for="privateWaitingTitleInput">HEADING<input id="privateWaitingTitleInput" value="You're on the list." maxlength="70"></label>
+              <label for="privateWaitingMessageInput">GUEST MESSAGE<input id="privateWaitingMessageInput" value="Hang tight — your host will let you in." maxlength="160"></label>
+            </div>
+            <small>Message editing is visual only. The real guest waiting list and approvals are managed in the host dashboard.</small>
+          </div>
+          <span class="launch-stamp">● ENCRYPTED TRANSPORT · HOST APPROVAL</span>
         </div>
 
         <div class="launch-form">
@@ -3074,6 +3102,25 @@
       closeLaunch();
       window.FXNOVA_post('create-room',{title:title,mode:'general'});
     }
+
+    (function initWaitingEditor() {
+      const button = document.getElementById('privateWaitingEdit');
+      const panel = document.getElementById('privateWaitingControls');
+      const titleInput = document.getElementById('privateWaitingTitleInput');
+      const messageInput = document.getElementById('privateWaitingMessageInput');
+      if (!button || !panel || !titleInput || !messageInput) return;
+      button.addEventListener('click', function() {
+        panel.hidden = !panel.hidden;
+        button.setAttribute('aria-expanded', String(!panel.hidden));
+        button.textContent = panel.hidden ? 'EDIT' : 'DONE';
+      });
+      titleInput.addEventListener('input', function() {
+        document.getElementById('privateWaitingTitle').textContent = titleInput.value || "You're on the list.";
+      });
+      messageInput.addEventListener('input', function() {
+        document.getElementById('privateWaitingText').textContent = messageInput.value || 'Your host will admit you shortly.';
+      });
+    })();
 
     /* ============================================================
        LIVE
