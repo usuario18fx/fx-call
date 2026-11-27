@@ -31,11 +31,14 @@ if (Platform.OS === "web" && typeof navigator !== "undefined" && navigator.media
   }
 }
 
-export default function RootLayout() {
-  // Single app-wide native screen-capture guard.
-  // Avoid concurrent guards with different keys: iOS can black-screen.
-  // This protects Studio, Meetings, Account and active calls.
+function NativeCaptureGuard() {
+  // This component is only mounted on iOS/Android.
+  // Calling usePreventScreenCapture on web throws: method unavailable.
   usePreventScreenCapture("fxcall-app");
+  return null;
+}
+
+export default function RootLayout() {
   const [loaded, fontError] = useFonts({
     Cormorant: require("../assets/fonts/CG.ttf"),
     DMSans: require("../assets/fonts/DMSans.ttf"),
@@ -56,6 +59,7 @@ export default function RootLayout() {
               <AuthProvider>
                 <ToastProvider>
                   <StatusBar style="light" />
+                  {Platform.OS === "web" ? null : <NativeCaptureGuard />}
                   <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.surface }, animation: "fade" }} />
                 </ToastProvider>
               </AuthProvider>
