@@ -37,7 +37,7 @@ export default function NovaStudioNative() {
     <View style={{ flex: 1, backgroundColor: "#050607" }} testID="fx-nova-studio-native">
       <CompatibleWebView
         ref={webView}
-        source={{ uri: `${backend}/nova-studio.html` }}
+        source={{ uri: `${backend}/nova-studio.html?fxbuild=general-room-v3-20261127` }}
         originWhitelist={["https://*"]}
         onShouldStartLoadWithRequest={(request: { url: string }) => request.url === "about:blank" || request.url.startsWith(`${backend}/nova-studio.html`)}
         javaScriptEnabled
