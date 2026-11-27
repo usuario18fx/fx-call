@@ -5,7 +5,7 @@ cd /app || exit 1
 SOURCE_BRANCH="feature/fxcall-general-room-20261127"
 BACKUP_BRANCH="backup/fxcall-ui-20261127-003212"
 
-echo "=== FX CALL / NOVA THREE MODES - SAFE MERGE V2 ==="
+echo "=== FX CALL / NOVA THREE MODES - RECOVERY V3 ==="
 ORIGIN="$(git remote get-url origin)"
 case "${ORIGIN,,}" in
   *usuario18fx/fx-call*) ;;
@@ -34,8 +34,7 @@ fi
 
 for file in "${EXISTING[@]}"; do
   if [[ ! -f "$file" ]]; then
-    echo "STOPPED: Missing required file: $file"
-    exit 1
+    echo "MISSING LOCAL FILE (will recover after backup): $file"
   fi
 done
 if [[ ! -x /app/frontend/node_modules/.bin/tsc ]]; then
@@ -71,22 +70,36 @@ git status --short -- "${EXISTING[@]}" "${NEW_FILES[@]}" > "$SNAP/git-status-bef
 echo "BACKUP OF LOCAL MODIFICATIONS SAVED: $SNAP"
 
 restore() {
+  trap - ERR
+  set +e
+  cd /app || true
   echo "CHECK FAILED — RESTORING ORIGINAL FILES"
+  local failures=0
   for file in "${EXISTING[@]}" "${NEW_FILES[@]}"; do
-    if [[ -f "$SNAP/$file" ]]; then cp -p "$SNAP/$file" "$file"; else rm -f "$file"; fi
+    mkdir -p "$(dirname "$file")" || { echo "CANNOT RESTORE DIRECTORY: $file"; failures=$((failures+1)); continue; }
+    if [[ -f "$SNAP/$file" ]]; then
+      cp -p "$SNAP/$file" "$file" || { echo "RESTORE FAILED: $file"; failures=$((failures+1)); }
+    else
+      rm -f "$file" || failures=$((failures+1))
+    fi
   done
   supervisorctl restart expo >/dev/null 2>&1 || true
-  echo "ROLLBACK COMPLETED"
+  echo "ROLLBACK COMPLETED WITH $failures FILE ERRORS"
+  echo "ORIGINAL SNAPSHOT: $SNAP"
+  exit 1
 }
 trap restore ERR
 
 WORK="$(mktemp -d /tmp/fxcall-nova-merge-XXXXXX)"
 trap 'rm -rf "$WORK"' EXIT
 for file in "${EXISTING[@]}"; do
-  mkdir -p "$WORK/base/$(dirname "$file")" "$WORK/new/$(dirname "$file")"
+  mkdir -p "$WORK/base/$(dirname "$file")" "$WORK/new/$(dirname "$file")" "$(dirname "$file")"
   git show "refs/remotes/origin/$BACKUP_BRANCH:$file" > "$WORK/base/$file"
   git show "refs/remotes/origin/$SOURCE_BRANCH:$file" > "$WORK/new/$file"
-  if cmp -s "$file" "$WORK/base/$file"; then
+  if [[ ! -f "$file" ]]; then
+    cp "$WORK/new/$file" "$file"
+    echo "RECOVERED MISSING FILE FROM NEW DESIGN: $file"
+  elif cmp -s "$file" "$WORK/base/$file"; then
     cp "$WORK/new/$file" "$file"
     echo "APPLIED NEW: $file"
   elif cmp -s "$file" "$WORK/new/$file"; then
