@@ -2487,7 +2487,7 @@
        ESTADO
     ============================================================ */
     let currentMode = 'live';
-    let currentCategory = 'account';
+    let currentCategory = 'general';
     let previousScreen = 'screen-studio';
     let liveSeconds = 0;
     let privateSeconds = 0;
@@ -2504,6 +2504,21 @@
        El resto se muestra como valor editable/consultable.
     ============================================================ */
     const settingsData = [
+      {
+        id: 'general',
+        num: '00',
+        kicker: 'WORKSPACE',
+        title: 'General',
+        items: [
+          { label: 'Open General settings', value: 'Open on this device', hint: 'Real settings · no demo toggles' },
+          { label: 'Starting screen', value: 'Meetings or Studio', hint: 'Saves per device' },
+          { label: 'Control language', value: 'English / Español', hint: 'Supported Host and Call Dock labels' },
+          { label: 'Camera & Studio', value: 'Open Studio' },
+          { label: 'Meetings & Rooms', value: 'Open Meetings' },
+          { label: 'Account security', value: 'Open secure settings' },
+          { label: 'About FX CALL', value: 'Version / platform' }
+        ]
+      },
       {
         id: 'account',
         num: '01',
@@ -3342,6 +3357,9 @@
   document.getElementById('paramGrid').addEventListener('click',function(event){
     var item=event.target.closest('[data-toggle],.value-param');if(!item)return;
     var category=getCurrentCategory();
+    if(category.id==='general'){
+      event.preventDefault();event.stopImmediatePropagation();post('open-general');return;
+    }
     if(category.id==='account'||category.id==='privacy'){
       event.preventDefault();event.stopImmediatePropagation();post('open-account');return;
     }
